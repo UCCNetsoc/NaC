@@ -1,0 +1,45 @@
+---
+- name: "Create netsoc-neo directory"
+  file:
+    path: /netsoc-neo/
+    state: directory
+
+- name: "Create directories for files/all/*/** to all hosts, files/<hostname>/**/* for each host"
+  file:
+    state: directory
+    dest: /netsoc-neo/{{ item.path }}
+    mode: "{{ item.mode }}"
+    owner: netsoc
+    group: netsoc
+  with_filetree: 
+    - files/all
+    - files/{{ inventory_hostname }}
+  when: item.state == "directory"
+  # all folder + each hostname
+    
+- name: "Copy files for files/all/*/** to all hosts, files/<hostname>/**/* for each host"
+  copy:
+    src: "{{ item.src }}"
+    dest: "/netsoc-neo/{{ item.path }}"
+    owner: netsoc
+    group: root
+    mode: "{{ item.mode }}"
+    backup: yes
+  with_filetree:
+    - files/all
+    - files/{{ inventory_hostname }}/
+  when: item.state == "file"
+
+# Copies the symlinks
+# - name: "Copy symlinks for files/all/*/** to all hosts, files/<hostname>/**/* for each host (respects permissions)"
+#   file:
+#     src: /{{ item.src }}
+#     dest: /{{ item.path }}
+#     state: link
+#     mode: "{{ item.mode }}"
+#     force: yes
+#     follow: false
+#   with_filetree:
+#     - files/all
+#     - files/{{ inventory_hostname }}/
+#   when: item.state == "link"
