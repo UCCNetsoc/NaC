@@ -13,11 +13,12 @@
     - all
 
 
-# - cloudflare_dns:
-#     zone:  "netsoc.dev"
-#     type: A
-#     record: "feynman.netsoc.dev"
-#     value: "10.0.0.113"
-#     state: present
-#     account_email: "{{ cf_api_email }}"
-#     account_api_token: "{{ cf_api_key }}"
+- name: "CNAME netsoc.dev -> feynman.netsoc.dev"
+  cloudflare_dns:
+    zone:  "netsoc.dev"
+    type: CNAME
+    record: "netsoc.dev"
+    value: "feynman.netsoc.dev"
+    state: present
+    account_email: "{{ cf_api_email }}"
+    account_api_token: "{{ cf_api_key }}"
