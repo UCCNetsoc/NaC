@@ -23,4 +23,5 @@
     - netsoc-neo-dir
 
   tags:
+    - base-install
     - config-update
