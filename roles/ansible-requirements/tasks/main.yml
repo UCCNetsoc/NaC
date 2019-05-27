@@ -1,0 +1,16 @@
+---
+# tasks file for ansible-requirements
+
+# We can't use any ansible modules here because python might not yet be installed
+# We're stuck with command line stuff
+- name: Ensure Python 2.7
+  raw: test -e /usr/bin/python || (apt -y update && apt install -y python)
+  tags: [base-install]
+
+- name: Ensure Python 3
+  raw: test -e /usr/bin/python3 || (apt -y update && apt install -y python3)
+  tags: [base-install]
+
+  # now that we have python, force fact gathering
+- name: Gather facts
+  setup:
