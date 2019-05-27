@@ -1,2 +1,2 @@
 Files in this directory have been autocopied using netsoc-ansible
-You can find them in roles/netsoc-neo-dir/files/all and in roles/netsoc-neo-dir/files/<server name>
+You can find them in roles/netsoc-neo-dir/files/all and in roles/netsoc-neo-dir/files/server_name
