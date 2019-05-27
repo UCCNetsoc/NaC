@@ -9,6 +9,7 @@
   
   roles:
     - ansible-requirements  # Installs python2.7, 3
+    - ubuntu-universe       # For python-pip, etc..
     - docker
   tags:
     - base-install
