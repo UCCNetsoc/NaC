@@ -1,0 +1,34 @@
+---
+
+- name: Ensure Docker dependencies
+  apt:
+    pkg:
+      - apt-transport-https
+      - ca-certificates
+      - curl
+      - software-properties-common
+    state: latest
+    install_recommends: no
+
+- name: Ensure Docker GPG key
+  apt_key:
+    url: https://download.docker.com/linux/ubuntu/gpg
+
+- name: Ensure Docker APT repo
+  apt_repository:
+    repo: deb [arch=amd64] https://download.docker.com/linux/ubuntu {{ansible_distribution_release}} stable
+
+- name: Ensure Docker
+  apt: 
+    name: docker-ce
+
+- name: Ensure Docker Compose dependencies
+  apt:
+    name: "{{ packages }}"
+  vars:
+    packages:
+    - python-pip
+
+- name: Ensure Docker Compose
+  pip:
+    name: docker-compose
