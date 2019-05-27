@@ -1,0 +1,24 @@
+---
+- name: "Install requirements on all hosts"
+  hosts: all
+  become: yes
+
+  # Assume we're doing a completely new install from a fresh server
+  # Fact gathering requires python, which the server may not have
+  gather_facts: no
+  
+  roles:
+    - ansible-requirements  # Installs python2.7, 3
+  tags:
+    - base-install
+
+- name: "Configure all hosts"
+  hosts: all
+  become: yes
+  gather_facts: yes
+
+  roles:
+    - netsoc-neo-dir
+
+  tags:
+    - config-update
