@@ -1,0 +1,23 @@
+---
+
+- name: "Add DNS records for each server name"
+  cloudflare_dns:
+    zone: "netsoc.dev"
+    type: A
+    record: "{{ item }}.netsoc.dev"
+    value: "{{ hostvars[item].ansible_host }}" # ansible_host in hosts.yml
+    state: present
+    account_email: "{{ cf_api_email }}"
+    account_api_token: "{{ cf_api_key }}"
+  with_inventory_hostnames:
+    - all
+
+
+# - cloudflare_dns:
+#     zone:  "netsoc.dev"
+#     type: A
+#     record: "feynman.netsoc.dev"
+#     value: "10.0.0.113"
+#     state: present
+#     account_email: "{{ cf_api_email }}"
+#     account_api_token: "{{ cf_api_key }}"
