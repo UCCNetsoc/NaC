@@ -24,10 +24,8 @@
 
 - name: Ensure Docker Compose dependencies
   apt:
-    name: "{{ packages }}"
-  vars:
-    packages:
-    - python-pip
+    name: python-pip
+    state: latest
 
 - name: Ensure Docker Compose
   pip:
