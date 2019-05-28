@@ -1,6 +1,6 @@
 ---
 
-- name: Create /etc/traefik
+- name: Ensure /etc/traefik created with 0755
   become: yes
   file:
     path: /etc/traefik
@@ -9,7 +9,7 @@
     mode: 0755 # -rw-r--r--, standard for folders in /etc/*
     state: directory
 
-- name: Copy config into /etc/traefik
+- name: Ensure config in /etc/traefik
   become: yes
   copy:
     src: "{{ item.src }}"
@@ -22,7 +22,7 @@
     - files/
   when: item.state == "file"
 
-- name: Touch /etc/traefik/acme.json
+- name: Ensure /etc/traefik/acme.json (touch with 0600)
   become: yes
   file:
     path: /etc/traefik/acme.json
@@ -30,7 +30,7 @@
     mode: 0600
     backup: yes
 
-- name: Setup Traefik Docker container
+- name: Ensure Traefik Docker container
   become: yes
   docker_compose:
     project_name: traefik

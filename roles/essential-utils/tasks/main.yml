@@ -3,7 +3,7 @@
   apt:
     update_cache: yes
 
-- name: "Install iotop, iftop, htop"
+- name: "Ensure iotop, iftop, htop installed"
   apt:
     name:
       - iotop
@@ -11,7 +11,7 @@
       - htop
     state: latest
 
-- name: "Install git"
+- name: "Ensure git installed"
   apt:
     name:
       - git

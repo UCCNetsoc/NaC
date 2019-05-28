@@ -1,4 +1,4 @@
-- name: Enable universe repository
+- name: Ensure Ubuntu universe repository enabled
   apt_repository:
     repo: "{{ item }}"
   loop:

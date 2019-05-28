@@ -1,6 +1,6 @@
 ---
 
-- name: Create FreeIPA server container
+- name: Ensure FreeIPA server container
   become: yes
   docker_compose:
     project_name: freeipa

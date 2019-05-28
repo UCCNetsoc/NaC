@@ -66,4 +66,3 @@
     ipa_traefik_host_rule: ipa-poc.netsoc.dev
   vars_files:
     - vars/freeipa.yml  # passwords
-    

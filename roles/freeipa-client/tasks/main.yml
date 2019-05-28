@@ -1,0 +1,2 @@
+---
+- name: "Enroll server as a FreeIPA client"
