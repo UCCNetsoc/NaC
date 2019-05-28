@@ -1,0 +1,19 @@
+---
+- name: Update APT cache
+  apt:
+    update_cache: yes
+
+- name: "Install iotop, iftop, htop"
+  apt:
+    name:
+      - iotop
+      - iftop
+      - htop
+    state: latest
+
+
+- name: "Install git"
+  apt:
+    name:
+      - git
+    state: latest
