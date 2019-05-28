@@ -39,9 +39,13 @@
     - install-services
 
 - name: "Setup Traefik"
-  hosts: feynman
-  vars_files:
-    - vars/cloudflare.yml # Used for LetsEncrypt
+  hosts:
+    - feynman
+  # ONLY uncomment for non-root servers (not feynman)!
+  # CF API keys are exposed in the Docker container env.
+  # /users can rob our SSL private key from /etc/traefik/acme.json!!!
+  # vars_files:
+  #   - vars/cloudflare.yml  # Used for LetsEncrypt
   roles:
     - traefik
   tags:
