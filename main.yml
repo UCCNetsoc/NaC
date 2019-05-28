@@ -56,6 +56,4 @@
   hosts:
     - feynman
   roles:
-    - portainer-standalone
-  vars:
-    portainer_host_rule: fportainer.netsoc.dev
+    - portainer-feynman

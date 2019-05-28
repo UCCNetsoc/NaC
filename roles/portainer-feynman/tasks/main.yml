@@ -33,9 +33,10 @@
           networks:
             - traefik
             - default
+          command: --no-auth
           labels:
             traefik.enable: true
             traefik.docker.network: traefik
-            traefik.frontend.rule: "Host: {{ portainer_host_rule }}"
+            traefik.frontend.rule: "Host: feynportainer.netsoc.co"
             traefik.port: "9000"
             traefik.protocol: "http"
