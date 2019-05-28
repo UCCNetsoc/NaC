@@ -13,22 +13,47 @@ logLevel = "ERROR"
   filePath = "/etc/traefik/access.log"
   format = "json"
 
-[api]
-  entryPoint = "traefik"
-  dashboard = true
-  debug = true
+# Security risk if left uncommented
+#[api]
+#  entryPoint = "traefik"
+#  dashboard = true
+#  debug = true
 
 [entryPoints]
   [entryPoints.http]
   address = ":80"
+    [entryPoints.http.redirect]
+    entryPoint = "https"
   [entryPoints.https]
   address = ":443"
-    [entryPoints.https.tls]
+  [entryPoints.https.tls]
   
-  [entryPoints.traefik]
-  address = ":8079"
+  #[entryPoints.traefik]
+  #address = ":8079"
+
+[retry]
+attempts = 2
 
 [docker]
 endpoint = "unix:///var/run/docker.sock"
 domain = "netsoc.dev"
 exposedByDefault = false
+
+[acme]
+acmeLogging = true
+email = "acme@ocanty.com"
+storage = "/etc/traefik/acme.json"
+caServer = "https://acme-v02.api.letsencrypt.org/directory"
+entryPoint = "https"
+
+[acme.tlsChallenge]
+
+[acme.dnsChallenge]
+  provider = "cloudflare"
+  delayBeforeCheck = 30
+  resolvers = ["1.1.1.1:53", "8.8.8.8:53"]
+
+[[acme.domains]]
+  main = "netsoc.dev"
+[[acme.domains]]
+  main = "*.netsoc.dev"
