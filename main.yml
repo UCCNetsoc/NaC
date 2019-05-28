@@ -8,7 +8,7 @@
     - import_tasks: dns.yml
   tags:
     - install-base
-    - update-config
+    - install-services
   
 - name: "Install requirements on all hosts"
   hosts: all
@@ -26,16 +26,24 @@
     - apt-autoremove        # Remove unused deps if they changed after updates
   tags:
     - install-base
-    - update-packages
+    - install-packages
 
-- name: "Configure all hosts"
+- name: "Copy netsoc-neo"
   hosts: all
   become: yes
   gather_facts: yes
-
   roles:
-    - netsoc-neo-dir      # Copies over config changes
-
+    - netsoc-neo-dir
   tags:
     - install-base
-    - update-config
+    - install-services
+
+- name: "Setup Traefik"
+  hosts: feynman
+  vars_files:
+    - vars/cloudflare.yml # Used for LetsEncrypt
+  roles:
+    - traefik
+  tags:
+    - install-base
+    - install-services

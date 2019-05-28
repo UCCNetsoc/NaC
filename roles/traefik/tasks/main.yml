@@ -1,0 +1,64 @@
+---
+
+- name: Create /etc/traefik
+  become: yes
+  file:
+    path: /etc/traefik
+    owner: root
+    group: root 
+    mode: 0755 # -rw-r--r--, standard for folders in /etc/*
+    state: directory
+
+- name: Copy config into /etc/traefik
+  become: yes
+  copy:
+    src: "{{ item.src }}"
+    dest: "/etc/traefik/{{ item.path }}"
+    owner: root
+    group: root
+    mode: "{{ item.mode }}"
+    backup: yes
+  with_filetree:
+    - files/
+  when: item.state == "file"
+
+- name: Setup Traefik Docker container
+  become: yes
+  docker_compose:
+    project_name: traefik
+    state: present
+    restarted: true
+    recreate: always
+    definition:
+      version: "3.5"
+      networks:
+        traefik:
+          name: traefik
+      services:
+        traefik:
+          image: traefik:alpine
+          ports:
+            - 80:80
+            - 443:443
+          expose:
+            - 8079  # Dashboard port, see traefik.toml
+          labels:
+            # yo dawg, we heard you like traefik so we proxied traefik with traefik
+            traefik.enable: true
+            traefik.frontend.rule: "Host: traefik.netsoc.dev"
+            traefik.port: 8079
+          volumes:
+            - /etc/traefik:/etc/traefik
+            - /var/run/docker.sock:/var/run/docker.sock
+          networks:
+            - traefik
+          environment:
+            CLOUDFLARE_API_KEY: "{{cf_api_key}}"
+            CLOUDFLARE_EMAIL: "{{cf_api_email}}"
+        whoami:
+          image: emilevauge/whoami
+          networks: 
+            - traefik
+          labels:
+            traefik.enable: true
+            traefik.frontend.rule: "Host: whoami.netsoc.dev"
