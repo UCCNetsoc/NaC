@@ -19,16 +19,16 @@
   gather_facts: no
   
   roles:
-    - ansible-requirements  # Installs python2.7, 3
+    - ansible-requirements  # Installs python2.7, 3 and then gathers facts
     - ubuntu-universe       # Add's ubuntu universe source (which has python-pip, etc..)
-    - essential-utils
+    - essential-utils       # git, htop, etc...
     - docker
-    - apt-autoremove        # Remove unused deps if they changed after updates
+    - apt-autoremove        # Remove unused deps if they changed after upgrades
   tags:
     - install-base
     - install-packages
 
-- name: "Copy netsoc-neo"
+- name: "Setup the /netsoc-neo/ dir"
   hosts: all
   become: yes
   gather_facts: yes
@@ -39,21 +39,31 @@
     - install-services
 
 - name: "Setup Traefik"
-  hosts:
-    - feynman
-  # ONLY uncomment for non-root servers (not feynman)!
-  # CF API keys are exposed in the Docker container env.
-  # /users can rob our SSL private key from /etc/traefik/acme.json!!!
-  # vars_files:
-  #   - vars/cloudflare.yml  # Used for LetsEncrypt
+  hosts: feynman
   roles:
     - traefik
   tags:
     - install-base
     - install-services
 
-- name: "Setup Portainer (feynman edition)"
-  hosts:
-    - feynman
+- name: "Setup Portainer"
+  hosts: feynman
   roles:
-    - portainer-feynman
+    - portainer
+  vars:
+    portainer_host_rule: feyn-portainer.netsoc.dev
+  tags:
+    - install-base
+    - install-services
+
+- name: "Setup FreeIPA Server"
+  hosts: feynman
+  roles:
+    - freeipa-server
+  vars:
+    ipa_realm: NETSOC.DEV
+    ipa_hostname: ipa-poc.netsoc.dev
+    ipa_traefik_host_rule: ipa-poc.netsoc.dev
+  vars_files:
+    - vars/freeipa.yml  # passwords
+    
