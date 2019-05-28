@@ -51,3 +51,11 @@
   tags:
     - install-base
     - install-services
+
+- name: "Setup Portainer (feynman edition)"
+  hosts:
+    - feynman
+  roles:
+    - portainer-standalone
+  vars:
+    portainer_host_rule: fportainer.netsoc.dev

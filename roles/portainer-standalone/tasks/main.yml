@@ -1,0 +1,41 @@
+---
+
+- name: Create /etc/portainer
+  become: yes
+  file:
+    path: /etc/portainer
+    owner: root
+    group: root 
+    mode: 0755 # -rw-r--r--, standard for folders in /etc/*
+    state: directory
+
+
+- name: Create Portainer container
+  become: yes
+  docker_service:
+    project_name: portainer
+    state: present
+    # restarted: true
+    # recreate: always
+    definition:
+      version: "3.5"
+      networks:
+        traefik:
+          external:
+            name: traefik
+      services:
+        portainer:
+          container_name: "portainer"
+          image: portainer/portainer
+          volumes:
+            - /etc/portainer:/data 
+            - /var/run/docker.sock:/var/run/docker.sock
+          networks:
+            - traefik
+            - default
+          labels:
+            traefik.enable: true
+            traefik.docker.network: traefik
+            traefik.frontend.rule: "Host: {{ portainer_host_rule }}"
+            traefik.port: "9000"
+            traefik.protocol: "http"
