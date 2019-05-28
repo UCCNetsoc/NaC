@@ -1,5 +1,4 @@
 ---
-
 - name: Ensure Docker dependencies
   apt:
     pkg:
@@ -9,6 +8,7 @@
       - software-properties-common
     state: latest
     install_recommends: no
+    update_cache: yes
 
 - name: Ensure Docker GPG key
   apt_key:
@@ -18,9 +18,14 @@
   apt_repository:
     repo: deb [arch=amd64] https://download.docker.com/linux/ubuntu {{ansible_distribution_release}} stable
 
+- name: Update APT cache
+  apt:
+    update_cache: yes
+
 - name: Ensure Docker
   apt: 
     name: docker-ce
+    state: latest
 
 - name: Ensure Docker Compose dependencies
   apt:
