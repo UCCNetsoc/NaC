@@ -22,7 +22,7 @@
     src: "{{ item.src }}"
     dest: "/netsoc-neo/{{ item.path }}"
     owner: netsoc
-    group: root
+    group: netsoc
     mode: "{{ item.mode }}"
     backup: yes
   with_filetree:
