@@ -1,0 +1,49 @@
+---
+
+- name: Create FreeIPA server container
+  become: yes
+  docker_compose:
+    project_name: freeipa
+    state: present
+    restarted: true
+    recreate: always
+    definition:
+      version: "3.5"
+      networks:
+        traefik:
+          external:
+            name: traefik
+      services:
+        freeipa:
+          container_name: "{{ container_name }}"
+          image: freeipa/freeipa-server
+          # https://github.com/freeipa/freeipa-container/issues/265#issuecomment-480614549
+          # Don't use --hostname here, because it's privileged
+          command: --unattended --realm={{ ipa_realm }} --ds-password={{ ipa_ds_password }} --admin-password={{ ipa_admin_password }}
+          hostname: "{{ ipa_hostname }}"
+          volumes:
+            - "/sys/fs/cgroup:/sys/fs/cgroup:ro"
+            - "/var/lib/ipa-data:/data:Z"
+          tmpfs:
+            - "/run"
+            - "/tmp"
+          sysctls:
+            net.ipv6.conf.lo.disable_ipv6: 0
+            # Fixes:
+            # DEBUG The ipa-server-install command failed, exception: 
+            # RuntimeError: IPv6 stack is enabled in the kernel but there is no interface that has ::1 address assigned.
+            # Add ::1 address resolution to "lo" interface. You might need to enable IPv6 on the interface "lo" in sysctl.conf.
+          networks:
+            - traefik
+            - default
+          ports:
+            - "389:389"   # ldap
+            - "636:636"   # ldaps
+            - "88:88"     # kerberos
+            - "464:464"   # kpasswd
+          labels:
+            traefik.enable: true
+            traefik.docker.network: traefik
+            traefik.frontend.rule: "Host:{{ ipa_traefik_host_rule }}"
+            traefik.port: "443"
+            traefik.protocol: "https"

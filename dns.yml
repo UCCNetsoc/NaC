@@ -12,6 +12,7 @@
   with_inventory_hostnames:
     - all
 
+# Root domain
 - name: "CNAME netsoc.dev -> feynman.netsoc.dev"
   cloudflare_dns:
     zone:  "netsoc.dev"
@@ -22,12 +23,24 @@
     account_email: "{{ cf_api_email }}"
     account_api_token: "{{ cf_api_key }}"
 
+# The wildcard
 - name: "CNAME *.netsoc.dev -> feynman.netsoc.dev"
   cloudflare_dns:
     zone:  "netsoc.dev"
     type: CNAME
     record: "*.netsoc.dev"
     value: "feynman.netsoc.dev"
+    state: present
+    account_email: "{{ cf_api_email }}"
+    account_api_token: "{{ cf_api_key }}"
+
+# FreeIPA POC
+- name: "A ipa-poc.netsoc.dev -> feynman IP"
+  cloudflare_dns:
+    zone:  "netsoc.dev"
+    type: A
+    record: "ipa-poc.netsoc.dev"
+    value: "{{ hostvars['feynman'].ansible_host }}" # feynman IP
     state: present
     account_email: "{{ cf_api_email }}"
     account_api_token: "{{ cf_api_key }}"
