@@ -7,8 +7,8 @@
   tasks:
     - import_tasks: dns.yml
   tags:
-    - dns
-    - config-update
+    - install-base
+    - update-config
   
 - name: "Install requirements on all hosts"
   hosts: all
@@ -20,10 +20,13 @@
   
   roles:
     - ansible-requirements  # Installs python2.7, 3
-    - ubuntu-universe       # For python-pip, etc..
+    - ubuntu-universe       # Add's ubuntu universe source (which has python-pip, etc..)
+    - essential-utils
     - docker
+    - apt-autoremove        # Remove unused deps if they changed after updates
   tags:
-    - base-install
+    - install-base
+    - update-packages
 
 - name: "Configure all hosts"
   hosts: all
@@ -31,8 +34,8 @@
   gather_facts: yes
 
   roles:
-    - netsoc-neo-dir
+    - netsoc-neo-dir      # Copies over config changes
 
   tags:
-    - base-install
-    - config-update
+    - install-base
+    - update-config
