@@ -2,6 +2,7 @@
 - name: "Create netsoc-neo directory"
   file:
     path: /netsoc-neo/
+    mode: 0700 # drwx-----
     state: directory
 
 - name: "Create directories for files/all/*/** to all hosts, files/<hostname>/**/* for each host"
