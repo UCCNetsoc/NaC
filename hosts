@@ -1,0 +1,24 @@
+# Please use IP addresses for each server
+# This is done because DNS may not be configured when the playbook is ran
+#
+# Keep the ansible hostname as strictly the server name
+# These are used to setup DNS records and related
+# i.e only use "feynman", not "feynman.netsoc.co"
+
+
+boole
+bigbertha
+feynman
+leela
+lovelace
+
+[swarm_creator]
+boole
+
+[swarm_manager]
+boole
+bigbertha
+lovelace
+
+[swarm_nodes]
+leela

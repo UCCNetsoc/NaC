@@ -11,7 +11,7 @@
     - install-services
   
 - name: "Ensure base install"
-  hosts: all
+  hosts: feynman
 
   # Assume we're doing a completely new install from a fresh server
   # Fact gathering requires python, which the server may not have
@@ -19,11 +19,11 @@
   
   roles:
     - ansible-requirements  # Installs python2.7, 3 and then gathers facts
+    - ubuntu-universe       # Ubuntu community repos
+    - essential-utils       # pip, iotop, htop, git, node, etc...
     - netsoc-neo-dir        # Set's up /netsoc-neo/ for storing our central files
     - paramiko-fix          # Fixes: # https://github.com/paramiko/paramiko/pull/1311
                             # Remove and upgrade paramiko when this is merged
-    - ubuntu-universe       # Ubuntu community repos
-    - essential-utils       # iotop, htop, git, node, etc...
     - shells
     - fail2ban
     
@@ -41,15 +41,15 @@
     - install-base
     - install-services
 
-- name: "Setup Portainer"
-  hosts: feynman
-  roles:
-    - portainer
-  vars:
-    portainer_traefik_host_rule: "feyn-portainer.netsoc.dev"
-  tags:
-    - install-base
-    - install-services
+# - name: "Setup Portainer"
+#   hosts: feynman
+#   roles:
+#     - portainer
+#   vars:
+#     portainer_traefik_host_rule: "feyn-portainer.netsoc.dev"
+#   tags:
+#     - install-base
+#     - install-services
 
 # - name: "Setup FreeIPA Server"
 #   hosts: feynman
