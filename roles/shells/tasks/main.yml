@@ -1,0 +1,15 @@
+---
+- name: Update APT cache
+  become: yes
+  apt:
+    update_cache: yes
+
+- name: "Ensure shells"
+  become: yes
+  apt:
+    name:
+      - fish
+      - zsh
+      - ksh
+      - csh
+    state: latest
