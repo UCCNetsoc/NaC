@@ -3,4 +3,4 @@ Ansible Requirements
 
 For debian based systems.
 
-Installs Python 2.7 and latest Python 3, then gathers facts
+Installs Python 2.7, Python 3, pip, virtualenv, then gathers facts
