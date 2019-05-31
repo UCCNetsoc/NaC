@@ -35,11 +35,11 @@
     account_api_token: "{{ cf_api_key }}"
 
 # FreeIPA POC
-- name: "A ipa-poc.netsoc.dev -> feynman IP"
+- name: "A feyn-ipa.netsoc.dev -> feynman IP"
   cloudflare_dns:
     zone:  "netsoc.dev"
     type: A
-    record: "ipa-poc.netsoc.dev"
+    record: "feyn-ipa.netsoc.dev"
     value: "{{ hostvars['feynman'].ansible_host }}" # feynman IP
     state: present
     account_email: "{{ cf_api_email }}"
