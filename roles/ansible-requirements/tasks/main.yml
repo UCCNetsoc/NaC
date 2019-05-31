@@ -13,22 +13,5 @@
   raw: test -e /usr/bin/python3 || (apt -y update && apt install -y python3 python3-apt)
   tags: [base-install]
 
-- name: Ensure Pip2.7
-  become: yes
-  raw: test -e /usr/bin/pip || (apt -y update && apt install -y python-pip)
-  tags: [base-install]
-
-- name: Ensure Pip3
-  become: yes
-  raw: test -e /usr/bin/pip3 || (apt -y update && apt install -y python3-pip)
-  tags: [base-install]
-
-- name: Ensure upgraded pip
-  become: yes
-  raw: python3 -m pip install --upgrade pip; python -m pip install --upgrade pip
-
-- name: Ensure virtualenv installed
-  raw: pip install virtualenv; pip3 install virtualenv 
-
 - name: Gather facts
   setup:

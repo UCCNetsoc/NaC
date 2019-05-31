@@ -1,10 +1,6 @@
 ---
-- name: Update APT cache
-  become: yes
-  apt:
-    update_cache: yes
 
-- name: "Ensure iotop, iftop, htop, git, nodejs, ipython, npm, JDK, ruby installed"
+- name: "Ensure iotop, iftop, htop, git, nodejs, ipython, npm, JDK, ruby. pip installed"
   become: yes
   apt:
     name:
@@ -17,4 +13,27 @@
       - npm
       - default-jdk
       - ruby
+      - python-pip
+      - python3-pip
+      - ranger
+      - sshfs
+      - wget
+      - vim
+      - nano
+      - nmap
+      - tmux
+      - less
+      - mosh
+      - ncdu
+      - ldnsutils # drill
+      - fortune-mod
+      - cowsay
+    state: latest
+    update_cache: yes
+
+- name: Ensure upgraded pip
+  become: yes
+  pip:
+    name:
+      - pip
     state: latest

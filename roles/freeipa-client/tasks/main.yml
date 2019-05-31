@@ -1,5 +1,4 @@
 ---
-# pip install 'paramiko==2.2.1' --force-reinstall
 
 - name: "Ensure FreeIPA client dependencies"
   become: yes
@@ -8,11 +7,12 @@
       - freeipa-client
       - freeipa-admintools
     state: latest
+    update_cache: yes
 
-# - name: "Enroll server as a FreeIPA client"
-#   become: yes
-#   command: "ipa-client-install --unattended --mkhomedir --server {{ ipa_server_hostname }} --domain {{ ipa_domain }} --realm {{ ipa_realm }} --hostname {{ ipa_client_hostname }} --password {{ ipa_admin_password }}" 
-#   register: result
+- name: "Enroll server as a FreeIPA client"
+  become: yes
+  command: "ipa-client-install --unattended --mkhomedir --server {{ ipa_server_hostname }} --domain {{ ipa_domain }} --realm {{ ipa_realm }} --hostname {{ ipa_client_hostname }} --principal admin --password {{ ipa_admin_password }}" 
+  register: result
 
-# - debug: msg="{{ result.stdout }}"
-# - debug: msg="{{ result.stderr }}"
+- debug: msg="{{ result.stdout }}"
+- debug: msg="{{ result.stderr }}"

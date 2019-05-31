@@ -1,8 +1,4 @@
 ---
-- name: Update APT cache
-  become: yes
-  apt:
-    update_cache: yes
 
 - name: "Ensure shells"
   become: yes
@@ -13,3 +9,4 @@
       - ksh
       - csh
     state: latest
+    update_cache: yes

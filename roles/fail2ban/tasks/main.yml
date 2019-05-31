@@ -1,12 +1,16 @@
 ---
 - name: "Ensure fail2ban installed"
+  become: yes
   apt:
     name:
       - fail2ban
     state: latest
+    update_cache: yes
 
 
-  name: "Ensure fail2ban service enabled & running"
-  name: fail2ban
-  enabled: true
-  started: true
+- name: "Ensure fail2ban service enabled & running"
+  become: yes
+  systemd:
+    name: fail2ban
+    enabled: true
+    state: started

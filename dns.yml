@@ -13,7 +13,7 @@
     - all
 
 # Root domain
-- name: "CNAME netsoc.dev -> feynman.netsoc.dev"
+- name: "CNAME netsoc.dev = feynman.netsoc.dev"
   cloudflare_dns:
     zone:  "netsoc.dev"
     type: CNAME
@@ -24,7 +24,7 @@
     account_api_token: "{{ cf_api_key }}"
 
 # The wildcard
-- name: "CNAME *.netsoc.dev -> feynman.netsoc.dev"
+- name: "CNAME *.netsoc.dev = feynman.netsoc.dev"
   cloudflare_dns:
     zone:  "netsoc.dev"
     type: CNAME
@@ -35,7 +35,7 @@
     account_api_token: "{{ cf_api_key }}"
 
 # FreeIPA POC
-- name: "A feyn-ipa.netsoc.dev -> feynman IP"
+- name: "A feyn-ipa.netsoc.dev = feynman IP"
   cloudflare_dns:
     zone:  "netsoc.dev"
     type: A

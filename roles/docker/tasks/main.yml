@@ -21,16 +21,12 @@
   apt_repository:
     repo: deb [arch=amd64] https://download.docker.com/linux/ubuntu {{ansible_distribution_release}} stable
 
-- name: Update APT cache
-  become: yes
-  apt:
-    update_cache: yes
-
 - name: Ensure Docker
   become: yes
   apt: 
     name: docker-ce
     state: latest
+    update_cache: yes
 
 - name: Ensure Docker Compose dependencies
   become: yes
