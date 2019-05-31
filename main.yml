@@ -10,9 +10,8 @@
     - install-base
     - install-services
   
-- name: "Install requirements on all hosts"
+- name: "Ensure base install"
   hosts: all
-  become: yes
 
   # Assume we're doing a completely new install from a fresh server
   # Fact gathering requires python, which the server may not have
@@ -20,23 +19,19 @@
   
   roles:
     - ansible-requirements  # Installs python2.7, 3 and then gathers facts
-    - ubuntu-universe       # Add's ubuntu universe source (which has python-pip, etc..)
-    - essential-utils       # git, htop, etc...
-    - docker
-    - apt-autoremove        # Remove unused deps if they changed after upgrades
+    - netsoc-neo-dir        # Set's up /netsoc-neo/ for storing our central files
+    - paramiko-fix          # Fixes: # https://github.com/paramiko/paramiko/pull/1311
+                            # Remove and upgrade paramiko when this is merged
+    - ubuntu-universe       # Ubuntu community repos
+    - essential-utils       # iotop, htop, git, node, etc...
+    - shells
+    - fail2ban
+    
+    - docker                # Docker APT, Docker, etc...
+    - apt-autoremove        # Clean up any unused deps
   tags:
     - install-base
     - install-packages
-
-- name: "Setup the /netsoc-neo/ dir"
-  hosts: all
-  become: yes
-  gather_facts: yes
-  roles:
-    - netsoc-neo-dir
-  tags:
-    - install-base
-    - install-services
 
 - name: "Setup Traefik"
   hosts: feynman
@@ -51,18 +46,31 @@
   roles:
     - portainer
   vars:
-    portainer_host_rule: feyn-portainer.netsoc.dev
+    portainer_traefik_host_rule: "feyn-portainer.netsoc.dev"
   tags:
     - install-base
     - install-services
 
-- name: "Setup FreeIPA Server"
-  hosts: feynman
-  roles:
-    - freeipa-server
-  vars:
-    ipa_realm: NETSOC.DEV
-    ipa_hostname: ipa-poc.netsoc.dev
-    ipa_traefik_host_rule: ipa-poc.netsoc.dev
-  vars_files:
-    - vars/freeipa.yml  # passwords
+# - name: "Setup FreeIPA Server"
+#   hosts: feynman
+#   roles:
+#     - freeipa-server
+#   vars:
+#     ipa_realm: NETSOC.DEV
+#     ipa_server_hostname: feyn-ipa.netsoc.dev
+#     ipa_traefik_host_rule: feyn-ipa.netsoc.dev
+#   vars_files:
+#     - vars/freeipa.yml  # passwords
+
+# - name: "Setup FreeIPA Clients"
+#   hosts: feynman
+#   roles:
+#     - freeipa-client
+#   vars:
+#     ipa_realm: NETSOC.DEV
+#     ipa_domain: netsoc.dev
+#     ipa_server_hostname: feyn-ipa.netsoc.dev
+#     ipa_client_hostname: "{{ inventory_hostname }}.netsoc.dev"
+#   vars_files:
+#     - vars/freeipa.yml  # passwords
+
