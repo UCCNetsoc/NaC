@@ -1,5 +1,15 @@
 ---
 
+- name: Ensure /netsoc-neo/freeipa created with 0755
+  become: yes
+  file:
+    path: /netsoc-neo/freeipa
+    owner: root
+    group: root
+    mode: 0770 # drwx-------
+    state: directory
+
+
 - name: Ensure FreeIPA server container
   become: yes
   docker_compose:
@@ -15,15 +25,15 @@
             name: traefik
       services:
         freeipa:
-          container_name: "{{ container_name }}"
+          container_name: "{{ ipa_container_name }}"
           image: freeipa/freeipa-server
           # https://github.com/freeipa/freeipa-container/issues/265#issuecomment-480614549
           # Don't use --hostname here, because it's privileged
           command: --unattended --realm={{ ipa_realm }} --ds-password={{ ipa_ds_password }} --admin-password={{ ipa_admin_password }}
-          hostname: "{{ ipa_hostname }}"
+          hostname: "{{ ipa_server_hostname }}"
           volumes:
             - "/sys/fs/cgroup:/sys/fs/cgroup:ro"
-            - "/var/lib/ipa-data:/data:Z"
+            - "/netsoc-neo/freeipa:/data:Z"
           tmpfs:
             - "/run"
             - "/tmp"
@@ -44,6 +54,6 @@
           labels:
             traefik.enable: true
             traefik.docker.network: traefik
-            traefik.frontend.rule: "Host:{{ ipa_traefik_host_rule }}"
+            traefik.frontend.rule: "Host: {{ ipa_traefik_host_rule }}"
             traefik.port: "443"
             traefik.protocol: "https"

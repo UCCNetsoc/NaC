@@ -2,4 +2,4 @@
 
 # see ipa-ldap-updater man page for more info
 - name: "Ensure IPA LDAP updated - ipa-ldap-updater with *.update in ipa-data/usr/share/ipa/updates"
-  command: docker exec -it {{container_name}} bash -c 'ipa-ldap-updater /data/usr/share/ipa/updates/*.update' 
+  command: docker exec -it {{ipa_container_name}} bash -c 'ipa-ldap-updater /data/usr/share/ipa/updates/*.update' 

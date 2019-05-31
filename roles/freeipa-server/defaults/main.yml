@@ -1,2 +1,2 @@
 ---
-container_name: freeipa
+ipa_container_name: freeipa
