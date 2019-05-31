@@ -1,0 +1,12 @@
+---
+- name: "Ensure fail2ban installed"
+  apt:
+    name:
+      - fail2ban
+    state: latest
+
+
+  name: "Ensure fail2ban service enabled & running"
+  name: fail2ban
+  enabled: true
+  started: true
