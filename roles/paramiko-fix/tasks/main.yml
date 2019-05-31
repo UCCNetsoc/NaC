@@ -1,0 +1,14 @@
+---
+- name: "Ensure GSSAPI compatible Paramiko wheel"
+  copy:
+    src: "paramiko-2.2.1-py2.py3-none-any.whl"
+    dest: "/netsoc-neo/paramiko-2.2.1-py2.py3-none-any.whl"
+    owner: netsoc
+    group: netsoc
+    mode: 0770
+
+- name: "Ensure GSSAPI compatible Paramiko fix"
+  become: yes
+  pip:
+    name: "/netsoc-neo/paramiko-2.2.1-py2.py3-none-any.whl"
+    state: forcereinstall
