@@ -14,10 +14,10 @@ logLevel = "ERROR"
   format = "json"
 
 # Security risk if left uncommented
-#[api]
-#  entryPoint = "traefik"
-#  dashboard = true
-#  debug = true
+[api]
+  entryPoint = "traefik"
+  dashboard = true
+  debug = true
 
 [entryPoints]
   [entryPoints.http]
@@ -28,8 +28,8 @@ logLevel = "ERROR"
   address = ":443"
   [entryPoints.https.tls]
   
-  #[entryPoints.traefik]
-  #address = ":8079"
+  [entryPoints.traefik]
+  address = ":8084"
 
 [retry]
 attempts = 2
