@@ -1,4 +1,5 @@
 - name: Ensure Ubuntu universe repository enabled
+  become: yes
   apt_repository:
     repo: "{{ item }}"
   loop:
@@ -7,5 +8,6 @@
     - "deb http://security.ubuntu.com/ubuntu/ bionic-security universe"
 
 - name: Update APT cache
+  become: yes
   apt:
     update_cache: yes
