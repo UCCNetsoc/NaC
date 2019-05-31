@@ -1,18 +1,20 @@
 ---
 - name: Update APT cache
+  become: yes
   apt:
     update_cache: yes
 
-- name: "Ensure iotop, iftop, htop installed"
+- name: "Ensure iotop, iftop, htop, git, nodejs, ipython, npm, JDK, ruby installed"
+  become: yes
   apt:
     name:
       - iotop
       - iftop
       - htop
-    state: latest
-
-- name: "Ensure git installed"
-  apt:
-    name:
       - git
+      - nodejs
+      - ipython
+      - npm
+      - default-jdk
+      - ruby
     state: latest
