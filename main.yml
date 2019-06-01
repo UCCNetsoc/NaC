@@ -33,6 +33,25 @@
     - install-base
     - install-packages
 
+- name: "Ensure Docker Swarm created" 
+  hosts: swarm_creators
+  roles:
+    - docker-swarm-create
+
+- name: "Ensure Docker Swarm managers enrolled"
+  hosts: swarm_managers
+  roles:
+    - docker-swarm-enroll-manager
+  vars:
+    swarm_creator: "{{ groups['swarm_creators'][0] }}"
+
+- name: "Ensure Docker Swarm workers enrolled"
+  hosts: swarm_workers
+  roles:
+      - docker-swarm-enroll-worker
+  vars:
+    swarm_creator: "{{ groups['swarm_creators'][0] }}"
+
 - name: "Setup Traefik"
   hosts: feynman
   roles:

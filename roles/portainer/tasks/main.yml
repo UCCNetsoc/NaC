@@ -4,8 +4,8 @@
   become: yes
   file:
     path: /netsoc-neo/portainer
-    owner: root
-    group: root 
+    owner: netsoc
+    group: netsoc
     mode: 0770 # -rw-r--r--,
     state: directory
 
