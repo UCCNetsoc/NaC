@@ -38,3 +38,4 @@
   become: yes
   pip:
     name: docker-compose
+    state: latest

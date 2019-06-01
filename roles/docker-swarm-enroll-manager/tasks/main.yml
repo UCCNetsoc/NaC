@@ -1,0 +1,15 @@
+---
+
+
+- name: "Check if host enrolled as manager"
+  become: yes
+  shell: "docker node ls"      # Will return an non-zero error code if the swarm does not exist
+  register: swarm_ls
+  changed_when: "swarm_ls.rc != 0"
+  ignore_errors: true
+
+# Skipped if swarm exists
+- name: "Ensure this host enrolled as manager"
+  become: yes
+  shell: "docker swarm join --token {{ hostvars[swarm_creator]['swarm_manager_token'] }}  {{ hostvars[swarm_creator].ansible_host }}:2377"
+  when: swarm_ls.rc != 0      # Don't create the swarm if the previous docker node ls returned zero

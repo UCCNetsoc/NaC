@@ -12,13 +12,14 @@ feynman
 leela
 lovelace
 
-[swarm_creator]
+
+[swarm_creators]
 boole
 
-[swarm_manager]
+[swarm_managers]
 boole
 bigbertha
 lovelace
 
-[swarm_nodes]
+[swarm_workers]
 leela
