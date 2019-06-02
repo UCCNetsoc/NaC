@@ -1,9 +1,5 @@
 ---
 - name: "Ensure Consul cluster"
-  vars:
-    server_bootstrap_cmd: !unsafe 'agent -server -bootstrap-expect 3 -ui -client 0.0.0.0'
-    server_cmd: !unsafe 'agent -server -retry-join consul_server_bootstrap -client 0.0.0.0'
-    agent_cmd: !unsafe 'agent -retry-join consul_server_bootstrap -client 0.0.0.0'
   become: yes
   docker_stack:
     state: present
@@ -22,11 +18,7 @@
               - "8600:8600"
               - "8600:8600/udp"
             # Bootstrap the cluster once 3 servers (this + 2 more) are available
-            # escaped {{ and }} here
-            # https://docs.ansible.com/ansible/latest/user_guide/playbooks_advanced_syntax.html
-            # actual command executed:
-            # "agent -server -bootstrap-expect 3 -ui -client-bind='{{ GetInterfaceIP "eth0" }}'"
-            command: "{{ server_bootstrap_cmd }}"
+            command: "agent -server -bootstrap-expect 3 -ui -client 0.0.0.0"
             environment:
               - CONSUL_BIND_INTERFACE=eth0
             deploy:
@@ -45,7 +37,7 @@
             networks:
               - consul
             # Join the server to  consul cluster (to the bootstrap server above)
-            command: "{{ server_cmd }}"
+            command: "agent -server -retry-join consul_server_bootstrap -client 0.0.0.0"
             environment:
               - CONSUL_BIND_INTERFACE=eth0
             deploy:
@@ -64,7 +56,7 @@
             networks:
               - consul
             # Join the agent to consul cluster (to the bootstrap server above)
-            command: "{{ agent_cmd }}"
+            command: "agent -retry-join consul_server_bootstrap -client 0.0.0.0"
             environment:
               - CONSUL_BIND_INTERFACE=eth0
             deploy:

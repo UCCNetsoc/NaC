@@ -11,9 +11,33 @@
 
 - name: Ensure Python 3
   become: yes
-  raw: test -e /usr/bin/python3 || (apt -y update && apt install -y python3 python3-apt)
+  raw: test -e /usr/bin/python3 || (apt -y update && apt install -y python3)
   register: result
   changed_when: "result.rc != 0"
 
 - name: Gather facts
   setup:
+
+- name: "Ensure pip installed"
+  become: yes
+  raw: "curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py; python3 get-pip.py"
+  
+
+# - name: "Ensure pip installed"
+#   become: yes
+#   apt:
+#     name:
+#       - python-pip
+#       - python-distutils-extra
+#       # - python3-pip
+#     state: latest
+#     update_cache: yes
+
+- name: Ensure upgraded pip
+  become: yes
+  pip:
+    name:
+      - pip
+      - jsondiff
+    state: latest
+    extra_args: --upgrade

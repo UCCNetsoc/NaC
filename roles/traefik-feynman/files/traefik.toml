@@ -1,0 +1,35 @@
+defaultEntryPoints = ["http", "https"]
+
+# Don't bother with HTTPS intraserver
+# We're using Traefik as an SSL termination proxy
+insecureSkipVerify = true
+logLevel = "ERROR"
+
+[traefikLog]
+  filePath = "/etc/traefik/traefik.log"
+  format   = "json"
+
+[accessLog]
+  filePath = "/etc/traefik/access.log"
+  format = "json"
+
+# Security risk if left uncommented
+[api]
+  entryPoint = "traefik"
+  dashboard = true
+  debug = true
+
+[entryPoints]
+  [entryPoints.http]
+  address = ":80"
+
+  [entryPoints.traefik]
+  address = ":8084"
+
+[retry]
+attempts = 2
+
+[docker]
+endpoint = "unix:///var/run/docker.sock"
+domain = "netsoc.dev"
+exposedByDefault = false

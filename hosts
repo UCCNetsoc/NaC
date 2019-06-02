@@ -12,6 +12,11 @@ feynman
 leela
 lovelace
 
+[ipa_servers]
+boole
+
+[ipa_replicas]
+bigbertha
 
 [swarm_creators]
 boole

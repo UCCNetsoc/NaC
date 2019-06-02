@@ -1,6 +1,6 @@
 ---
 
-- name: "Ensure shells"
+- name: "Ensure shells installed"
   become: yes
   apt:
     name:

@@ -1,5 +1,35 @@
 ---
 
+- name: Ensure /netsoc-neo/traefik created with 0755
+  become: yes
+  file:
+    path: /netsoc-neo/traefik
+    owner: netsoc
+    group: netsoc
+    mode: 0700 # drwx----
+    state: directory
+
+- name: Ensure config in /netsoc-neo/traefik
+  become: yes
+  copy:
+    src: "{{ item.src }}"
+    dest: "/netsoc-neo/traefik/{{ item.path }}"
+    owner: netsoc
+    group: netsoc
+    mode: "{{ item.mode }}"
+    backup: yes
+  with_filetree:
+    - files/
+  when: item.state == "file"
+
+- name: Ensure /netsoc-neo/traefik/acme.json (touch with 0600)
+  become: yes
+  file:
+    path: /netsoc-neo/traefik/acme.json
+    state: touch
+    mode: 0600
+    backup: yes
+
 - name: Ensure Traefik Docker container
   become: yes
   docker_compose:
@@ -24,9 +54,6 @@
             - /var/run/docker.sock:/var/run/docker.sock
           networks:
             - traefik
-          environment:
-            CF_API_KEY: "{{cf_api_key}}"
-            CF_API_EMAIL: "{{cf_api_email}}"
         whoami:
           image: emilevauge/whoami
           networks: 
@@ -34,4 +61,3 @@
           labels:
             traefik.enable: true
             traefik.frontend.rule: "Host: whoami.netsoc.dev"
-            

@@ -1,5 +1,6 @@
 ---
 - name: "Create netsoc-neo directory"
+  become: yes
   file:
     path: /netsoc-neo/
     mode: 0770 # drwx-----
@@ -8,6 +9,7 @@
     state: directory
 
 - name: "Create directories for files/all/*/** to all hosts, files/<hostname>/**/* for each host"
+  become: yes
   file:
     state: directory
     dest: /netsoc-neo/{{ item.path }}
@@ -21,6 +23,7 @@
   # all folder + each hostname
     
 - name: "Copy files for files/all/*/** to all hosts, files/<hostname>/**/* for each host"
+  become: yes
   copy:
     src: "{{ item.src }}"
     dest: "/netsoc-neo/{{ item.path }}"

@@ -11,7 +11,7 @@
     - install-services
   
 - name: "Ensure base install"
-  hosts: feynman
+  hosts: all
 
   # Assume we're doing a completely new install from a fresh server
   # Fact gathering requires python, which the server may not have
@@ -19,14 +19,13 @@
   
   roles:
     - ansible-requirements  # Installs python2.7, 3 and then gathers facts
-    - ubuntu-universe       # Ubuntu community repos
+    # - ubuntu-universe     # Ubuntu community repos. Uncomment when every server is on 18.04
     - essential-utils       # pip, iotop, htop, git, node, etc...
     - netsoc-neo-dir        # Set's up /netsoc-neo/ for storing our central files
     - paramiko-fix          # Fixes: # https://github.com/paramiko/paramiko/pull/1311
                             # Remove and upgrade paramiko when this is merged
     - shells
     - fail2ban
-    
     - docker                # Docker APT, Docker, etc...
     - apt-autoremove        # Clean up any unused deps
   tags:
@@ -37,6 +36,9 @@
   hosts: swarm_creators
   roles:
     - docker-swarm-create
+  tags:
+    - install-base
+    - install-swarm
 
 - name: "Ensure Docker Swarm managers enrolled"
   hosts: swarm_managers
@@ -44,21 +46,35 @@
     - docker-swarm-enroll-manager
   vars:
     swarm_creator: "{{ groups['swarm_creators'][0] }}"
+  tags:
+    - install-base
+    - install-swarm
 
 - name: "Ensure Docker Swarm workers enrolled"
   hosts: swarm_workers
   roles:
-      - docker-swarm-enroll-worker
+    - docker-swarm-enroll-worker
   vars:
     swarm_creator: "{{ groups['swarm_creators'][0] }}"
-
-- name: "Setup Traefik"
-  hosts: feynman
-  roles:
-    - traefik
   tags:
     - install-base
-    - install-services
+    - install-swarm
+
+- name: "Setup Swarm Services (Portainer Agent, Consul, Traefik)"
+  hosts: swarm_creators
+  roles:
+    - portainer-agent
+    - consul
+  tags:
+    - install-swarm
+
+- name: "Ensure Traefik (non-SSL for feynman)"
+  hosts: feynman
+  roles:
+    - traefik-feynman
+  tags:
+    - install-base
+    - install-services 
 
 # - name: "Setup Portainer"
 #   hosts: feynman
