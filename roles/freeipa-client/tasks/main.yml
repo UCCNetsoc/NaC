@@ -11,8 +11,15 @@
 
 - name: "Enroll server as a FreeIPA client"
   become: yes
-  command: "ipa-client-install --unattended --mkhomedir --server {{ ipa_server_hostname }} --domain {{ ipa_domain }} --realm {{ ipa_realm }} --hostname {{ ipa_client_hostname }} --principal admin --password {{ ipa_admin_password }}" 
+  command: "ipa-client-install --unattended --fixed-primary --mkhomedir --server {{ ipa_server_hostname }} --domain {{ ipa_domain }} --realm {{ ipa_realm }} --hostname {{ ipa_client_hostname }} --principal admin --password {{ ipa_admin_password }}" 
   register: result
+  ignore_errors: true
 
 - debug: msg="{{ result.stdout }}"
 - debug: msg="{{ result.stderr }}"
+
+- name: "Update nsswitch.conf to use Files, SSSD for auth"
+  become: yes
+  copy:
+    src: "files/nsswitch.conf"
+    dest: "/etc/nsswitch.conf"

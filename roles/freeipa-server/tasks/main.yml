@@ -1,11 +1,11 @@
 ---
 
-- name: Ensure /netsoc-neo/freeipa created with 0755
+- name: Ensure /netsoc-neo/docker-data/freeipa created with 0755
   become: yes
   file:
-    path: /netsoc-neo/freeipa
-    owner: root
-    group: root
+    path: /netsoc-neo/docker-data/freeipa
+    owner: netsoc
+    group: netsoc
     mode: 0770 # drwx-------
     state: directory
 
@@ -15,8 +15,6 @@
   docker_compose:
     project_name: freeipa
     state: present
-    restarted: true
-    recreate: always
     definition:
       version: "3.5"
       networks:
@@ -33,7 +31,7 @@
           hostname: "{{ ipa_server_hostname }}"
           volumes:
             - "/sys/fs/cgroup:/sys/fs/cgroup:ro"
-            - "/netsoc-neo/freeipa:/data:Z"
+            - "/netsoc-neo/docker-data/freeipa:/data:Z"
           tmpfs:
             - "/run"
             - "/tmp"
@@ -47,10 +45,14 @@
             - traefik
             - default
           ports:
+            # - "80:80"
+            # - "443:443"
             - "389:389"   # ldap
             - "636:636"   # ldaps
             - "88:88"     # kerberos
             - "464:464"   # kpasswd
+            - "749:749"   # kpasswd
+            - "123:123"   # ntp
           labels:
             traefik.enable: true
             traefik.docker.network: traefik

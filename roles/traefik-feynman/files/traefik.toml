@@ -22,7 +22,14 @@ logLevel = "ERROR"
 [entryPoints]
   [entryPoints.http]
   address = ":80"
-
+    [entryPoints.http.redirect]
+    entryPoint = "https"
+  [entryPoints.https]
+  address = ":443"
+  [entryPoints.https.tls]
+   [[entryPoints.https.tls.certificates]]
+    certFile = "/etc/traefik/httpd.crt"
+    keyFile = "/etc/traefik/httpd.key"
   [entryPoints.traefik]
   address = ":8084"
 

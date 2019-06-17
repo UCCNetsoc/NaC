@@ -1,19 +1,19 @@
 ---
 
-- name: Ensure /netsoc-neo/traefik created with 0755
+- name: Ensure /netsoc-neo/docker-data/traefik created with 0700
   become: yes
   file:
-    path: /netsoc-neo/traefik
+    path: /netsoc-neo/docker-data/traefik
     owner: netsoc
     group: netsoc
     mode: 0700 # drwx----
     state: directory
 
-- name: Ensure config in /netsoc-neo/traefik
+- name: Ensure config in /netsoc-neo/docker-data/traefik
   become: yes
   copy:
     src: "{{ item.src }}"
-    dest: "/netsoc-neo/traefik/{{ item.path }}"
+    dest: "/netsoc-neo/docker-data/traefik/{{ item.path }}"
     owner: netsoc
     group: netsoc
     mode: "{{ item.mode }}"
@@ -21,14 +21,6 @@
   with_filetree:
     - files/
   when: item.state == "file"
-
-- name: Ensure /netsoc-neo/traefik/acme.json (touch with 0600)
-  become: yes
-  file:
-    path: /netsoc-neo/traefik/acme.json
-    state: touch
-    mode: 0600
-    backup: yes
 
 - name: Ensure Traefik Docker container
   become: yes
@@ -50,7 +42,7 @@
             - 443:443
             - 8084:8084
           volumes:
-            - /netsoc-neo/traefik:/etc/traefik
+            - /netsoc-neo/docker-data/traefik:/etc/traefik
             - /var/run/docker.sock:/var/run/docker.sock
           networks:
             - traefik
