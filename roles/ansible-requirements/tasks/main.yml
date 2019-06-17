@@ -23,6 +23,7 @@
   raw: "curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py; python3 get-pip.py"
   
 
+# Uncomment when all servers are on 18.04 LTS
 # - name: "Ensure pip installed"
 #   become: yes
 #   apt:

@@ -1,4 +1,14 @@
 ---
+
+- name: Ensure /netsoc-neo/docker-data/consul created with 0700
+  become: yes
+  file:
+    path: /netsoc-neo/docker-data/consul
+    owner: netsoc
+    group: netsoc
+    mode: 0700 # drwx----
+    state: directory
+
 - name: "Ensure Consul cluster"
   become: yes
   docker_stack:
@@ -7,16 +17,17 @@
     compose: 
       - version: '3.5'
         services:
-          server_bootstrap:
-            container_name: consul_server_bootstrap
+          server_leader:
+            hostname: consul_{{ inventory_hostname }}
+            container_name: consul_server_leader
             image: consul:latest
             networks:
               - consul
-            ports:
-              - "8400:8400"
-              - "8500:8500"
-              - "8600:8600"
-              - "8600:8600/udp"
+            #ports:
+              # - "8400:8400"
+              # - "8500:8500"
+              # - "8600:8600"
+              # - "8600:8600/udp"
             # Bootstrap the cluster once 3 servers (this + 2 more) are available
             command: "agent -server -bootstrap-expect 3 -ui -client 0.0.0.0"
             environment:
@@ -32,8 +43,10 @@
                 delay: 5s
                 max_attempts: 3
 
-          server:
+          server_replica:
+            hostname: consul_{{ inventory_hostname }}
             image: consul:latest
+            container_name: consul_server_replica
             networks:
               - consul
             # Join the server to  consul cluster (to the bootstrap server above)
@@ -51,8 +64,10 @@
                 delay: 5s
                 max_attempts: 3
 
-          agent:
+          client_agent:
+            hostname: consul_{{ inventory_hostname }}
             image: consul:latest
+            container_name: consul_client_agent
             networks:
               - consul
             # Join the agent to consul cluster (to the bootstrap server above)
@@ -68,8 +83,6 @@
                 condition: on-failure
                 delay: 5s
                 max_attempts: 3
-
-
         networks:
           consul:
             driver: overlay

@@ -1,6 +1,6 @@
 ---
 
-- name: "Ensure iotop, iftop, htop, git, nodejs, ipython, npm, JDK, ruby. pip installed"
+- name: "Ensure iotop, iftop, htop, git, nodejs, ipython, npm, JDK, ruby, etc.. installed"
   become: yes
   apt:
     name:

@@ -2,36 +2,59 @@
 
 - name: Ensure Traefik Docker container
   become: yes
-  docker_compose:
-    project_name: traefik
+  docker_stack:
     state: present
-    restarted: true
-    recreate: always
-    definition:
-      version: "3.5"
-      networks:
-        traefik:
-          name: traefik
-      services:
-        traefik:
-          image: traefik:alpine
+    name: consul
+    compose:
+      - traefik:
+          image: traefik:v1.7
           ports:
             - 80:80
             - 443:443
-            - 8084:8084
+          deploy:
+            replicas: 3
+            placement:
+              constraints:
+                - node.role == manager
+              preferences:
+                - spread: node.id
+            labels:
+              - traefik.frontend.rule=Host:traefik.${DOMAIN}
+              - traefik.enable=true
+              - traefik.port=8080
+              - traefik.tags=traefik
+              - traefik.docker.network=traefik
+              # Traefik service that listens to HTTP
+              - traefik.redirectorservice.frontend.entryPoints=http
+              #- traefik.redirectorservice.frontend.redirect.entryPoint=https
+              # Traefik service that listens to HTTPS
+              #- traefik.webservice.frontend.entryPoints=https
+             # - traefik.frontend.auth.basic.users=${USERNAME}:${HASHED_PASSWORD}
           volumes:
-            - /netsoc-neo/traefik:/etc/traefik
             - /var/run/docker.sock:/var/run/docker.sock
-          networks:
-            - traefik
-          environment:
-            CF_API_KEY: "{{cf_api_key}}"
-            CF_API_EMAIL: "{{cf_api_email}}"
-        whoami:
-          image: emilevauge/whoami
-          networks: 
-            - traefik
-          labels:
-            traefik.enable: true
-            traefik.frontend.rule: "Host: whoami.netsoc.dev"
-            
+          command: >
+            --docker
+            --docker.swarmmode
+            --docker.watch
+            --docker.exposedbydefault=false
+            --constraints=tag==traefik-public
+            --entrypoints='Name:http Address::80'
+            --entrypoints='Name:https Address::443 TLS'
+            --consul
+            --consul.endpoint="consul-leader:8500"
+            --acme
+            --acme.email=${EMAIL}
+            --acme.storage="traefik/acme/account"
+            --acme.entryPoint=https
+            --acme.httpChallenge.entryPoint=http
+            --acme.onhostrule=true
+            --acme.acmelogging=true
+            --logLevel=INFO
+            --accessLog
+            --api
+        networks:
+          consul:
+            external: true
+          traefik:
+            driver: overlay
+            attachable: true 

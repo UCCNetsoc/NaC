@@ -8,6 +8,25 @@
     group: netsoc
     state: directory
 
+- name: "Create /netsoc-neo/docker-data directory"
+  become: yes
+  file:
+    path: /netsoc-neo/docker-data
+    mode: 0770 # drwx-----
+    owner: netsoc
+    group: netsoc
+    state: directory
+
+- name: "Create /netsoc-neo/certs directory"
+  become: yes
+  file:
+    path: /netsoc-neo/certs
+    mode: 0770 # drwx-----
+    owner: netsoc
+    group: netsoc
+    state: directory
+
+
 - name: "Create directories for files/all/*/** to all hosts, files/<hostname>/**/* for each host"
   become: yes
   file:

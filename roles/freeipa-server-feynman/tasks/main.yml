@@ -1,0 +1,97 @@
+---
+
+- name: Ensure /netsoc-neo/docker-data/freeipa created with 0755
+  become: yes
+  file:
+    path: /netsoc-neo/docker-data/freeipa
+    owner: netsoc
+    group: netsoc
+    mode: 0770 # drwx-------
+    state: directory
+
+
+- name: Ensure FreeIPA server container
+  become: yes
+  docker_compose:
+    project_name: freeipa
+    state: present
+    definition:
+      version: "3.5"
+      networks:
+        traefik:
+          external:
+            name: traefik
+      services:
+        freeipa:
+          container_name: "{{ ipa_container_name }}"
+          image: freeipa/freeipa-server
+          # https://github.com/freeipa/freeipa-container/issues/265#issuecomment-480614549
+          # Don't use --hostname here, because it's privileged
+          command: --unattended --realm={{ ipa_realm }} --ds-password={{ ipa_ds_password }} --admin-password={{ ipa_admin_password }}
+          hostname: "{{ ipa_server_hostname }}"
+          volumes:
+            - "/sys/fs/cgroup:/sys/fs/cgroup:ro"
+            - "/netsoc-neo/docker-data/freeipa:/data:Z"
+          tmpfs:
+            - "/run"
+            - "/tmp"
+          sysctls:
+            net.ipv6.conf.lo.disable_ipv6: 0
+            # Fixes:
+            # DEBUG The ipa-server-install command failed, exception: 
+            # RuntimeError: IPv6 stack is enabled in the kernel but there is no interface that has ::1 address assigned.
+            # Add ::1 address resolution to "lo" interface. You might need to enable IPv6 on the interface "lo" in sysctl.conf.
+          networks:
+            - traefik
+            - default
+          ports:
+            # - "80:80"
+            # - "443:443"
+            - "389:389"   # ldap
+            - "636:636"   # ldaps
+            - "88:88"     # kerberos
+            - "464:464"   # kpasswd
+            - "749:749"   # kpasswd
+            - "123:123"   # ntp
+          labels:
+            traefik.enable: true
+            traefik.docker.network: traefik
+            traefik.frontend.rule: "Host: {{ ipa_traefik_host_rule }}"
+            traefik.port: "443"
+            traefik.protocol: "https"
+
+- name: Wait for install to finish (8-12 minutes)
+  become: yes
+  wait_for:
+    path: /netsoc-neo/docker-data/freeipa/var/log/ipa-server-configure-first.log
+    search_regex: "FreeIPA server configured."
+    timeout: 1200 # 20 minutes
+
+# We copy the self-CA cert that FreeIPA generated to the Traefik
+# we cannot use the Netsoc ssl certs or they'll be stolen cause root access is allowed on feynman
+- name: Copy httpd certs from FreeIPA to Traefik (get IPA httpd encrypted cert password)
+  become: yes
+  copy:
+    src: "/netsoc-neo/docker-data/freeipa/var/lib/ipa/passwds/feyn-ipa.netsoc.dev-443-RSA"
+    dest: /netsoc-neo/docker-data/traefik/httpd.pin
+    remote_src: yes
+
+- name: Copy httpd certs from FreeIPA to Traefik (copy .crt) 
+  become: yes
+  copy:
+    src: /netsoc-neo/docker-data/freeipa/var/lib/ipa/certs/httpd.crt
+    dest: /netsoc-neo/docker-data/traefik/httpd.crt
+    remote_src: yes
+
+- name: Copy httpd certs from FreeIPA to Traefik (copy .key) 
+  become: yes
+  copy:
+    src: /netsoc-neo/docker-data/freeipa/var/lib/ipa/private/httpd.key
+    dest: /netsoc-neo/docker-data/traefik/httpd.key.encrypted
+    remote_src: yes
+
+- name:
+  become: yes
+  shell: "openssl rsa -in httpd.key.encrypted -out httpd.key -passin file:httpd.pin"
+  args:
+    chdir: /netsoc-neo/docker-data/traefik/

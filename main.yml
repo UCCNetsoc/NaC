@@ -66,6 +66,7 @@
     - portainer-agent
     - consul
   tags:
+    - install-base
     - install-swarm
 
 - name: "Ensure Traefik (non-SSL for feynman)"
@@ -75,37 +76,42 @@
   tags:
     - install-base
     - install-services 
+    - traefik
 
-# - name: "Setup Portainer"
-#   hosts: feynman
-#   roles:
-#     - portainer
-#   vars:
-#     portainer_traefik_host_rule: "feyn-portainer.netsoc.dev"
-#   tags:
-#     - install-base
-#     - install-services
+- name: "Setup Portainer"
+  hosts: feynman
+  roles:
+    - portainer
+  vars:
+    portainer_traefik_host_rule: "feyn-portainer.netsoc.dev"
+  tags:
+    - install-base
+    - install-services
 
-# - name: "Setup FreeIPA Server"
-#   hosts: feynman
-#   roles:
-#     - freeipa-server
-#   vars:
-#     ipa_realm: NETSOC.DEV
-#     ipa_server_hostname: feyn-ipa.netsoc.dev
-#     ipa_traefik_host_rule: feyn-ipa.netsoc.dev
-#   vars_files:
-#     - vars/freeipa.yml  # passwords
+- name: "Setup FreeIPA Server"
+  hosts: feynman
+  roles:
+    - freeipa-server-feynman
+  vars:
+    ipa_realm: NETSOC.DEV
+    ipa_server_hostname: feyn-ipa.netsoc.dev
+    ipa_traefik_host_rule: feyn-ipa.netsoc.dev
+  vars_files:
+    - vars/freeipa.yml  # passwords
+  tags:
+    - install-freeipa-server
 
-# - name: "Setup FreeIPA Clients"
-#   hosts: feynman
-#   roles:
-#     - freeipa-client
-#   vars:
-#     ipa_realm: NETSOC.DEV
-#     ipa_domain: netsoc.dev
-#     ipa_server_hostname: feyn-ipa.netsoc.dev
-#     ipa_client_hostname: "{{ inventory_hostname }}.netsoc.dev"
-#   vars_files:
-#     - vars/freeipa.yml  # passwords
+- name: "Setup FreeIPA Clients"
+  hosts: feynman
+  roles:
+    - freeipa-client
+  vars:
+    ipa_realm: NETSOC.DEV
+    ipa_domain: netsoc.dev
+    ipa_server_hostname: feyn-ipa.netsoc.dev
+    ipa_client_hostname: "{{ inventory_hostname }}.netsoc.dev"
+  vars_files:
+    - vars/freeipa.yml  # passwords
+  tags:
+    - install-freeipa-clients
 

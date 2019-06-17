@@ -1,9 +1,9 @@
 ---
 
-- name: Ensure /netsoc-neo/portainer exists with 0755
+- name: Ensure /netsoc-neo/docker-data/portainer exists with 0755
   become: yes
   file:
-    path: /netsoc-neo/portainer
+    path: /netsoc-neo/docker-data/portainer
     owner: netsoc
     group: netsoc
     mode: 0770 # -rw-r--r--,
@@ -28,7 +28,7 @@
           container_name: "portainer"
           image: portainer/portainer
           volumes:
-            - /netsoc-neo/portainer:/data 
+            - /netsoc-neo/docker-data/portainer:/data 
             - /var/run/docker.sock:/var/run/docker.sock
           networks:
             - traefik
