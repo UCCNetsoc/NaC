@@ -60,6 +60,8 @@
     - install-base
     - install-swarm
 
+# Despite only being ran on one host (the swarm_creators group), the below docker-composes have deploy: directives
+# that will put each service onto every machine
 - name: "Setup Swarm Services (Portainer Agent, Consul, Traefik)"
   hosts: swarm_creators
   roles:
