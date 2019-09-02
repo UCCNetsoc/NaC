@@ -1,0 +1,3 @@
+[DEFAULT]
+#eduroam ignoreip does in here
+maxretry = 10

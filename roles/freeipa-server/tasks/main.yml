@@ -26,7 +26,6 @@
           container_name: "{{ ipa_container_name }}"
           image: freeipa/freeipa-server
           # https://github.com/freeipa/freeipa-container/issues/265#issuecomment-480614549
-          # Don't use --hostname here, because it's privileged
           command: --unattended --realm={{ ipa_realm }} --ds-password={{ ipa_ds_password }} --admin-password={{ ipa_admin_password }}
           hostname: "{{ ipa_server_hostname }}"
           volumes:

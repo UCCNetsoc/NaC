@@ -23,6 +23,7 @@
             image: consul:latest
             networks:
               - consul
+            #temp disabled until ACLS
             #ports:
               # - "8400:8400"
               # - "8500:8500"

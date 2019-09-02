@@ -7,6 +7,11 @@
     state: latest
     update_cache: yes
 
+- name: "Ensure fail2ban config customizations"
+  become: yes
+  copy:
+    src: "files/jail.local"
+    dest: "/etc/fail2ban/jail.local"
 
 - name: "Ensure fail2ban service enabled & running"
   become: yes
