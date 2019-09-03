@@ -1,3 +1,4 @@
 [DEFAULT]
-#eduroam ignoreip does in here
+# eduroam
+ignoreip = 143.239.9.7
 maxretry = 10
