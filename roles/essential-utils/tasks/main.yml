@@ -5,9 +5,10 @@
   apt:
     name:
       - iotop
-      # - iftop
-      # - htop
-      # - git
+      - more
+      - iftop
+      - htop
+      - git
       # - nodejs
       # - ipython
       # - npm
