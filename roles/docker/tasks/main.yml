@@ -1,4 +1,16 @@
 ---
+- name: Ensure /etc/docker
+  become: yes
+  file:
+    path: /etc/docker
+    state: directory
+
+- name: Ensure /etc/docker/daemon.json
+  become: yes
+  template:
+    src: ./files/daemon.json
+    dest: /etc/docker/daemon.json
+
 - name: Ensure Docker dependencies
   become: yes
   apt:
@@ -39,3 +51,17 @@
   pip:
     name: docker-compose
     state: latest
+
+- name: Reload Docker daemon
+  become: yes
+  systemd:
+    state: restarted
+    daemon_reload: no
+    name: docker
+
+- name: Adding netsoc user to Docker group
+  become: yes
+  user: name=netsoc
+        shell=/bin/bash
+        groups=docker
+        append=yes

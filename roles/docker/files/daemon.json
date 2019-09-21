@@ -1,0 +1,7 @@
+{
+  {% if 'ARCH' in ansible_kernel %}
+  "storage-driver": "vfs"
+  {% else %}
+  "storage-driver": "overlay2"
+  {% endif %}
+}
