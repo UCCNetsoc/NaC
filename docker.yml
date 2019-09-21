@@ -1,0 +1,8 @@
+---
+- name: "Ensure Docker n Co"
+  hosts: non_sudo
+  roles:
+  - docker
+  - docker-swarm-create
+  - docker-swarm-enroll-manager
+  - docker-swarm-enroll-worker

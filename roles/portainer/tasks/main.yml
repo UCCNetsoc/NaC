@@ -26,10 +26,9 @@
       services:
         portainer:
           container_name: "portainer"
-          image: portainer/portainer
+          image: portainer/portainer:1.22.0
           volumes:
             - /netsoc-neo/docker-data/portainer:/data 
-            - /var/run/docker.sock:/var/run/docker.sock
           networks:
             - traefik
             - default

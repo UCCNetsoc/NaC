@@ -1,0 +1,5 @@
+---
+- name: Ensure Consul
+  hosts: non_sudo
+  roles:
+  - consul
