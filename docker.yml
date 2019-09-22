@@ -3,6 +3,31 @@
   hosts: non_sudo
   roles:
   - docker
-  - docker-swarm-create
-  - docker-swarm-enroll-manager
-  - docker-swarm-enroll-worker
+
+- name: "Ensure Docker Swarm created" 
+  hosts: swarm_creators
+  roles:
+    - docker-swarm-create
+  tags:
+    - install-base
+    - install-swarm
+
+- name: "Ensure Docker Swarm managers enrolled"
+  hosts: swarm_managers
+  roles:
+    - docker-swarm-enroll-manager
+  vars:
+    swarm_creator: "{{ groups['swarm_creators'][0] }}"
+  tags:
+    - install-base
+    - install-swarm
+
+- name: "Ensure Docker Swarm workers enrolled"
+  hosts: swarm_workers
+  roles:
+    - docker-swarm-enroll-worker
+  vars:
+    swarm_creator: "{{ groups['swarm_creators'][0] }}"
+  tags:
+    - install-base
+    - install-swarm

@@ -6,6 +6,8 @@ SERVERS=(leela bigbertha boole lovelace)
 
 if [[ $1 == 'teardown' ]]; then
     for server in ${SERVERS[@]}; do
+        ip=$(lxc list --format json $server | jq -r .[0].state.network.eth0.addresses[0].address)
+        ssh-keygen -R $ip
         printf '.'
         lxc stop $server
         printf '.'
