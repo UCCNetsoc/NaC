@@ -15,25 +15,24 @@
     name: consul
     driver: overlay
     attachable: yes
-    ipam_config:
-    - subnet: 10.0.1.0/26
-      iprange: 10.0.1.0/27
 
-- name: "Ensure Consul cluster"
+- name: Ensure Consul cluster leader
   become: yes
   docker_stack:
     state: present
     name: consul
     compose: 
       - version: '3.5'
+        networks:
+          consul:
+            external: true      
         services:
           server_leader:
             hostname: server-leader
             container_name: consul_server_leader
             image: consul:1.6.1
             networks:
-              consul:
-                ipv4_address: '10.0.1.3'
+              - consul
             ports:
               - target: 8500
                 published: 8500
@@ -55,6 +54,29 @@
                 delay: 5s
                 max_attempts: 3
 
+- name: Get Consul cluster leader name
+  shell: docker ps --format {% raw %}'{{ .Names }}'{% endraw %} | grep consul_server_leader
+  register: result
+  until: result.rc == 0
+  retries: 10
+  delay: 5
+
+- name: Get Consul cluster leader info
+  docker_container_info:
+    name: "{{ result.stdout }}"
+  register: container_info
+
+- name: Ensure Consul cluster replicas and clients
+  become: yes
+  docker_stack:
+    state: present
+    name: consul
+    compose:
+      - version: '3.5'
+        networks:
+          consul:
+            external: true
+        services:
           server_replica:
             hostname: server-replica-{% raw %}{{.Node.Hostname}}{% endraw %}
             image: consul:1.6.1
@@ -62,7 +84,7 @@
             networks:
               - consul                         
             # Join the server to  consul cluster (to the bootstrap server above)
-            command: agent -server -retry-join 10.0.1.3 -client 0.0.0.0 -bind {% raw %}'{{ GetInterfaceIP "eth0" }}'{% endraw %}
+            command: agent -server -retry-join "{{ container_info.container.NetworkSettings.Networks.consul.IPAddress }}" -client 0.0.0.0 -bind {% raw %}'{{ GetInterfaceIP "eth0" }}'{% endraw %}
             environment:
               - CONSUL_BIND_INTERFACE=eth0
             depends_on:
@@ -85,7 +107,7 @@
             networks:
               - consul
             # Join the agent to consul cluster (to the bootstrap server above)
-            command: agent -retry-join 10.0.1.3 -client 0.0.0.0 -bind {% raw %}'{{ GetInterfaceIP "eth0" }}'{% endraw %}
+            command: agent -retry-join "{{ container_info.container.NetworkSettings.Networks.consul.IPAddress }}" -client 0.0.0.0 -bind {% raw %}'{{ GetInterfaceIP "eth0" }}'{% endraw %}
             environment:
               - CONSUL_BIND_INTERFACE=eth0
             depends_on:
@@ -99,6 +121,3 @@
                 condition: on-failure
                 delay: 5s
                 max_attempts: 3
-        networks:
-          consul:
-            external: true
