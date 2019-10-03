@@ -41,6 +41,7 @@
             environment:
               discovery.type: single-node
               xpack.security.enabled: 'false'
+              xpack.ml.enabled: 'false'
             networks:
               - elasticsearch
             ulimits:

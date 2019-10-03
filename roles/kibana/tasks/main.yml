@@ -1,5 +1,6 @@
 ---
 - name: Get Elasticsearch name
+  become: true
   shell: docker ps --format {% raw %}'{{ .Names }}'{% endraw %} | grep elasticsearch
   register: result
   until: result.rc == 0
@@ -7,6 +8,7 @@
   delay: 5
 
 - name: Get Elasticsearch info
+  become: true
   docker_container_info:
     name: "{{ result.stdout }}"
   register: container_info
@@ -28,9 +30,20 @@
             environment:
               ELASTICSEARCH_HOSTS: http://{{ container_info.container.Config.Labels["com.docker.swarm.task.name"] }}:9200
             ports:
-              - target: 5601
-                published: 5601
-                protocol: tcp
-                mode: host
+              #- target: 5601
+              #  published: 5601
+              #  protocol: tcp
+              #  mode: host
+              - 5601:5601
             networks:
               - elasticsearch
+            deploy:
+              mode: global
+              placement:
+                constraints:
+                  - node.role == manager
+                  - node.hostname == {{ inventory_hostname }}
+              restart_policy:
+                condition: on-failure
+                delay: 5s
+                max_attempts: 3
