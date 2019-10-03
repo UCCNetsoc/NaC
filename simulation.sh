@@ -7,7 +7,7 @@ SERVERS=(leela bigbertha boole lovelace)
 if [[ $1 == 'teardown' ]]; then
     for server in ${SERVERS[@]}; do
         ip=$(lxc list --format json $server | jq -r .[0].state.network.eth0.addresses[0].address)
-        ssh-keygen -R $ip
+        ssh-keygen -R $ip > /dev/null
         printf '.'
         lxc stop $server
         printf '.'
@@ -18,7 +18,7 @@ if [[ $1 == 'teardown' ]]; then
 fi
 
 
-if [ $(lxc image list --format json | jq -r '.[] | select(.aliases[0].name == "netsoc_infra").aliases[0].name') != 'netsoc_infra' ]; then
+if [[ $(lxc image list --format json | jq -r '.[] | select(.aliases[0].name == "netsoc_infra").aliases[0].name') != 'netsoc_infra' ]]; then
     echo 'LXD image aliased "netsoc_infra" not found. Please build the LXD image using Packer and the packer.json file in ./packer'
     exit 1
 fi
@@ -37,13 +37,15 @@ echo "Change the IP in ./host_vars to the following IPs. Don't forget to not com
 for server in ${SERVERS[@]}; do
     ip=$(lxc list --format json $server | jq -r .[0].state.network.eth0.addresses[0].address)
     echo "$server: $ip"
-    ssh-keyscan -H $ip >> ~/.ssh/known_hosts > /dev/null
+    ssh-keyscan -H $ip >> ~/.ssh/known_hosts
     IPS+=($ip)
 done
 
 for i in "${!SERVERS[@]}"; do 
     server=${SERVERS[$i]}
     ip=${IPS[$i]}
+
+    mkdir -p ./keys/$server
 
     echo -e 'y\n' | ssh-keygen -b 2048 -t rsa -N '' -f ./keys/$server/id_rsa > /dev/null
     echo borger | sshpass ssh-copy-id -i ./keys/$server/id_rsa netsoc@$ip > /dev/null

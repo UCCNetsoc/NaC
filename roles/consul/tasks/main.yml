@@ -84,7 +84,7 @@
             networks:
               - consul                         
             # Join the server to  consul cluster (to the bootstrap server above)
-            command: agent -server -retry-join "{{ container_info.container.NetworkSettings.Networks.consul.IPAddress }}" -client 0.0.0.0 -bind {% raw %}'{{ GetInterfaceIP "eth0" }}'{% endraw %}
+            command: agent -server -retry-join "{{ container_info.container.Config.Labels["com.docker.swarm.task.name"] }}" -client 0.0.0.0 -bind {% raw %}'{{ GetInterfaceIP "eth0" }}'{% endraw %}
             environment:
               - CONSUL_BIND_INTERFACE=eth0
             deploy:
@@ -105,7 +105,7 @@
             networks:
               - consul
             # Join the agent to consul cluster (to the bootstrap server above)
-            command: agent -retry-join "{{ container_info.container.NetworkSettings.Networks.consul.IPAddress }}" -client 0.0.0.0 -bind {% raw %}'{{ GetInterfaceIP "eth0" }}'{% endraw %}
+            command: agent -retry-join "{{ container_info.container.Config.Labels["com.docker.swarm.task.name"] }}" -client 0.0.0.0 -bind {% raw %}'{{ GetInterfaceIP "eth0" }}'{% endraw %}
             environment:
               - CONSUL_BIND_INTERFACE=eth0
             deploy:

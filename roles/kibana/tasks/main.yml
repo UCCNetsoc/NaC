@@ -1,0 +1,36 @@
+---
+- name: Get Elasticsearch name
+  shell: docker ps --format {% raw %}'{{ .Names }}'{% endraw %} | grep elasticsearch
+  register: result
+  until: result.rc == 0
+  retries: 10
+  delay: 5
+
+- name: Get Elasticsearch info
+  docker_container_info:
+    name: "{{ result.stdout }}"
+  register: container_info
+
+- name: Ensure Kibana
+  become: yes
+  docker_stack:
+    state: present
+    name: kibana
+    compose:
+      - version: '3.5'
+        networks:
+          elasticsearch:
+            external: true
+        services:
+          kibana:
+            image: docker.elastic.co/kibana/kibana:7.4.0
+            container_name: kibana
+            environment:
+              ELASTICSEARCH_HOSTS: http://{{ container_info.container.Config.Labels["com.docker.swarm.task.name"] }}:9200
+            ports:
+              - target: 5601
+                published: 5601
+                protocol: tcp
+                mode: host
+            networks:
+              - elasticsearch

@@ -1,0 +1,6 @@
+---
+- name: Ensure Logging Infra
+  hosts: boole
+  roles:
+  - elasticsearch
+  - kibana
