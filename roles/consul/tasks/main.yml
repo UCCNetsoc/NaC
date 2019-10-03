@@ -16,7 +16,7 @@
     driver: overlay
     attachable: yes
 
-- name: Ensure Consul cluster leader
+- name: Ensure Consul cluster bootstrap
   become: yes
   docker_stack:
     state: present
@@ -27,9 +27,9 @@
           consul:
             external: true      
         services:
-          server_leader:
-            hostname: server-leader
-            container_name: consul_server_leader
+          server_bootstrap:
+            hostname: server-bootstrap
+            container_name: consul_server_bootstrap
             image: consul:1.6.1
             networks:
               - consul
@@ -54,14 +54,14 @@
                 delay: 5s
                 max_attempts: 3
 
-- name: Get Consul cluster leader name
-  shell: docker ps --format {% raw %}'{{ .Names }}'{% endraw %} | grep consul_server_leader
+- name: Get Consul cluster bootstrap name
+  shell: docker ps --format {% raw %}'{{ .Names }}'{% endraw %} | grep consul_server_bootstrap
   register: result
   until: result.rc == 0
   retries: 10
   delay: 5
 
-- name: Get Consul cluster leader info
+- name: Get Consul cluster bootstrap info
   docker_container_info:
     name: "{{ result.stdout }}"
   register: container_info
@@ -87,8 +87,6 @@
             command: agent -server -retry-join "{{ container_info.container.NetworkSettings.Networks.consul.IPAddress }}" -client 0.0.0.0 -bind {% raw %}'{{ GetInterfaceIP "eth0" }}'{% endraw %}
             environment:
               - CONSUL_BIND_INTERFACE=eth0
-            depends_on:
-              - server_leader      
             deploy:
               mode: global
               placement:
@@ -110,8 +108,6 @@
             command: agent -retry-join "{{ container_info.container.NetworkSettings.Networks.consul.IPAddress }}" -client 0.0.0.0 -bind {% raw %}'{{ GetInterfaceIP "eth0" }}'{% endraw %}
             environment:
               - CONSUL_BIND_INTERFACE=eth0
-            depends_on:
-              - server_leader
             deploy:
               mode: global
               placement:
