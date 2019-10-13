@@ -1,8 +1,10 @@
 Consul Swarm Cluster
 ===================
 
-### How it works:
+## How it works:
 
-1. Deploys a bootstrap server instance
-2. Tries to get its IP address (up to 50s/10 times)
-3. Deploys two server replica leaders and a client (non leader)
+Deploys a server instance to each of the manager nodes.
+
+There is a fault tolerance of 1 node before quorum is lost. Dont know what a quorum is? Read [this](https://www.consul.io/docs/internals/consensus.html) and make sure you understand how it works. Pay particular attention to the *Deployment Table*.
+
+Adapted from [here](https://github.com/hashicorp/docker-consul/issues/66#issuecomment-353696910). Bless this man.
