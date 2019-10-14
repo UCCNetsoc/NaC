@@ -1,60 +1,85 @@
 ---
 
+- name: Ensure Traefik Docker network
+  become: yes
+  docker_network:
+    name: traefik
+    driver: overlay
+    attachable: yes
+    
 - name: Ensure Traefik Docker container
   become: yes
   docker_stack:
     state: present
-    name: consul
+    name: traefik
     compose:
-      - traefik:
-          image: traefik:v1.7
-          ports:
-            - 80:80
-            - 443:443
-          deploy:
-            replicas: 3
-            placement:
-              constraints:
-                - node.role == manager
-              preferences:
-                - spread: node.id
-            labels:
-              - traefik.frontend.rule=Host:traefik.${DOMAIN}
-              - traefik.enable=true
-              - traefik.port=8080
-              - traefik.tags=traefik
-              - traefik.docker.network=traefik
-              # Traefik service that listens to HTTP
-              - traefik.redirectorservice.frontend.entryPoints=http
-              #- traefik.redirectorservice.frontend.redirect.entryPoint=https
-              # Traefik service that listens to HTTPS
-              #- traefik.webservice.frontend.entryPoints=https
-             # - traefik.frontend.auth.basic.users=${USERNAME}:${HASHED_PASSWORD}
-          volumes:
-            - /var/run/docker.sock:/var/run/docker.sock
-          command: >
-            --docker
-            --docker.swarmmode
-            --docker.watch
-            --docker.exposedbydefault=false
-            --constraints=tag==traefik-public
-            --entrypoints='Name:http Address::80'
-            --entrypoints='Name:https Address::443 TLS'
-            --consul
-            --consul.endpoint="consul-leader:8500"
-            --acme
-            --acme.email=${EMAIL}
-            --acme.storage="traefik/acme/account"
-            --acme.entryPoint=https
-            --acme.httpChallenge.entryPoint=http
-            --acme.onhostrule=true
-            --acme.acmelogging=true
-            --logLevel=INFO
-            --accessLog
-            --api
-        networks:
-          consul:
-            external: true
+      - version: "3.5"
+        services:
           traefik:
-            driver: overlay
-            attachable: true 
+            image: traefik:2.0.2
+            ports:
+              - target: 8080
+                published: 1337
+                protocol: tcp
+                mode: host
+              - target: 80
+                published: 81
+                protocol: tcp
+                mode: host
+              - target: 443
+                published: 444
+                protocol: tcp
+                mode: host
+            networks:
+              traefik:
+            deploy:
+              mode: global
+              placement:
+                constraints:
+                  - node.role == manager
+                  - node.hostname == {{ inventory_hostname }}
+                preferences:
+                  - spread: node.id
+              restart_policy:
+                condition: on-failure
+                delay: 19999s
+                max_attempts: 1
+            volumes:
+              - /var/run/docker.sock:/var/run/docker.sock
+            command: >
+              --log.level="DEBUG"
+              --entrypoints.web.address=:80
+              --providers.docker=true
+              --providers.docker.swarmMode=true
+              --providers.docker.exposedbydefault=false
+              --serverstransport.insecureskipverify=true 
+              --api=true
+              --api.dashboard=true
+              --api.insecure=true
+          whoami:
+            deploy:
+              mode: global
+              placement:
+                constraints:
+                  # - node.role == manager
+                  - node.hostname == {{ inventory_hostname }}
+                preferences:
+                  - spread: node.id
+              restart_policy:
+                condition: on-failure
+                delay: 10s
+                max_attempts: 1
+              labels:
+                - "traefik.enable=true"
+                - "traefik.http.routers.whoami.rule=Host(`whoami.netsoc.dev`)"
+                - "traefik.http.routers.whoami.entrypoints=web"
+                - "traefik.http.services.whoami-service.loadbalancer.server.port=80"
+                - "traefik.http.routers.whoami.service=whoami-service"
+                - "traefik.docker.network=traefik"
+            image: "containous/whoami"
+            # container_name: "simple-service"
+            networks:
+              traefik:
+        networks:
+          traefik:
+            external: true
