@@ -1,0 +1,45 @@
+- name: Ensure Vault instance
+  become: yes
+  docker_stack:
+    state: present
+    name: vault
+    compose:
+      - version: '3.7'
+        networks: 
+          consul:
+            external: true
+        services:
+          vault:
+            image: vault:1.2.3
+            command: server
+            networks:
+              - consul
+            ports:
+              - target: 8200
+                published: 8200
+                protocol: tcp
+                mode: host
+            environment:
+              - >
+                VAULT_LOCAL_CONFIG= 
+                  ui = true
+                  log_format = "json"
+                  cluster_name = "main"
+                  {% if inventory_hostname|ipaddr('1') != '84' %}disable_mlock = true{% endif %}
+
+                  listener "tcp" {
+                    address = "0.0.0.0:8200"
+                    tls_disable = "true"
+                  }
+
+                  storage "consul" {
+                    address = "consul.cluster:8500"
+                    path = "vault/"
+                  }
+            cap_add:
+              - IPC_LOCK
+            deploy:
+              replicas: 1
+              placement:
+                constraints:
+                  - node.role == manager

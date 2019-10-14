@@ -33,11 +33,11 @@ sleep 5
 IPS=()
 
 echo ''
-echo "Change the IP in ./host_vars to the following IPs. Don't forget to not commit those changes!"
+echo "Make sure the IPs are changed in ./host_vars/{server}.yml and don't forget to not commit those changes!"
 for server in ${SERVERS[@]}; do
     ip=$(lxc list --format json $server | jq -r .[0].state.network.eth0.addresses[0].address)
     echo "$server: $ip"
-    ssh-keyscan -H $ip >> ~/.ssh/known_hosts
+    (ssh-keyscan -H $ip >> ~/.ssh/known_hosts) &> /dev/null
     IPS+=($ip)
 done
 
@@ -47,6 +47,8 @@ for i in "${!SERVERS[@]}"; do
 
     mkdir -p ./keys/$server
 
+    sed -E -i -e "s/ansible_host: .+/ansible_host: $ip/" host_vars/$server.yml
+
     echo -e 'y\n' | ssh-keygen -b 2048 -t rsa -N '' -f ./keys/$server/id_rsa > /dev/null
-    echo borger | sshpass ssh-copy-id -i ./keys/$server/id_rsa netsoc@$ip > /dev/null
+    (echo borger | sshpass ssh-copy-id -i ./keys/$server/id_rsa netsoc@$ip) &> /dev/null
 done

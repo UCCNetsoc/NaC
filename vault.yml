@@ -1,0 +1,5 @@
+---
+- name: Ensure Vault
+  hosts: swarm_creators
+  roles:
+  - vault

@@ -1,5 +1,4 @@
 ---
-
 - name: Ensure /netsoc-neo/docker-data/consul created with 0700
   become: yes
   file:
