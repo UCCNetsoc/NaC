@@ -1,4 +1,3 @@
 *.retry
 keys/
-vars/
 production
