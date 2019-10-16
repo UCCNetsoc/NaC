@@ -4,8 +4,8 @@
   file:
     path: /netsoc-neo/
     mode: 0770 # drwx-----
-    owner: netsoc
-    group: netsoc
+    owner: root
+    group: root
     state: directory
 
 - name: "Create /netsoc-neo/docker-data directory"
@@ -13,8 +13,8 @@
   file:
     path: /netsoc-neo/docker-data
     mode: 0770 # drwx-----
-    owner: netsoc
-    group: netsoc
+    owner: root
+    group: root
     state: directory
 
 - name: "Create /netsoc-neo/certs directory"
@@ -22,8 +22,8 @@
   file:
     path: /netsoc-neo/certs
     mode: 0770 # drwx-----
-    owner: netsoc
-    group: netsoc
+    owner: root
+    group: root
     state: directory
 
 
@@ -33,8 +33,8 @@
     state: directory
     dest: /netsoc-neo/{{ item.path }}
     mode: "{{ item.mode }}"
-    owner: netsoc
-    group: netsoc
+    owner: root
+    group: root
   with_filetree: 
     - files/all
     - files/{{ inventory_hostname }}
@@ -46,8 +46,8 @@
   copy:
     src: "{{ item.src }}"
     dest: "/netsoc-neo/{{ item.path }}"
-    owner: netsoc
-    group: netsoc
+    owner: root
+    group: root
     mode: "{{ item.mode }}"
     backup: yes
   with_filetree:
