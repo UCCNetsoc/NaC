@@ -4,57 +4,116 @@
   become: yes
   file:
     path: /netsoc-neo/docker-data/freeipa
-    owner: netsoc
-    group: netsoc
-    mode: 0770 # drwx-------
+    owner: root
+    group: root
+    mode: 0775
+    state: directory
+
+- name: Ensure /netsoc-neo/docker-data/freeipa-mods created with 0755
+  become: yes
+  file:
+    path: /netsoc-neo/docker-data/freeipa-mods
+    owner: root
+    group: root
+    mode: 0775
     state: directory
 
 
+# Required for NetsocAdmin2, we force ldap to use CRYPT passwords
+- name: Copy password algorithm change update/ldif
+  become: yes
+  copy:
+    src: "files/01-password-algorithm.update"
+    dest: "/netsoc-neo/docker-data/freeipa-mods/01-password-algorithm.update"
+
+- name: Copy HTTP redirect disabler
+  become: yes
+  copy:
+    src: "files/ipa-rewrite.conf"
+    dest: "/netsoc-neo/docker-data/freeipa-mods/ipa-rewrite.conf"
+
 - name: Ensure FreeIPA server container
   become: yes
-  docker_compose:
-    project_name: freeipa
+  docker_stack:
     state: present
-    definition:
-      version: "3.5"
-      networks:
-        traefik:
-          external:
-            name: traefik
-      services:
-        freeipa:
-          container_name: "{{ ipa_container_name }}"
-          image: freeipa/freeipa-server
-          # https://github.com/freeipa/freeipa-container/issues/265#issuecomment-480614549
-          command: --unattended --realm={{ ipa_realm }} --ds-password={{ ipa_ds_password }} --admin-password={{ ipa_admin_password }}
-          hostname: "{{ ipa_server_hostname }}"
-          volumes:
-            - "/sys/fs/cgroup:/sys/fs/cgroup:ro"
-            - "/netsoc-neo/docker-data/freeipa:/data:Z"
-          tmpfs:
-            - "/run"
-            - "/tmp"
-          sysctls:
-            net.ipv6.conf.lo.disable_ipv6: 0
-            # Fixes:
-            # DEBUG The ipa-server-install command failed, exception: 
-            # RuntimeError: IPv6 stack is enabled in the kernel but there is no interface that has ::1 address assigned.
-            # Add ::1 address resolution to "lo" interface. You might need to enable IPv6 on the interface "lo" in sysctl.conf.
-          networks:
-            - traefik
-            - default
-          ports:
-            # - "80:80"
-            # - "443:443"
-            - "389:389"   # ldap
-            - "636:636"   # ldaps
-            - "88:88"     # kerberos
-            - "464:464"   # kpasswd
-            - "749:749"   # kpasswd
-            - "123:123"   # ntp
-          labels:
-            traefik.enable: true
-            traefik.docker.network: traefik
-            traefik.frontend.rule: "Host: {{ ipa_traefik_host_rule }}"
-            traefik.port: "443"
-            traefik.protocol: "https"
+    name: freeipa_server
+    compose:
+      - version: "3.5"
+        services:
+          master:
+            image: freeipa/freeipa-server
+            restart: always
+            command: >
+              --unattended
+              --realm={{ ipa_realm }}
+              --ds-password={{ ipa_ds_password }}
+              --admin-password={{ ipa_admin_password }}
+            hostname: "{{ ipa_server_hostname }}"
+            read_only: true
+            environment:
+              IPA_SERVER_HOSTNAME: "{{ ipa_server_hostname }}"
+            tmpfs:
+              - "/run"
+              - "/tmp"
+            volumes:
+              - "/sys/fs/cgroup:/sys/fs/cgroup:ro"
+              - "/etc/machine-id:/etc/machine-id"
+              - "/netsoc-neo/docker-data/freeipa:/data"
+              - "/netsoc-neo/docker-data/freeipa-mods/01-password-algorithm.update:/usr/share/ipa/updates/01-password-algorithm.update"
+              - "/netsoc-neo/docker-data/freeipa-mods/ipa-rewrite.conf:/data/etc/httpd/conf.d/ipa-rewrite.conf"
+            sysctls:
+              net.ipv6.conf.lo.disable_ipv6: 0
+              # Fixes:
+              # DEBUG The ipa-server-install command failed, exception: 
+              # RuntimeError: IPv6 stack is enabled in the kernel but there is no interface that has ::1 address assigned.
+              # Add ::1 address resolution to "lo" interface. You might need to enable IPv6 on the interface "lo" in sysctl.conf.
+            networks:
+              freeipa:
+              traefik:
+            ports:
+              # - "81:80"
+              # - "444:443"
+              - "11389:389"   # ldap
+              - "11636:636"   # ldaps
+              - "1188:88"     # kerberos
+              - "11464:464"   # kpasswd 
+              - "11749:749"   # kpasswd
+              - "11123:123"   # ntp
+            deploy:
+              mode: global
+              placement:
+                constraints:
+                  - node.hostname == {{ inventory_hostname }}
+              restart_policy:
+                condition: on-failure
+                delay: 5s
+                max_attempts: 1
+              labels:
+                - "traefik.enable=true"
+                - "traefik.http.routers.ipa.rule=Host(`ipa.netsoc.dev`)"
+                - "traefik.http.routers.ipa.entrypoints=web-secure"
+                - "traefik.http.routers.ipa.tls.certResolver=letsencrypt"
+                - "traefik.http.routers.ipa.middlewares=fix-host@docker"
+                - "traefik.http.middlewares.fix-host.headers.customrequestheaders.Host=ipa.netsoc.dev:443"
+                #- "traefik.http.middlewares.fix-host.headers.customrequestheaders.Referer=https://ipa.netsoc.dev/ipa"
+                #- "traefik.http.middlewares.fix-host.headers.customResponseHeaders=Location:https://ipa.netsoc.dev/ipa||Refresh:0"
+                #- "traefik.http.middlewares.redirect.redirectregex.regex=^https://ipa.netsoc.dev/(.*)"
+                #- "traefik.http.middlewares.redirect.redirectregex.replacement=https://ipa.netsoc.dev:444/$${1}"
+                - "traefik.http.services.ipa-service.loadbalancer.passhostheader=false"
+                - "traefik.http.services.ipa-service.loadbalancer.server.port=443"
+                - "traefik.http.services.ipa-service.loadbalancer.server.scheme=https"
+                - "traefik.http.routers.ipa.service=ipa-service"
+                - "traefik.docker.network=traefik"
+        networks:
+          traefik:
+            external: true
+          freeipa:
+            driver: overlay
+            attachable: true
+
+- name: Wait for install to finish (8-12 minutes) (/netsoc-neo/docker-data/freeipa/var/log/<logs> if it takes forever)
+  become: yes
+  wait_for:
+    path: /netsoc-neo/docker-data/freeipa/var/log/ipa-server-configure-first.log
+    search_regex: "FreeIPA server configured."
+    timeout: 1200 # 20 minutes
