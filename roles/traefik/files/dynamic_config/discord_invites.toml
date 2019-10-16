@@ -1,0 +1,36 @@
+
+[http.routers]
+  [http.routers.discord-router]
+    entrypoints = ["web-secure"]
+    rule = "Host(`discord.netsoc.dev`)"
+    middlewares = ["discord-redirect"]
+    service = "unused-service"
+    
+    [http.routers.discord-router.tls]
+      certResolver = "letsencrypt"
+
+  [http.routers.esports-router]
+    entrypoints = ["web-secure"]
+    rule = "Host(`esports.netsoc.dev`)"
+    middlewares = ["esports-redirect"]
+    service = "unused-service"
+    
+    
+    [http.routers.esports-router.tls]
+      certResolver = "letsencrypt"
+
+[http.middlewares]
+  [http.middlewares.discord-redirect.redirectRegex]
+    regex = "^(.*)"
+    replacement = "https://discordapp.com/invite/qPUmuYw"
+
+  [http.middlewares.esports-redirect.redirectRegex]
+    regex = "^(.*)"
+    replacement = "https://discordapp.com/invite/pDUv6Uj"
+
+[http.services]
+  [http.services.unused-service.loadBalancer]
+    [[http.services.unused-service.loadBalancer.servers]]
+      url = "https://google.com"
+
+

@@ -1,11 +1,68 @@
 ---
 
+- name: Ensure /netsoc-neo/docker-data/traefik created with 0775
+  become: yes
+  file:
+    path: /netsoc-neo/docker-data/traefik
+    owner: root
+    group: root
+    mode: 0775
+    state: directory
+
+- name: Delete existing Traefik dynamic configs
+  become: true
+  file: 
+    path: /netsoc-neo/docker-data/traefik/dynamic_config
+    state: absent
+
+
+- name: Ensure /netsoc-neo/docker-data/traefik/dynamic_config created with 0775
+  become: yes
+  file:
+    path: /netsoc-neo/docker-data/traefik/dynamic_config
+    owner: root
+    group: root
+    mode: 0775
+    state: directory
+
+- name: "Copy files for /netsoc-neo/docker-data/traefik/dynamic_config/* to /traefik/dynamic_config/"
+  become: yes
+  copy:
+    src: "{{ item.src }}"
+    dest: "/netsoc-neo/docker-data/traefik/dynamic_config/{{ item.path }}"
+    owner: root
+    group: root
+    mode: "{{ item.mode }}"
+    backup: yes
+  with_filetree:
+    - files/dynamic_config
+  when: item.state == "file"
+
+
+- name: Copy Traefik Static Config
+  become: yes
+  copy:
+    src: files/static_config.toml
+    dest: /netsoc-neo/docker-data/traefik/static_config.toml
+
+- name: Copy Traefik LetsEncrypt CloudFlare DNS API Token
+  become: yes
+  copy:
+    content: "{{ cf_dns_api_token }}"
+    dest: /netsoc-neo/docker-data/traefik/cf_dns_api_token.txt
+
 - name: Ensure Traefik Docker network
   become: yes
   docker_network:
     name: traefik
     driver: overlay
     attachable: yes
+
+# - name: Ensure Traefik LetsEncrypt CloudFlare DNS Zone Token
+#   become: yes
+#   copy:
+#     content: "{{ cf_zone_api_token }}"
+#     dest: /netsoc-neo/docker-data/traefik/cf_zone_api_token.txt
     
 - name: Ensure Traefik Docker container
   become: yes
@@ -23,11 +80,11 @@
                 protocol: tcp
                 mode: host
               - target: 80
-                published: 81
+                published: 80
                 protocol: tcp
                 mode: host
               - target: 443
-                published: 444
+                published: 443
                 protocol: tcp
                 mode: host
             networks:
@@ -42,20 +99,23 @@
                   - spread: node.id
               restart_policy:
                 condition: on-failure
-                delay: 19999s
+                delay: 2s
                 max_attempts: 1
+              labels:
+                # https://community.containo.us/t/global-http-to-https-redirect-in-v2/1658/3
+                #- "traefik.http.middlewares.redirect-to-https.redirectscheme.scheme=https"
+                # global redirect to https
+                - "traefik.enable=true"
+                - "traefik.http.routers.redirs.rule=hostregexp(`{host:.+}`)"
+                - "traefik.http.routers.redirs.entrypoints=web"
+                - "traefik.http.routers.redirs.middlewares=redirectToHttps"
             volumes:
               - /var/run/docker.sock:/var/run/docker.sock
-            command: >
-              --log.level="DEBUG"
-              --entrypoints.web.address=:80
-              --providers.docker=true
-              --providers.docker.swarmMode=true
-              --providers.docker.exposedbydefault=false
-              --serverstransport.insecureskipverify=true 
-              --api=true
-              --api.dashboard=true
-              --api.insecure=true
+              - /netsoc-neo/docker-data/traefik/:/traefik/
+            command: traefik --configFile=/traefik/static_config.toml
+            environment:
+              #CLOUDFLARE_DNS_API_TOKEN: "{{ cf_dns_api_token }}"
+              CLOUDFLARE_DNS_API_TOKEN_FILE: "/traefik/cf_dns_api_token.txt"
           whoami:
             deploy:
               mode: global
@@ -72,7 +132,8 @@
               labels:
                 - "traefik.enable=true"
                 - "traefik.http.routers.whoami.rule=Host(`whoami.netsoc.dev`)"
-                - "traefik.http.routers.whoami.entrypoints=web"
+                - "traefik.http.routers.whoami.entrypoints=web-secure"
+                - "traefik.http.routers.whoami.tls.certResolver=letsencrypt"
                 - "traefik.http.services.whoami-service.loadbalancer.server.port=80"
                 - "traefik.http.routers.whoami.service=whoami-service"
                 - "traefik.docker.network=traefik"

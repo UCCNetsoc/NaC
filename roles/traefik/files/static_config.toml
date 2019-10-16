@@ -1,0 +1,36 @@
+[log]
+    level = "DEBUG"
+
+[accessLog]
+
+[entrypoints]
+    [entrypoints.web]
+        address = ":80"
+    [entrypoints.web-secure]
+        address = ":443"
+
+[serversTransport]
+  insecureSkipVerify = true
+  
+[certificatesResolvers]
+  [certificatesResolvers.letsencrypt]
+    [certificatesResolvers.letsencrypt.acme]
+      email = "netsoc@uccsocieties.ie"
+      storage = "/traefik/acme.json"
+
+      [certificatesResolvers.letsencrypt.acme.dnsChallenge]
+        provider = "cloudflare"
+        delayBeforeCheck = 0
+
+[providers]
+  [providers.file]
+    directory = "/traefik/dynamic_config/"
+    watch = true
+
+  [providers.docker]
+    swarmMode = true
+    exposedByDefault = false
+
+[api]
+  dashboard = true
+  insecure = true
