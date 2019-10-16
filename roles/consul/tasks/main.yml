@@ -3,8 +3,8 @@
   become: yes
   file:
     path: /netsoc-neo/docker-data/consul
-    owner: netsoc
-    group: netsoc
+    owner: root
+    group: root
     mode: 0700 # drwx----
     state: directory
 
