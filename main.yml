@@ -9,6 +9,7 @@
   tags:
     - install-base
     - install-services
+    - update-dns
   
 - name: "Ensure base install"
   hosts: all
@@ -65,55 +66,62 @@
 - name: "Setup Swarm Services (Portainer Agent, Consul, Traefik)"
   hosts: swarm_creators
   roles:
-    - portainer-agent
-    - consul
+    #- portainer-agent
+    #- consul
+    # - traefik
   tags:
     - install-base
     - install-swarm
-
-- name: "Ensure Traefik (non-SSL edition for feynman)"
-  hosts: feynman
+    - install-swarm-services
+  
+- name: "Deploy Traefik to proxy Swarm containers"
+  hosts: bigbertha
   roles:
-    - traefik-feynman
-  tags:
-    - install-base
-    - install-services 
+    #- portainer-agent
+    #- consul
     - traefik
-
-- name: "Setup Portainer (feynman)"
-  hosts: feynman
-  roles:
-    - portainer
-  vars:
-    portainer_traefik_host_rule: "feyn-portainer.netsoc.dev"
+    - netsoc.co
+  vars_files:
+    - vars/cloudflare.yml  # traefik keys
+    - vars/docker_registry.yml # netsoc.co image
   tags:
     - install-base
-    - install-services
+    - install-swarm
+    - install-swarm-services
 
-- name: "Setup FreeIPA Server (feynman)" 
-  hosts: feynman
+
+- name: "Setup FreeIPA Server" 
+  hosts: boole
   roles:
-    - freeipa-server-feynman
+    - freeipa-server
   vars:
     ipa_realm: NETSOC.DEV
-    ipa_server_hostname: feyn-ipa.netsoc.dev
-    ipa_traefik_host_rule: feyn-ipa.netsoc.dev
+    ipa_server_hostname: ipa.netsoc.dev
+    ipa_traefik_host_rule: ipa.netsoc.dev
   vars_files:
     - vars/freeipa.yml  # passwords
   tags:
     - install-freeipa-server
 
-- name: "Setup FreeIPA Clients (feynman)"
-  hosts: feynman
+- name: "Setup fail2ban"
+  hosts: all
   roles:
-    - freeipa-client
-  vars:
-    ipa_realm: NETSOC.DEV
-    ipa_domain: netsoc.dev
-    ipa_server_hostname: feyn-ipa.netsoc.dev
-    ipa_client_hostname: "{{ inventory_hostname }}.netsoc.dev"
-  vars_files:
-    - vars/freeipa.yml  # passwords
+    - fail2ban
   tags:
-    - install-freeipa-clients
+    - fail2ban
+
+# - name: "Setup FreeIPA Clients (feynman)"
+#   hosts: feynman
+#   roles:
+#     - freeipa-client
+#   vars:
+#     ipa_realm: NETSOC.DEV
+#     ipa_domain: netsoc.dev
+#     ipa_server_hostname: feyn-ipa.netsoc.dev
+#     ipa_client_hostname: "{{ inventory_hostname }}.netsoc.dev"
+#   vars_files:
+#     - vars/freeipa.yml  # passwords
+#   tags:
+#     - install-freeipa-server-feynman
+#     - install-freeipa-clients
 

@@ -13,34 +13,35 @@
     - all
 
 # Root domain
-- name: "CNAME netsoc.dev = feynman.netsoc.dev"
+- name: "CNAME netsoc.dev = bigbertha.netsoc.dev"
   cloudflare_dns:
     zone:  "netsoc.dev"
     type: CNAME
     record: "netsoc.dev"
-    value: "feynman.netsoc.dev"
+    value: "bigbertha.netsoc.dev"
     state: present
     account_email: "{{ cf_api_email }}"
     account_api_token: "{{ cf_api_key }}"
 
 # The wildcard
-- name: "CNAME *.netsoc.dev = feynman.netsoc.dev"
+- name: "CNAME *.netsoc.dev = bigbertha.netsoc.dev"
   cloudflare_dns:
     zone:  "netsoc.dev"
     type: CNAME
     record: "*.netsoc.dev"
-    value: "feynman.netsoc.dev"
+    value: "bigbertha.netsoc.dev"
     state: present
     account_email: "{{ cf_api_email }}"
     account_api_token: "{{ cf_api_key }}"
 
-# FreeIPA POC
-- name: "A feyn-ipa.netsoc.dev = feynman IP"
+# FreeIPA actual
+- name: "A ipa.netsoc.dev = bertha IP"
   cloudflare_dns:
     zone:  "netsoc.dev"
     type: A
-    record: "feyn-ipa.netsoc.dev"
-    value: "{{ hostvars['feynman'].ansible_host }}" # feynman IP
+    record: "ipa.netsoc.dev"
+    value: "{{ hostvars['bigbertha'].ansible_host }}"
     state: present
     account_email: "{{ cf_api_email }}"
     account_api_token: "{{ cf_api_key }}"
+
