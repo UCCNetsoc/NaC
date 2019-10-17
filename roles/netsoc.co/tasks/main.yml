@@ -1,0 +1,44 @@
+---
+
+- name: Log in to Docker registry
+  become: yes
+  docker_login:
+    registry: "{{ docker_registry }}"
+    username: "{{ docker_registry_username }}"
+    password: "{{ docker_registry_password }}"
+
+- name: Ensure netsoc.co Docker Container
+  become: yes
+  docker_stack:
+    state: present
+    name: netsoc_co
+    with_registry_auth: true
+    compose:
+      - version: "3.7"
+        services:
+          netsoc_co:
+            image: docker.netsoc.co/netsoc/netsoc.co:latest
+            networks:
+              traefik:
+            deploy:
+              mode: global
+              placement:
+                constraints:
+                  - node.hostname == {{ inventory_hostname }}
+                preferences:
+                  - spread: node.id
+              labels:
+                - "traefik.enable=true"
+                - "traefik.http.routers.netsoc_co.rule=Host(`netsoc.dev`)"
+                - "traefik.http.routers.netsoc_co.entrypoints=web-secure"
+                - "traefik.http.routers.netsoc_co.tls.certResolver=letsencrypt"
+                - "traefik.http.services.netsoc_co-service.loadbalancer.server.port=80"
+                - "traefik.http.routers.netsoc_co.service=netsoc_co-service"
+                - "traefik.docker.network=traefik"
+              restart_policy:
+                condition: on-failure
+                delay: 5s
+                max_attempts: 1
+        networks:
+          traefik:
+            external: true  
