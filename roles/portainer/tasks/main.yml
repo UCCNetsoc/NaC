@@ -4,9 +4,9 @@
   become: yes
   file:
     path: /netsoc-neo/docker-data/portainer
-    owner: netsoc
-    group: netsoc
-    mode: 0770 # -rw-r--r--,
+    owner: root
+    group: root
+    mode: 0777
     state: directory
 
 
@@ -28,7 +28,8 @@
           container_name: "portainer"
           image: portainer/portainer:1.22.0
           volumes:
-            - /netsoc-neo/docker-data/portainer:/data 
+            - /netsoc-neo/docker-data/portainer:/data
+            - /var/run/docker.sock:/var/run/docker.sock
           networks:
             - traefik
             - default
