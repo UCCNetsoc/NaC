@@ -8,14 +8,14 @@
     mode: 0700 # drwx----
     state: directory
 
-- name: Ensure Consul network
+- name: Ensure Hashicorp Consul network
   become: yes
   docker_network:
     name: consul
     driver: overlay
     attachable: yes
 
-- name: Ensure Consul cluster bootstrap
+- name: Ensure Hashicorp Consul cluster
   become: yes
   docker_stack:
     state: present
@@ -33,16 +33,16 @@
             networks:
               - consul
             ports:
-              - target: 8500
-                published: 8500
-                protocol: tcp
-                mode: host
-              - "8301:8301"
-            # Bootstrap the cluster once 3 servers (this + 2 more) are available
-            command: agent -server -bootstrap-expect 3 -client 0.0.0.0 -bind {% raw %}'{{ GetInterfaceIP "eth0" }}'{% endraw %} -ui
+              - 8500:8500
+              #- target: 8500
+              #  published: 8500
+              #  protocol: tcp
+              #  mode: host
+            command: agent -server -bootstrap-expect 3 -retry-join consul.cluster -client 0.0.0.0 -bind {% raw %}'{{ GetInterfaceIP "eth0" }}'{% endraw %} -ui
             environment:
               - CONSUL_BIND_INTERFACE=eth0
             deploy:
+              endpoint_mode: dnsrr # Needed to get cluster to not rely on pre-known IPs
               mode: global
               placement:
                 constraints:
@@ -52,67 +52,7 @@
                 condition: on-failure
                 delay: 5s
                 max_attempts: 3
-
-- name: Get Consul cluster bootstrap name
-  shell: docker ps --format {% raw %}'{{ .Names }}'{% endraw %} | grep consul_server_bootstrap
-  register: result
-  until: result.rc == 0
-  retries: 10
-  delay: 5
-
-- name: Get Consul cluster bootstrap info
-  docker_container_info:
-    name: "{{ result.stdout }}"
-  register: container_info
-
-- name: Ensure Consul cluster replicas and clients
-  become: yes
-  docker_stack:
-    state: present
-    name: consul
-    compose:
-      - version: '3.5'
-        networks:
-          consul:
-            external: true
-        services:
-          server_replica:
-            hostname: server-replica-{% raw %}{{.Node.Hostname}}{% endraw %}
-            image: consul:1.6.1
-            container_name: consul_server_{% raw %}{{.Node.Hostname}}{% endraw %}
-            networks:
-              - consul                         
-            # Join the server to  consul cluster (to the bootstrap server above)
-            command: agent -server -retry-join "{{ container_info.container.Config.Labels["com.docker.swarm.task.name"] }}" -client 0.0.0.0 -bind {% raw %}'{{ GetInterfaceIP "eth0" }}'{% endraw %}
-            environment:
-              - CONSUL_BIND_INTERFACE=eth0
-            deploy:
-              mode: global
-              placement:
-                constraints:
-                  - node.role == manager
-                  - node.hostname != {{ inventory_hostname }}
-              restart_policy:
-                condition: on-failure
-                delay: 5s
-                max_attempts: 3
-
-          client_agent:
-            hostname: client-agent
-            image: consul:1.6.1
-            container_name: consul_client_agent
-            networks:
-              - consul
-            # Join the agent to consul cluster (to the bootstrap server above)
-            command: agent -retry-join "{{ container_info.container.Config.Labels["com.docker.swarm.task.name"] }}" -client 0.0.0.0 -bind {% raw %}'{{ GetInterfaceIP "eth0" }}'{% endraw %}
-            environment:
-              - CONSUL_BIND_INTERFACE=eth0
-            deploy:
-              mode: global
-              placement:
-                constraints:
-                  - node.role != manager
-              restart_policy:
-                condition: on-failure
-                delay: 5s
-                max_attempts: 3
+              labels:
+                - "traefik.enable=true"
+                - "traefik.http.routers.consul.rule=Host(`consul.netsoc.co`)"
+                - "traefik.http.services.consul.loadbalancer.server.port=8500"

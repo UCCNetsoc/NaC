@@ -15,17 +15,20 @@
             networks:
               - consul
             ports:
-              - target: 8200
-                published: 8200
-                protocol: tcp
-                mode: host
+              - 8200:8200
+              #- target: 8200
+              #  published: 8200
+              #  protocol: tcp
+              #  mode: host
             environment:
               - >
                 VAULT_LOCAL_CONFIG= 
                   ui = true
                   log_format = "json"
                   cluster_name = "main"
-                  {% if inventory_hostname|ipaddr('1') != '84' %}disable_mlock = true{% endif %}
+                {% if inventory_hostname|ipaddr('1') != '84' %}
+                  disable_mlock = true
+                {% endif %}
 
                   listener "tcp" {
                     address = "0.0.0.0:8200"
@@ -43,3 +46,7 @@
               placement:
                 constraints:
                   - node.role == manager
+              labels:
+                - "traefik.enable=true"
+                - "traefik.http.routers.vault.rule=Host(`vault.netsoc.co`)"
+                - "traefik.http.services.vault.loadbalancer.server.port=8200"              
