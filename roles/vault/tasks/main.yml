@@ -1,4 +1,4 @@
-- name: Ensure Vault instance
+- name: Ensure Hashicorp Vault instance
   become: yes
   docker_stack:
     state: present

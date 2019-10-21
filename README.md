@@ -11,7 +11,7 @@ Netsoc Ansible
 ### How 2
 
 1. Run `./simulation.sh` and wait for everything to startup.
-2. Change the IPs in `./host_vars/*` to the ones output in the console
+2. Go ham and run some playbooks!
 
 The IPs only need to be updated once or after every time that you run `./simulation.sh teardown`
 
