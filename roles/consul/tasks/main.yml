@@ -24,20 +24,19 @@
       - version: '3.5'
         networks:
           consul:
-            external: true      
+            external: true
+          traefik:
+            external: true
         services:
           server_bootstrap:
             hostname: server-bootstrap
             container_name: consul_server_bootstrap
             image: consul:1.6.1
             networks:
-              - consul
-            ports:
-              - 8500:8500
-              #- target: 8500
-              #  published: 8500
-              #  protocol: tcp
-              #  mode: host
+              traefik:
+              consul:
+                aliases:
+                  - consul.cluster
             command: agent -server -bootstrap-expect 3 -retry-join consul.cluster -client 0.0.0.0 -bind {% raw %}'{{ GetInterfaceIP "eth0" }}'{% endraw %} -ui
             environment:
               - CONSUL_BIND_INTERFACE=eth0
@@ -55,4 +54,7 @@
               labels:
                 - "traefik.enable=true"
                 - "traefik.http.routers.consul.rule=Host(`consul.netsoc.co`)"
-                - "traefik.http.services.consul.loadbalancer.server.port=8500"
+                - "traefik.http.services.consul-service.loadbalancer.server.port=8500"
+                - "traefik.http.routers.consul.tls.certResolver=letsencrypt"
+                - "traefik.http.routers.consul.service=consul-service"
+                - "traefik.docker.network=traefik"
