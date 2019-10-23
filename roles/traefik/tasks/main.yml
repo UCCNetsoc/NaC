@@ -9,13 +9,6 @@
     mode: 0775
     state: directory
 
-- name: Delete existing Traefik dynamic configs
-  become: true
-  file: 
-    path: /netsoc-neo/docker-data/traefik/dynamic_config
-    state: absent
-
-
 - name: Ensure /netsoc-neo/docker-data/traefik/dynamic_config created with 0775
   become: yes
   file:
@@ -25,18 +18,24 @@
     mode: 0775
     state: directory
 
-- name: "Copy files for /netsoc-neo/docker-data/traefik/dynamic_config/* to /traefik/dynamic_config/"
+- name: Sync files for /netsoc-neo/docker-data/traefik/dynamic_config/* to /traefik/dynamic_config/"
   become: yes
-  copy:
-    src: "{{ item.src }}"
-    dest: "/netsoc-neo/docker-data/traefik/dynamic_config/{{ item.path }}"
-    owner: root
-    group: root
-    mode: "{{ item.mode }}"
-    backup: yes
-  with_filetree:
-    - files/dynamic_config
-  when: item.state == "file"
+  synchronize:
+    src: files/dynamic_config/
+    dest: /netsoc-neo/docker-data/traefik/dynamic_config/
+    perms: no # Don't preserve permissions
+    delete: yes # Remove files that do not exist in src from dest
+    recursive: true
+  # copy:
+  #   src: "{{ item.src }}"
+  #   dest: "/netsoc-neo/docker-data/traefik/dynamic_config/{{ item.path }}"
+  #   owner: root
+  #   group: root
+  #   mode: "{{ item.mode }}"
+  #   backup: yes
+  # with_filetree:
+  #   - files/dynamic_config
+  # when: item.state == "file"
 
 
 - name: Copy Traefik Static Config
@@ -72,19 +71,19 @@
     compose:
       - version: "3.5"
         services:
-          traefik:
+          server:
             image: traefik:2.0.2
             ports:
               - target: 8080
-                published: 1337
+                published: 1339
                 protocol: tcp
                 mode: host
               - target: 80
-                published: 80
+                published: 81
                 protocol: tcp
                 mode: host
               - target: 443
-                published: 443
+                published: 444
                 protocol: tcp
                 mode: host
             networks:
