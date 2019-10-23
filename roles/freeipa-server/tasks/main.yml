@@ -1,6 +1,6 @@
 ---
 
-- name: Ensure /netsoc-neo/docker-data/freeipa created with 0755
+- name: Ensure /netsoc-neo/docker-data/freeipa created with 0775
   become: yes
   file:
     path: /netsoc-neo/docker-data/freeipa
