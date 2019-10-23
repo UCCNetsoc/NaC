@@ -1,0 +1,48 @@
+---
+
+# Not needed for public
+# - name: Log in to Docker registry
+#   become: yes
+#   docker_login:
+#     registry: "{{ docker_registry }}"
+#     username: "{{ docker_registry_username }}"
+#     password: "{{ docker_registry_password }}"
+
+- name: Ensure blog.netsoc.co Docker Container
+  become: yes
+  docker_stack:
+    state: present
+    name: blog_netsoc_co
+    #with_registry_auth: true
+    compose:
+      - version: "3.7"
+        services:
+          hugo:
+            image: docker.netsoc.co/public/blog.netsoc.co:latest
+            networks:
+              traefik:
+            environment:
+              BASE_URL: "https://blog.netsoc.dev:444/"
+            deploy:
+              mode: global
+              placement:
+                constraints:
+                  - node.hostname == {{ inventory_hostname }}
+                preferences:
+                  - spread: node.id
+              labels:
+                - "traefik.enable=true"
+                - "traefik.http.routers.blog_netsoc_co.rule=Host(`blog.netsoc.dev`)"
+                - "traefik.http.routers.blog_netsoc_co.entrypoints=web-secure"
+                - "traefik.http.routers.blog_netsoc_co.tls.certResolver=letsencrypt"
+                - "traefik.http.services.blog_netsoc_co-service.loadbalancer.server.port=80"
+                - "traefik.http.routers.blog_netsoc_co.service=blog_netsoc_co-service"
+                - "traefik.docker.network=traefik"
+              restart_policy:
+                condition: on-failure
+                delay: 5s
+                max_attempts: 1
+        networks:
+          traefik:
+            external:
+              name: traefik
