@@ -9,6 +9,7 @@
       - iftop
       - htop
       - git
+      - mysql-client
       # - nodejs
       # - ipython
       # - npm
