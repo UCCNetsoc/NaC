@@ -34,11 +34,12 @@
 #     state: latest
 #     update_cache: yes
 
-- name: Ensure upgraded pip
+- name: Ensure upgraded pip and ansible pip requirements
   become: yes
   pip:
     name:
       - pip
       - jsondiff
+      - pymysql # needed for ansible mysql 
     state: latest
     extra_args: --upgrade
