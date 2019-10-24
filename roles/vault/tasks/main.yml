@@ -1,4 +1,43 @@
+- name: Ensure Vault Config in Docker Swarm Secrets
+  when: inventory_hostname in groups.swarm_creators
+  become: yes
+  docker_secret:
+    name: vault_config.hcl
+    data: "{{ lookup('template', './files/config.hcl') }}"
+
+- name: Ensure Hashicorp Vault network
+  when: inventory_hostname in groups.swarm_creators
+  become: yes
+  docker_network:
+    name: vault
+    driver: overlay
+    attachable: yes
+
+- name: Push Consul Vault token
+  when: inventory_hostname in groups.swarm_creators
+  consul_acl_prefix:
+    scheme: https
+    host: consul.netsoc.co
+    port: 444
+    validate_certs: no
+    name: Hashicorp Vault Token # why doesnt this get set? idk
+    token_type: client
+    token: "{{ consul_vault_token }}"
+    mgmt_token: "{{ consul_master_token }}"
+    rules:
+      - key_prefix: "hashicorp-vault/"
+        policy: write
+      - node_prefix: ""
+        policy: write
+      - service: "vault"
+        policy: write
+      - session_prefix: ""
+        policy: write
+      - agent_prefix: ""
+        policy: write
+
 - name: Ensure Hashicorp Vault instance
+  when: inventory_hostname in groups.swarm_creators
   become: yes
   docker_stack:
     state: present
@@ -8,37 +47,22 @@
         networks: 
           consul:
             external: true
-        services:
+          traefik:
+            external: true
           vault:
+            external: true
+        services:
+          server:
             image: vault:1.2.3
-            command: server
+            command: server -config=/run/secrets/vault_config.hcl
+            secrets:
+              - vault_config.hcl
             networks:
               - consul
+              - traefik
+              - vault
             ports:
               - 8200:8200
-              #- target: 8200
-              #  published: 8200
-              #  protocol: tcp
-              #  mode: host
-            environment:
-              - >
-                VAULT_LOCAL_CONFIG= 
-                  ui = true
-                  log_format = "json"
-                  cluster_name = "main"
-                {% if inventory_hostname|ipaddr('1') != '84' %}
-                  disable_mlock = true
-                {% endif %}
-
-                  listener "tcp" {
-                    address = "0.0.0.0:8200"
-                    tls_disable = "true"
-                  }
-
-                  storage "consul" {
-                    address = "consul.cluster:8500"
-                    path = "vault/"
-                  }
             cap_add:
               - IPC_LOCK
             deploy:
@@ -46,7 +70,23 @@
               placement:
                 constraints:
                   - node.role == manager
+              restart_policy:
+                condition: on-failure
+                delay: 5s
+                max_attempts: 3
+                window: 60s
+              update_config:
+                parallelism: 1
+                delay: 20s
+                order: stop-first
               labels:
                 - "traefik.enable=true"
                 - "traefik.http.routers.vault.rule=Host(`vault.netsoc.co`)"
-                - "traefik.http.services.vault.loadbalancer.server.port=8200"              
+                - "traefik.http.services.vault-service.loadbalancer.server.port=8200"
+                #- "traefik.http.services.vault-service.loadBalancer.healthCheck.path=/v1/status/leader"
+                #- "traefik.http.services.vault-service.loadBalancer.healthCheck.timeout=3s"
+                #- "traefik.http.services.vault-service.loadBalancer.healthCheck.interval=10s"
+                - "traefik.http.routers.vault.tls.certResolver=letsencrypt"
+                - "traefik.http.routers.vault.service=vault-service"
+                - "traefik.docker.network=traefik"
+

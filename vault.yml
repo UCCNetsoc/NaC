@@ -1,5 +1,9 @@
 ---
 - name: Ensure Vault
-  hosts: swarm_creators
+  hosts: swarm_managers
+  vars_files:
+    - vars/consul.yml
+    - vars/vault.yml
+    - vars/secrets.yml
   roles:
   - vault

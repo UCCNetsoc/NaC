@@ -1,0 +1,1 @@
+consul_vault_token: "{{ vault_consul_vault_token }}"
