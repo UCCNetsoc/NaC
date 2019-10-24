@@ -74,7 +74,8 @@
               consul:
                 aliases:
                   - consul
-            command: agent -config-file=/run/secrets/consul_config.hcl
+            command: 'agent -config-file=/run/secrets/consul_config.hcl -rejoin'
+            hostname: '{% raw %}{{ .Node.Hostname }}.consul.netsoc.co{% endraw %}'
             volumes:
               - /netsoc-neo/docker-data/consul:/consul/data
             environment:
@@ -92,10 +93,18 @@
                 condition: on-failure
                 delay: 5s
                 max_attempts: 3
+                window: 60s
+              update_config:
+                parallelism: 1 # operate on one instance at a time to maintain stable quorum (in theory)
+                delay: 20s
+                order: start-first # want to bring up new instance to always maintain quorum
               labels:
                 - "traefik.enable=true"
                 - "traefik.http.routers.consul.rule=Host(`consul.netsoc.co`)"
                 - "traefik.http.services.consul-service.loadbalancer.server.port=8500"
+                - "traefik.http.services.consul-service.loadBalancer.healthCheck.path=/v1/status/leader"
+                - "traefik.http.services.consul-service.loadBalancer.healthCheck.timeout=3s"
+                - "traefik.http.services.consul-service.loadBalancer.healthCheck.interval=10s"
                 - "traefik.http.routers.consul.tls.certResolver=letsencrypt"
                 - "traefik.http.routers.consul.service=consul-service"
                 - "traefik.docker.network=traefik"
@@ -107,8 +116,8 @@
     return_content: yes
     validate_certs: no
   register: response
-  until: response.content_length != 2 and response.status == 200
-  retries: 5
+  until: response.content_length != "2" and response.status == 200
+  retries: 10
 
 - name: Push Consul Agent token
   when: inventory_hostname in groups.swarm_creators
