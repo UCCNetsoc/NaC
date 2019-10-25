@@ -7,13 +7,13 @@
       - pyhcl
     state: present
 
-- name: Ensure /netsoc-neo/docker-data/consul created with 0700 for persistent data
+- name: Ensure /netsoc-neo/docker-data/consul created with 0770 for persistent data
   become: yes
   file:
     path: /netsoc-neo/docker-data/consul
-    owner: root
-    group: root
-    mode: 0700 # drwx----
+    owner: netsoc
+    group: netsoc
+    mode: 0770 # drwxrwx--- needed due to permissions in Consul container
     state: directory
 
 - name: Ensure Hashicorp Consul network
@@ -25,7 +25,7 @@
     attachable: yes
 
 - name: Ensure Consul Config in Docker Swarm Secrets
-  when: inventory_hostname in groups.swarm_creators
+  run_once: true
   become: yes
   docker_secret:
     name: consul_config.hcl
@@ -42,14 +42,15 @@
   when: result is failed
 
 - name: Retry setting Consul Config in Docker Swarm Secrets if necessary
-  when: inventory_hostname in groups.swarm_creators and result is failed
+  run_once: true
+  when: result is failed
   become: yes
   docker_secret:
     name: consul_config.hcl
     data: "{{ lookup('template', './files/config.hcl') }}"
 
 - name: Ensure Hashicorp Consul cluster
-  when: inventory_hostname in groups.swarm_creators
+  run_once: true
   become: yes
   docker_stack:
     state: present
@@ -110,7 +111,7 @@
                 - "traefik.docker.network=traefik"
 
 - name: Wait for Leader elected
-  when: inventory_hostname in groups.swarm_creators
+  run_once: true
   uri:
     url: https://consul.netsoc.co:444/v1/status/leader
     return_content: yes
@@ -120,14 +121,14 @@
   retries: 10
 
 - name: Push Consul Agent token
-  when: inventory_hostname in groups.swarm_creators
-  consul_acl:
+  run_once: true
+  consul_acl_prefix:
     scheme: https
     host: consul.netsoc.co
     port: 444
     validate_certs: no
     name: Agent Token - inter-agent comms # why doesnt this get set? idk
-    token_type: client
+    token_type: management
     token: "{{ consul_agent_token }}"
     mgmt_token: "{{ consul_master_token }}"
     rules:
