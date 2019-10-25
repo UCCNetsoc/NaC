@@ -1,0 +1,4 @@
+harbor_priv_bot_user: "{{ vault_harbor_priv_bot_user }}"
+harbor_priv_bot_token: "{{ vault_harbor_priv_bot_token }}"
+harbor_pub_bot_user: "{{ vault_harbor_pub_bot_user }}"
+harbor_pub_bot_token: "{{ vault_harbor_pub_bot_token }}"

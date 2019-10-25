@@ -1,5 +1,5 @@
 ---
-- name: Ensure Vault
+- name: Ensure Hashicorp Vault
   hosts: swarm_managers
   vars_files:
     - vars/consul.yml
@@ -8,3 +8,14 @@
     - vars/secrets.yml
   roles:
   - vault
+
+- name: Set Docker Registry secrets in Hashicorp Vault
+  hosts: swarm_creators
+  vars_files:
+    - vars/vault.yml
+    - vars/secrets.yml
+  tasks:
+    - include: roles/vault/tasks/docker_registry.yml
+  tags:
+    - push_secrets
+    - docker_registry

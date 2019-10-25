@@ -16,7 +16,7 @@
 - name: Get possible current Vault instance status
   run_once: true
   uri:
-    url: https://vault.netsoc.co:444/v1/sys/health
+    url: "{{ hashivault_url }}/v1/sys/health"
     return_content: yes
     validate_certs: no
     status_code: [200, 404, 501, 503, 502]
@@ -112,7 +112,7 @@
 - name: Wait for Vault up
   run_once: true
   uri:
-    url: https://vault.netsoc.co:444/v1/sys/health
+    url: "{{ hashivault_url }}/v1/sys/health"
     return_content: yes
     validate_certs: no
     status_code: [200, 501, 502, 503]
@@ -131,7 +131,7 @@
   run_once: true
   when: health.json.initialized == false
   uri:
-    url: https://vault.netsoc.co:444/v1/sys/init
+    url: "{{ hashivault_url }}/v1/sys/init"
     method: PUT
     validate_certs: no
     return_content: yes
@@ -164,7 +164,7 @@
   run_once: true
   when: health.json.sealed == true
   uri:
-    url: https://vault.netsoc.co:444/v1/sys/unseal
+    url: "{{ hashivault_url }}/v1/sys/unseal"
     method: PUT
     validate_certs: no
     return_content: yes
@@ -184,7 +184,7 @@
 - name: Check if LDAP enabled
   run_once: true
   uri:
-    url: https://vault.netsoc.co:444/v1/sys/auth
+    url: "{{ hashivault_url }}/v1/sys/auth"
     headers:
       X-Vault-Token: "{{ hashivault_root_token }}"
     method: GET
@@ -196,7 +196,7 @@
   run_once: true
   when: ('ldap/' not in ldap_check.json)
   uri:
-    url: https://vault.netsoc.co:444/v1/sys/auth/ldap
+    url: "{{ hashivault_url }}/v1/sys/auth/ldap"
     headers:
       X-Vault-Token: "{{ hashivault_root_token }}"
     method: POST
@@ -210,7 +210,7 @@
 - name: Configure LDAP Auth details
   run_once: true
   uri:
-    url: https://vault.netsoc.co:444/v1/auth/ldap/config
+    url: "{{ hashivault_url }}/v1/auth/ldap/config"
     headers:
       X-Vault-Token: "{{ hashivault_root_token }}"
     method: POST
@@ -230,7 +230,7 @@
 - name: Configure LDAP Auth admin group - step 1
   run_once: true
   uri:
-    url: https://vault.netsoc.co:444/v1/auth/ldap/groups/sysadmins
+    url: "{{ hashivault_url }}/v1/auth/ldap/groups/sysadmins"
     headers:
       X-Vault-Token: "{{ hashivault_root_token }}"
     method: POST
@@ -243,7 +243,7 @@
 - name: Configure LDAP Auth admin group - step 2
   run_once: true
   uri:
-    url: https://vault.netsoc.co:444/v1/auth/ldap/groups/420
+    url: "{{ hashivault_url }}/v1/auth/ldap/groups/420"
     headers:
       X-Vault-Token: "{{ hashivault_root_token }}"
     method: POST
@@ -256,7 +256,7 @@
 - name: Configure LDAP Auth admin group policy
   run_once: true
   uri:
-    url: https://vault.netsoc.co:444/v1/sys/policy/sysadmins
+    url: "{{ hashivault_url }}/v1/sys/policy/sysadmins"
     headers:
       X-Vault-Token: "{{ hashivault_root_token }}"
     method: POST
