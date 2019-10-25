@@ -1,0 +1,15 @@
+[http.routers]
+    [http.routers.leela-fallback]
+        rule = "Host(`*.netsoc.dev`) || Host(`*.netsoc.co`)"
+        entryPoints = ["web-secure"]
+        priority = 999
+        service = "leela-fallback-service@file"
+    
+        [http.routers.leela-fallback.tls]
+            certResolver = "letsencrypt"
+
+[http.services]
+    [http.services.leela-fallback-service.loadBalancer]
+        [[http.services.leela-fallback-service.loadBalancer.servers]]
+            url = "http://84.39.234.51/"
+        
