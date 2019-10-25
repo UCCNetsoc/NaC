@@ -9,3 +9,13 @@ If the hostnames IP does not start with 84, mlock is disabled. Haven't figured o
 
 **NOTE**
 Using fork of `consul_acl` until prefix policies are merged upstream.
+
+**NOTE 2**
+Until Swarm supports setting capabilities, mlock is disabled.
+Add the following to config.hcl once caps are supported:
+
+```hcl
+{% if inventory_#hostname|ipaddr('1') != '84' %}
+disable_mlock = true
+{% endif %}
+```
