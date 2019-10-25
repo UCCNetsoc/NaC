@@ -1,1 +1,3 @@
 consul_vault_token: "{{ vault_consul_vault_token }}"
+hashivault_master_key: "{{ vault_hashivault_master_key }}" # used for unsealing vault
+hashivault_root_token: "{{ vault_hashivault_root_token }}"

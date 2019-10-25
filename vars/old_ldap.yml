@@ -1,0 +1,8 @@
+ldap_url: "{{ vault_ldap_url }}"
+ldap_bind_dn: "{{ vault_ldap_bind_dn }}"
+ldap_bind_pass: "{{ vault_ldap_bind_pass }}"
+ldap_group_filter: (&(objectClass=account)(uid={% raw %}{{.Username}}{% endraw %}))
+ldap_group_dn: cn=admins,dc=netsoc,dc=co
+ldap_user_dn: cn=admins,dc=netsoc,dc=co
+ldap_group_attr: gidNumber
+ldap_user_attr: uid
