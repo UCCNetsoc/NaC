@@ -1,27 +1,41 @@
 - name: Ensure Vault Config in Docker Swarm Secrets
-  when: inventory_hostname in groups.swarm_creators
+  run_once: true
   become: yes
   docker_secret:
     name: vault_config.hcl
     data: "{{ lookup('template', './files/config.hcl') }}"
 
 - name: Ensure Hashicorp Vault network
-  when: inventory_hostname in groups.swarm_creators
+  run_once: true
   become: yes
   docker_network:
     name: vault
     driver: overlay
     attachable: yes
 
-- name: Push Consul Vault token
+- name: Get possible current Vault instance status
+  run_once: true
+  uri:
+    url: https://vault.netsoc.co:444/v1/sys/health
+    return_content: yes
+    validate_certs: no
+    status_code: [200, 404, 501, 503, 502]
+  register: prev
+
+- name: Possible Vault instance status
   when: inventory_hostname in groups.swarm_creators
+  debug:
+      msg: HTTP {{ prev.status }}
+
+- name: Push Consul Vault token
+  run_once: true
   consul_acl_prefix:
     scheme: https
     host: consul.netsoc.co
     port: 444
     validate_certs: no
     name: Hashicorp Vault Token # why doesnt this get set? idk
-    token_type: client
+    token_type: management
     token: "{{ consul_vault_token }}"
     mgmt_token: "{{ consul_master_token }}"
     rules:
@@ -37,13 +51,16 @@
         policy: write
 
 - name: Ensure Hashicorp Vault instance
-  when: inventory_hostname in groups.swarm_creators
+  run_once: true
   become: yes
   docker_stack:
     state: present
     name: vault
     compose:
       - version: '3.7'
+        secrets:
+          vault_config.hcl:
+            external: true      
         networks: 
           consul:
             external: true
@@ -61,10 +78,12 @@
               - consul
               - traefik
               - vault
+            environment:
+              - SKIP_SETCAP=true
             ports:
               - 8200:8200
-            cap_add:
-              - IPC_LOCK
+            #cap_add:
+            #  - IPC_LOCK
             deploy:
               replicas: 1
               placement:
@@ -90,3 +109,159 @@
                 - "traefik.http.routers.vault.service=vault-service"
                 - "traefik.docker.network=traefik"
 
+- name: Wait for Vault up
+  run_once: true
+  uri:
+    url: https://vault.netsoc.co:444/v1/sys/health
+    return_content: yes
+    validate_certs: no
+    status_code: [200, 501, 502, 503]
+  register: health
+  until: health.status == 501 or health.status == 503 or health.status == 200
+  retries: 10
+
+- name: Vault Health response
+  run_once: true
+  debug:
+    msg: 
+      - HTTP {{ health.status }}
+      - Body {{ health.json }}
+
+- name: Init Vault server
+  run_once: true
+  when: health.json.initialized == false
+  uri:
+    url: https://vault.netsoc.co:444/v1/sys/init
+    method: PUT
+    validate_certs: no
+    return_content: yes
+    body_format: json
+    body: 
+      secret_shares: 1
+      secret_threshold: 1
+  register: init
+
+- name: Vault Init response
+  run_once: true
+  when: health.json.initialized == false # if only just initialized
+  debug:
+      msg: 
+        - "!!! SAVE BASE64 MASTER KEY AND ROOT TOKEN IN ANSIBLE-VAULT AND HASHICORP VAULT !!!"
+        - HTTP {{ init.status }}
+        - Body {{ init.json }}
+
+- name: Setting Vault Master Key fact from JSON response
+  when: health.json.initialized == false # if only just initialized
+  set_fact:
+    hashivault_master_key: init.json.keys_base64.0    
+
+- name: Setting Vault Root Token fact from JSON response
+  when: health.json.initialized == false # if only just initialized
+  set_fact:
+    hashivault_root_token: init.json.root_token
+
+- name: Unseal Vault using Master Key
+  run_once: true
+  when: health.json.sealed == true
+  uri:
+    url: https://vault.netsoc.co:444/v1/sys/unseal
+    method: PUT
+    validate_certs: no
+    return_content: yes
+    body_format: json
+    body: 
+      key: "{{ hashivault_master_key }}"
+  register: unseal
+
+- name: Vault Unseal response
+  when: health.json.sealed == true
+  run_once: true
+  debug:
+      msg:
+        - HTTP {{ unseal.status }}
+        - Body {{ unseal.json }}
+
+- name: Check if LDAP enabled
+  run_once: true
+  uri:
+    url: https://vault.netsoc.co:444/v1/sys/auth
+    headers:
+      X-Vault-Token: "{{ hashivault_root_token }}"
+    method: GET
+    validate_certs: no
+    return_content: yes
+  register: ldap_check
+
+- name: Enable LDAP Auth
+  run_once: true
+  when: ('ldap/' not in ldap_check.json)
+  uri:
+    url: https://vault.netsoc.co:444/v1/sys/auth/ldap
+    headers:
+      X-Vault-Token: "{{ hashivault_root_token }}"
+    method: POST
+    validate_certs: no
+    body_format: json
+    status_code: [204]
+    body:
+      type: ldap
+      description: LDAP Auth for Netsoc
+
+- name: Configure LDAP Auth details
+  run_once: true
+  uri:
+    url: https://vault.netsoc.co:444/v1/auth/ldap/config
+    headers:
+      X-Vault-Token: "{{ hashivault_root_token }}"
+    method: POST
+    validate_certs: no
+    body_format: json
+    status_code: [204]
+    body:
+      url: "{{ ldap_url }}"
+      binddn: "{{ ldap_bind_dn }}"
+      bindpass: "{{ ldap_bind_pass }}"
+      userattr: "{{ ldap_user_attr }}"
+      groupattr: "{{ ldap_group_attr }}"
+      groupdn: "{{ ldap_group_dn }}"
+      groupfilter: "{{ ldap_group_filter }}"
+      userdn: "{{ ldap_user_dn }}"
+
+- name: Configure LDAP Auth admin group - step 1
+  run_once: true
+  uri:
+    url: https://vault.netsoc.co:444/v1/auth/ldap/groups/sysadmins
+    headers:
+      X-Vault-Token: "{{ hashivault_root_token }}"
+    method: POST
+    validate_certs: no
+    body_format: json
+    status_code: [204]
+    body:
+      policies: sysadmins,default
+
+- name: Configure LDAP Auth admin group - step 2
+  run_once: true
+  uri:
+    url: https://vault.netsoc.co:444/v1/auth/ldap/groups/420
+    headers:
+      X-Vault-Token: "{{ hashivault_root_token }}"
+    method: POST
+    validate_certs: no
+    body_format: json
+    status_code: [204]
+    body:
+      policies: sysadmins,default
+
+- name: Configure LDAP Auth admin group policy
+  run_once: true
+  uri:
+    url: https://vault.netsoc.co:444/v1/sys/policy/sysadmins
+    headers:
+      X-Vault-Token: "{{ hashivault_root_token }}"
+    method: POST
+    validate_certs: no
+    body_format: json
+    status_code: [204]
+    body:
+      policy: "{{ lookup('file', './files/sysadmins_policy.hcl') }}"
