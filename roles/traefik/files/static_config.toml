@@ -1,13 +1,13 @@
 [log]
-    level = "DEBUG"
+  level = "DEBUG"
 
 [accessLog]
 
 [entrypoints]
-    [entrypoints.web]
-        address = ":80"
-    [entrypoints.web-secure]
-        address = ":443"
+  [entrypoints.web]
+    address = ":80"
+  [entrypoints.web-secure]
+    address = ":443"
 
 [serversTransport]
   insecureSkipVerify = true
@@ -17,7 +17,6 @@
     [certificatesResolvers.letsencrypt.acme]
       email = "netsoc@uccsocieties.ie"
       storage = "/traefik/acme.json"
-
       [certificatesResolvers.letsencrypt.acme.dnsChallenge]
         provider = "cloudflare"
         delayBeforeCheck = 0
