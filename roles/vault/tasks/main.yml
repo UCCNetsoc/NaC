@@ -220,14 +220,14 @@
     body_format: json
     status_code: [204]
     body:
-      url: "{{ ldap_url }}"
-      binddn: "{{ ldap_bind_dn }}"
-      bindpass: "{{ ldap_bind_pass }}"
-      userattr: "{{ ldap_user_attr }}"
+      url: "{{ ldap_schema }}://{{ ldap_server }}:{{ ldap_port }}"
+      binddn: "{{ ldap_admin_account }}"
+      bindpass: "{{ ldap_admin_password }}"
+      userattr: "{{ ldap_search_attr }}"
       groupattr: "{{ ldap_group_attr }}"
-      groupdn: "{{ ldap_group_dn }}"
-      groupfilter: "{{ ldap_group_filter }}"
-      userdn: "{{ ldap_user_dn }}"
+      groupdn: "{{ ldap_admin_base_dn }}"
+      groupfilter: "{{ ldap_filter }}"
+      userdn: "{{ ldap_admin_base_dn }}"
 
 - name: Configure LDAP Auth admin group - step 1
   run_once: true
