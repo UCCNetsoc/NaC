@@ -3,9 +3,9 @@
 - name: Ensure pterodactyl database
   become: yes
   mysql_db:
-    login_host: "{{ pterodactyl_mysql_server }}"
-    login_user: "{{ pterodactyl_mysql_admin_user }}"
-    login_password: "{{ pterodactyl_mysql_admin_password }}"
+    login_host: "{{ mysql_server }}"
+    login_user: "{{ mysql_admin_username }}"
+    login_password: "{{ mysql_admin_password }}"
     name: "{{ pterodactyl_mysql_database }}"
     state: present
 
@@ -15,9 +15,9 @@
     host: "%"
     priv: "{{ pterodactyl_mysql_database }}.*:ALL"
     password: "{{ pterodactyl_mysql_password }}"
-    login_host: "{{ pterodactyl_mysql_server }}"
-    login_user: "{{ pterodactyl_mysql_admin_user }}"
-    login_password: "{{ pterodactyl_mysql_admin_password }}"
+    login_host: "{{ mysql_server }}"
+    login_user: "{{ mysql_admin_username }}"
+    login_password: "{{ mysql_admin_password }}"
     state: present
 
 - name: Ensure Pterodactyl mount directories
@@ -120,7 +120,7 @@
               REDIS_HOST: "cache"
               REDIS_PORT: "6379"
 
-              DB_HOST: "{{ pterodactyl_mysql_server }}"
+              DB_HOST: "{{ mysql_server }}"
               DB_PORT: "3306"
               DB_DATABASE: "{{ pterodactyl_mysql_database }}"
               DB_USERNAME: "{{ pterodactyl_mysql_user }}"
@@ -187,24 +187,26 @@
               # NOTE: If you are using docker in a different directory, please change below to reflect that!
               - /var/lib/docker:/var/lib/docker
               - /var/run/docker.sock:/var/run/docker.sock
-            deploy:
-              mode: global
-              restart_policy:
-                condition: on-failure
-                delay: 5s
-                max_attempts: 1
-              labels:
-                - "traefik.enable=true"
-                - "traefik.http.routers.pterodactyl-daemon.rule=Host(`pterodactyl-daemon.netsoc.dev`)"
-                - "traefik.http.routers.pterodactyl-daemon.entrypoints=web-secure"
-                - "traefik.http.routers.pterodactyl-daemon.tls.certResolver=letsencrypt"
-                - "traefik.http.routers.pterodactyl-daemon.service=pterodactyl-daemon-service"
-                - "traefik.http.services.pterodactyl-daemon-service.loadbalancer.server.port=8080"
-                - "traefik.http.services.pterodactyl-daemon-service.loadbalancer.server.scheme=https"
-                - "traefik.docker.network=pterodactyl_net"
-              placement:
-                constraints:
-                  - node.hostname == {{ inventory_hostname }}
+            ports:
+              - 6969:8080
+            # deploy:
+            #   mode: global
+            #   restart_policy:
+            #     condition: on-failure
+            #     delay: 5s
+            #     max_attempts: 1
+            #   labels:
+            #     - "traefik.enable=true"
+            #     - "traefik.http.routers.pterodactyl-daemon.rule=Host(`pterodactyl-daemon.netsoc.dev`)"
+            #     - "traefik.http.routers.pterodactyl-daemon.entrypoints=web-secure"
+            #     - "traefik.http.routers.pterodactyl-daemon.tls.certResolver=letsencrypt"
+            #     - "traefik.http.routers.pterodactyl-daemon.service=pterodactyl-daemon-service"
+            #     - "traefik.http.services.pterodactyl-daemon-service.loadbalancer.server.port=8080"
+            #     - "traefik.http.services.pterodactyl-daemon-service.loadbalancer.server.scheme=https"
+            #     - "traefik.docker.network=pterodactyl_net"
+            #   placement:
+            #     constraints:
+            #       - node.hostname == {{ inventory_hostname }}
         networks:
           pterodactyl:
             name: pterodactyl 
