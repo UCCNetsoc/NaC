@@ -1,0 +1,5 @@
+wiki_mysql_database:  "{{ vault_wiki_database }}"
+wiki_mysql_user:  "{{ vault_wiki_mysql_user }}"
+wiki_mysql_password:  "{{ vault_wiki_mysql_password }}"
+wiki_secret_key:  "{{ vault_wiki_secret_key }}"
+wiki_upgrade_key: "{{ vault_wiki_upgrade_key }}"
