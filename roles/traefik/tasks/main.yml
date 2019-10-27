@@ -44,11 +44,31 @@
     src: files/static_config.toml
     dest: /netsoc-neo/docker-data/traefik/static_config.toml
 
-- name: Copy Traefik LetsEncrypt CloudFlare DNS API Token
+- name: Ensure Cloudflare DNS token in Docker Swarm Secrets
+  run_once: true
   become: yes
-  copy:
-    content: "{{ cf_dns_api_token }}"
-    dest: /netsoc-neo/docker-data/traefik/cf_dns_api_token.txt
+  docker_secret:
+    name: cloudflare_dns_api_token.txt
+    data: "{{ cloudflare_dns_api_token }}"
+  register: result
+  ignore_errors: true
+
+- name: Remove Consul Config Secret from Swarm Service to update the Secret
+  become: yes
+  docker_stack:
+    state: absent
+    absent_retries: 5
+    name: cloudflare_dns_api_token.txt
+  when: result is failed
+
+- name: Retry setting Consul Config in Docker Swarm Secrets if necessary
+  run_once: true
+  when: result is failed
+  become: yes
+  docker_secret:
+    name: cloudflare_dns_api_token.txt
+    data: "{{ cloudflare_dns_api_token }}"
+
 
 - name: Ensure Traefik Docker network
   become: yes
@@ -57,12 +77,6 @@
     driver: overlay
     attachable: yes
 
-# - name: Ensure Traefik LetsEncrypt CloudFlare DNS Zone Token
-#   become: yes
-#   copy:
-#     content: "{{ cf_zone_api_token }}"
-#     dest: /netsoc-neo/docker-data/traefik/cf_zone_api_token.txt
-    
 - name: Ensure Traefik Docker container
   become: yes
   docker_stack:
@@ -112,9 +126,10 @@
               - /var/run/docker.sock:/var/run/docker.sock
               - /netsoc-neo/docker-data/traefik/:/traefik/
             command: traefik --configFile=/traefik/static_config.toml
+            secrets:
+              - "cloudflare_dns_api_token.txt"
             environment:
-              #CLOUDFLARE_DNS_API_TOKEN: "{{ cf_dns_api_token }}"
-              CLOUDFLARE_DNS_API_TOKEN_FILE: "/traefik/cf_dns_api_token.txt"
+              CLOUDFLARE_DNS_API_TOKEN_FILE: "/run/secrets/cloudflare_dns_api_token.txt"
           whoami:
             deploy:
               mode: global
@@ -140,6 +155,9 @@
             # container_name: "simple-service"
             networks:
               traefik:
+        secrets:
+          cloudflare_dns_api_token.txt:
+            external: true
         networks:
           traefik:
             external: true
