@@ -1,15 +1,11 @@
 ---
 
-- debug: 
-    msg: "{{ wiki_mysql_server }} {{ wiki_mysql_admin_user }} {{ wiki_mysql_admin_password }}"
-
-
 - name: Ensure wiki database
   become: yes
   mysql_db:
-    login_host: "{{ wiki_mysql_server }}"
-    login_user: "{{ wiki_mysql_admin_user }}"
-    login_password: "{{ wiki_mysql_admin_password }}"
+    login_host: "{{ mysql_server }}"
+    login_user: "{{ mysql_admin_username }}"
+    login_password: "{{ mysql_admin_password }}"
     name: "{{ wiki_mysql_database }}"
     state: present
 
@@ -19,9 +15,9 @@
     host: "%"
     priv: "{{ wiki_mysql_database }}.*:ALL"
     password: "{{ wiki_mysql_password }}"
-    login_host: "{{ wiki_mysql_server }}"
-    login_user: "{{ wiki_mysql_admin_user }}"
-    login_password: "{{ wiki_mysql_admin_password }}"
+    login_host: "{{ mysql_server }}"
+    login_user: "{{ mysql_admin_username }}"
+    login_password: "{{ mysql_admin_password }}"
     state: present
 
 - name: Ensure /netsoc-neo/docker-data/wiki.netsoc.co created with 775
@@ -51,6 +47,7 @@
             image: docker.netsoc.co/public/wiki.netsoc.co
             volumes:
               - "/netsoc-neo/docker-data/wiki.netsoc.co/LocalSettings.php:/var/www/html/LocalSettings.php"
+              - "/netsoc-neo/docker-data/wiki.netsoc.co/images:/var/www/html/images"
             networks:
               traefik:
             deploy:
@@ -70,6 +67,9 @@
                 - "traefik.http.routers.wiki.tls.certResolver=letsencrypt"
                 - "traefik.http.routers.wiki.service=wiki-service"
                 - "traefik.http.services.wiki-service.loadbalancer.server.port=80"
+                - "traefik.http.middlewares.wiki-path-fix.replacepathregex.regex=^/wiki/(.*)"
+                - "traefik.http.middlewares.wiki-path-fix.replacepathregex.replacement=/$$1"
+                - "traefik.http.routers.wiki.middlewares=wiki-path-fix@docker"
                 - "traefik.docker.network=traefik"
         networks:
           traefik:
