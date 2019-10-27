@@ -151,14 +151,16 @@
         - Body {{ init.json }}
 
 - name: Setting Vault Master Key fact from JSON response
+  run_once: true
   when: health.json.initialized == false # if only just initialized
   set_fact:
-    hashivault_master_key: init.json.keys_base64.0    
+    hashivault_master_key: "{{ init.json.keys_base64.0 }}"
 
 - name: Setting Vault Root Token fact from JSON response
+  run_once: true
   when: health.json.initialized == false # if only just initialized
   set_fact:
-    hashivault_root_token: init.json.root_token
+    hashivault_root_token: "{{ init.json.root_token }}"
 
 - name: Unseal Vault using Master Key
   run_once: true

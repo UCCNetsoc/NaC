@@ -101,13 +101,15 @@
                 order: start-first # want to bring up new instance to always maintain quorum
               labels:
                 - "traefik.enable=true"
+                - "traefik.http.routers.consul.entrypoints=web-secure"
                 - "traefik.http.routers.consul.rule=Host(`consul.netsoc.co`)"
-                - "traefik.http.services.consul-service.loadbalancer.server.port=8500"
-                - "traefik.http.services.consul-service.loadBalancer.healthCheck.path=/v1/status/leader"
-                - "traefik.http.services.consul-service.loadBalancer.healthCheck.timeout=3s"
-                - "traefik.http.services.consul-service.loadBalancer.healthCheck.interval=10s"
                 - "traefik.http.routers.consul.tls.certResolver=letsencrypt"
                 - "traefik.http.routers.consul.service=consul-service"
+                - "traefik.http.services.consul-service.loadbalancer.server.port=8500"
+                - "traefik.http.services.consul-service.loadBalancer.healthCheck.path=/v1/status/leader"
+                - "traefik.http.services.consul-service.loadBalancer.healthCheck.timeout=5s"
+                - "traefik.http.services.consul-service.loadBalancer.healthCheck.interval=20s"
+                - "traefik.http.middlewares.consul-circuitbreaker.circuitbreaker.expression=LatencyAtQuantileMS(50.0) > 500"
                 - "traefik.docker.network=traefik"
 
 - name: Wait for Leader elected
