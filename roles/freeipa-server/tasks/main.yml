@@ -6,7 +6,7 @@
     path: /netsoc-neo/docker-data/freeipa
     owner: root
     group: root
-    mode: 0775
+    mode: 0770
     state: directory
 
 - name: Ensure /netsoc-neo/docker-data/freeipa-mods created with 0755
@@ -15,7 +15,7 @@
     path: /netsoc-neo/docker-data/freeipa-mods
     owner: root
     group: root
-    mode: 0775
+    mode: 0770
     state: directory
 
 
