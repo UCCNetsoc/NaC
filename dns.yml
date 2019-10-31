@@ -58,6 +58,7 @@
     - { zone: "netsoc.co",  type: CNAME, record: "blog",             value: "bigbertha.netsoc.co" }
     - { zone: "netsoc.co",  type: CNAME, record: "consul",           value: "bigbertha.netsoc.co" }
     - { zone: "netsoc.co",  type: CNAME, record: "discord",          value: "bigbertha.netsoc.co" }
+    - { zone: "netsoc.co",  type: CNAME, record: "esports",          value: "bigbertha.netsoc.co" }
     - { zone: "netsoc.co",  type: CNAME, record: "grafana",          value: "bigbertha.netsoc.co" }
     - { zone: "netsoc.co",  type: CNAME, record: "irc",              value: "bigbertha.netsoc.co" }
     - { zone: "netsoc.co",  type: CNAME, record: "lxd",              value: "bigbertha.netsoc.co" }
@@ -76,7 +77,6 @@
     - { zone: "netsoc.co",  type: CNAME, record: "www.*.netsoc.co",  value: "leela.netsoc.co" } 
     - { zone: "netsoc.co",  type: CNAME, record: "*.evan.netsoc.co", value: "leela.netsoc.co" } 
     - { zone: "netsoc.co",  type: CNAME, record: "www.*.evan.netsoc.co", value: "leela.netsoc.co" } 
-    - { zone: "netsoc.co",  type: CNAME, record: "esports",          value: "leela.netsoc.co" }
     - { zone: "netsoc.co",  type: CNAME, record: "hlm",              value: "leela.netsoc.co" }
     - { zone: "netsoc.co",  type: CNAME, record: "unf2b",            value: "leela.netsoc.co" }
 
