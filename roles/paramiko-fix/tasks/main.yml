@@ -1,5 +1,6 @@
 ---
 - name: "Ensure GSSAPI compatible Paramiko wheel"
+  become: yes
   copy:
     src: "paramiko-2.2.1-py2.py3-none-any.whl"
     dest: "/netsoc-neo/paramiko-2.2.1-py2.py3-none-any.whl"
