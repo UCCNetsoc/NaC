@@ -5,7 +5,6 @@
   apt:
     name:
       - iotop
-      - more
       - iftop
       - htop
       - git
