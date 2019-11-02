@@ -1,11 +1,11 @@
 datacenter = "cix-main"
 primary_datacenter = "cix-main"
-server = true
-ui = true
+server = false
+ui = false
+node_name = "{{ inventory_hostname }}.consul-client.netsoc.co"
 
-leave_on_terminate = false
+leave_on_terminate = true
 retry_join = ["consul"]
-bootstrap_expect = 3
 
 client_addr = "0.0.0.0"
 
@@ -13,7 +13,6 @@ acl {
     enabled = true
     default_policy = "deny"
     tokens {
-        master = "{{ consul_master_token }}"
         agent = "{{ consul_agent_token }}"
     }
 }

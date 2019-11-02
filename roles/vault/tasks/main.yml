@@ -62,7 +62,7 @@
           vault_config.hcl:
             external: true      
         networks: 
-          consul:
+          consul_client:
             external: true
           traefik:
             external: true
@@ -75,7 +75,7 @@
             secrets:
               - vault_config.hcl
             networks:
-              - consul
+              #- consul_client
               - traefik
               - vault
             environment:

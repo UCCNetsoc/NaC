@@ -7,14 +7,27 @@
       - pyhcl
     state: present
 
-- name: Ensure /netsoc-neo/docker-data/consul created with 0770 for persistent data
+- name: Ensure Consul server and client directories for data and config
   become: yes
   file:
-    path: /netsoc-neo/docker-data/consul
-    owner: netsoc
-    group: netsoc
-    mode: 0770 # drwxrwx--- needed due to permissions in Consul container
+    path: '/netsoc-neo/{{ item.folder }}'
+    owner: 1000
+    group: 1000
+    mode: 0770
     state: directory
+  with_items:
+    - { folder: docker-data/consul }
+    - { folder: docker-data/consul-client }
+    - { folder: docker/consul-client }
+
+- name: Copy Consul client config to hosts
+  become: yes
+  template:
+    dest: /netsoc-neo/docker/consul-client/config.hcl
+    src: ./files/client_config.hcl
+    owner: 1000
+    group: 1000
+    mode: 0440
 
 - name: Ensure Hashicorp Consul network
   when: inventory_hostname in groups.swarm_creators
@@ -22,6 +35,14 @@
   docker_network:
     name: consul
     driver: overlay
+    attachable: yes
+
+- name: Ensure Hashicorp Consul client network
+  become: yes
+  docker_network:
+    name: consul_client
+    driver: bridge
+    scope: swarm
     attachable: yes
 
 - name: Ensure Consul Config in Docker Swarm Secrets
@@ -121,6 +142,25 @@
   register: response
   until: response.content_length != "2" and response.status == 200
   retries: 10
+
+- name: Ensure Hashicorp Consul client agents
+  become: yes
+  docker_container:
+    state: started
+    name: consul_client_agent
+    hostname: consul_client
+    image: consul:1.6.1
+    command: 'agent -config-file=/consul/config.hcl'
+    restart_policy: on-failure
+    networks_cli_compatible: yes
+    env:
+      CONSUL_BIND_INTERFACE: eth1
+    volumes:
+      - /netsoc-neo/docker/consul-client/config.hcl:/consul/config.hcl
+      - /netsoc-neo/docker-data/consul-client:/consul/data
+    networks:
+      - name: consul
+      - name: consul_client
 
 - name: Push Consul Agent token
   run_once: true

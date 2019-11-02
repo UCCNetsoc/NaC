@@ -9,7 +9,7 @@ listener "tcp" {
 }
 
 storage "consul" {
-    address = "consul:8500"
+    address = "consul_client:8500"
     path = "hashicorp-vault/"
     token = "{{ consul_vault_token }}"
 }
