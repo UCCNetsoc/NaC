@@ -161,6 +161,7 @@
     networks:
       - name: consul
       - name: consul_client
+        aliases: consul_client
 
 - name: Push Consul Agent token
   run_once: true

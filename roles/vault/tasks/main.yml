@@ -53,61 +53,42 @@
 - name: Ensure Hashicorp Vault instance
   run_once: true
   become: yes
-  docker_stack:
+  docker_swarm_service:
     state: present
-    name: vault
-    compose:
-      - version: '3.7'
-        secrets:
-          vault_config.hcl:
-            external: true      
-        networks: 
-          consul_client:
-            external: true
-          traefik:
-            external: true
-          vault:
-            external: true
-        services:
-          server:
-            image: vault:1.2.3
-            command: server -config=/run/secrets/vault_config.hcl
-            secrets:
-              - vault_config.hcl
-            networks:
-              #- consul_client
-              - traefik
-              - vault
-            environment:
-              - SKIP_SETCAP=true
-            ports:
-              - 8200:8200
-            #cap_add:
-            #  - IPC_LOCK
-            deploy:
-              replicas: 1
-              placement:
-                constraints:
-                  - node.role == manager
-              restart_policy:
-                condition: on-failure
-                delay: 5s
-                max_attempts: 3
-                window: 60s
-              update_config:
-                parallelism: 1
-                delay: 20s
-                order: stop-first
-              labels:
-                - "traefik.enable=true"
-                - "traefik.http.routers.vault.rule=Host(`vault.netsoc.co`)"
-                - "traefik.http.services.vault-service.loadbalancer.server.port=8200"
-                #- "traefik.http.services.vault-service.loadBalancer.healthCheck.path=/v1/status/leader"
-                #- "traefik.http.services.vault-service.loadBalancer.healthCheck.timeout=3s"
-                #- "traefik.http.services.vault-service.loadBalancer.healthCheck.interval=10s"
-                - "traefik.http.routers.vault.tls.certResolver=letsencrypt"
-                - "traefik.http.routers.vault.service=vault-service"
-                - "traefik.docker.network=traefik"
+    image: vault:1.2.3
+    name: vault_server
+    command: docker-entrypoint.sh server -config=/run/secrets/vault_config.hcl
+    env:
+      - SKIP_SETCAP=true
+    hostname: vault
+    secrets:
+      - secret_name: vault_config.hcl
+        filename: /run/secrets/vault_config.hcl
+    mode: replicated
+    replicas: 1
+    placement:
+      constraints:
+        - node.role == manager
+    labels:
+      traefik.enable: "true"
+      traefik.http.routers.vault.rule: Host(`vault.netsoc.co`)
+      traefik.http.services.vault-service.loadbalancer.server.port: '8200'
+      traefik.http.routers.vault.tls.certResolver: letsencrypt
+      traefik.http.routers.vault.service: vault-service
+      traefik.docker.network: traefik
+    restart_config:
+      condition: on-failure
+      delay: 5s
+      max_attempts: 3
+      window: 60s
+    update_config:
+      parallelism: 1
+      delay: 20s
+      order: stop-first
+    networks:
+      - consul_client
+      - vault
+      - traefik
 
 - name: Wait for Vault up
   run_once: true
