@@ -54,6 +54,8 @@
     - { zone: "netsoc.dev", type: CNAME, record: "netsoc.dev",       value: "bigbertha.netsoc.dev" } 
     - { zone: "netsoc.dev", type: CNAME, record: "ipa",              value: "bigbertha.netsoc.dev" } 
 
+    - { zone: "netsoc.co",  type: CNAME, record: "logs",             value: "bigbertha.netsoc.co" }
+    - { zone: "netsoc.co",  type: CNAME, record: "es",               value: "bigbertha.netsoc.co" }
     - { zone: "netsoc.co",  type: CNAME, record: "alerts",           value: "bigbertha.netsoc.co" }
     - { zone: "netsoc.co",  type: CNAME, record: "blog",             value: "bigbertha.netsoc.co" }
     - { zone: "netsoc.co",  type: CNAME, record: "consul",           value: "bigbertha.netsoc.co" }

@@ -1,18 +1,4 @@
 ---
-- name: Get Elasticsearch name
-  become: true
-  shell: docker ps --format {% raw %}'{{ .Names }}'{% endraw %} | grep elasticsearch
-  register: result
-  until: result.rc == 0
-  retries: 10
-  delay: 5
-
-- name: Get Elasticsearch info
-  become: true
-  docker_container_info:
-    name: "{{ result.stdout }}"
-  register: container_info
-
 - name: Ensure Kibana
   become: yes
   docker_stack:
@@ -21,29 +7,33 @@
     compose:
       - version: '3.5'
         networks:
+          traefik:
+            external: true
           elasticsearch:
             external: true
         services:
-          kibana:
+          server:
             image: docker.elastic.co/kibana/kibana:7.4.0
             container_name: kibana
             environment:
-              ELASTICSEARCH_HOSTS: http://{{ container_info.container.Config.Labels["com.docker.swarm.task.name"] }}:9200
-            ports:
-              #- target: 5601
-              #  published: 5601
-              #  protocol: tcp
-              #  mode: host
-              - 5601:5601
+              ELASTICSEARCH_HOSTS: http://elasticsearch:9200
             networks:
               - elasticsearch
+              - traefik
             deploy:
-              mode: global
-              placement:
-                constraints:
-                  - node.role == manager
-                  - node.hostname == {{ inventory_hostname }}
+              mode: replicated
+              replicas: 1
               restart_policy:
                 condition: on-failure
                 delay: 5s
                 max_attempts: 3
+              labels:
+                - "traefik.enable=true"
+                - "traefik.http.routers.kibana.entrypoints=web-secure"
+                - "traefik.http.routers.kibana.rule=Host(`logs.netsoc.co`)"
+                - "traefik.http.routers.kibana.tls.certResolver=letsencrypt"
+                - "traefik.http.routers.kibana.service=kibana-service"
+                - "traefik.http.services.kibana-service.loadbalancer.server.port=5601"
+                - "traefik.docker.network=traefik"
+                - "traefik.http.middlewares.kibana-auth.basicauth.users={{ kibana_basic_auth }}"
+                - "traefik.http.routers.kibana.middlewares=kibana-auth@docker"

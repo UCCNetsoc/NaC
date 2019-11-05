@@ -30,10 +30,12 @@
     compose:
       - version: '3.7'
         networks:
+          traefik:
+            external: true
           elasticsearch:
             external: true
         services:
-          elasticsearch:
+          server:
             image: docker.elastic.co/elasticsearch/elasticsearch:7.4.0
             container_name: elasticsearch
             volumes:
@@ -43,14 +45,14 @@
               xpack.security.enabled: 'false'
               xpack.ml.enabled: 'false'
             networks:
-              - elasticsearch
+              traefik:
+              elasticsearch:
+                aliases:
+                  - elasticsearch
             ulimits:
               nofile:
                 soft: 122880
                 hard: 122880              
-            ports:
-              - 9200:9200
-              - 9300:9300
             deploy:
               mode: global
               placement:
@@ -61,3 +63,13 @@
                 condition: on-failure
                 delay: 5s
                 max_attempts: 3
+              labels:
+                - "traefik.enable=true"
+                - "traefik.http.routers.elasticsearch.entrypoints=web-secure"
+                - "traefik.http.routers.elasticsearch.rule=Host(`es.netsoc.co`)"
+                - "traefik.http.routers.elasticsearch.tls.certResolver=letsencrypt"
+                - "traefik.http.routers.elasticsearch.service=elasticsearch-service"
+                - "traefik.http.services.elasticsearch-service.loadbalancer.server.port=9200"
+                - "traefik.docker.network=traefik"
+                - "traefik.http.middlewares.elasticsearch-auth.basicauth.users={{ elasticsearch_basic_auth }}"
+                - "traefik.http.routers.elasticsearch.middlewares=kibana-auth@docker"

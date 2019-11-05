@@ -131,6 +131,7 @@
                 - "traefik.http.services.consul-service.loadBalancer.healthCheck.timeout=5s"
                 - "traefik.http.services.consul-service.loadBalancer.healthCheck.interval=20s"
                 - "traefik.http.middlewares.consul-circuitbreaker.circuitbreaker.expression=LatencyAtQuantileMS(50.0) > 500"
+                - "traefik.http.routers.consul.middlewares=consul-circuitbreaker@docker"
                 - "traefik.docker.network=traefik"
 
 - name: Wait for Leader elected
