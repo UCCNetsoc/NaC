@@ -96,6 +96,9 @@
     - { zone: "netsoc.co", type: TXT, record: "netsoc.co", value: "v=spf1 mx include:zoho.com include:u1980078.wl.sendgrid.net -all" }
     - { zone: "netsoc.co", type: TXT, record: "zoho._domainkey.netsoc.co", value: "k=rsa; t=y; p=MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQCB3sWPAMJHYvSCWEueINNaIsPy4OeAQgFsm3y+IcOSUcXJUhHr+LrYGuD9SZzIEh0ekm0Usm73gRz4LgGYfeZ9SXbR3H1LupOETGym0FRRQnAjnXI9L/wfaOzYwbpKm04lhpbobhAwrtsUcgMyo+wmEByM3AR25+YDmlUuijmNTwIDAQAB" }
 
+    # "floating" CNAMEs
+    - { zone: "netsoc.co",  type: CNAME, record: "userdomains", value: "leela.netsoc.co"}
+
     # MX
     - { zone: "netsoc.co", type: MX, record: "netsoc.co", value: "mx.zoho.com" }
     - { zone: "netsoc.co", type: MX, record: "netsoc.co", value: "mx2.zoho.com" }
