@@ -41,23 +41,23 @@
     # elon
     - { zone: "netsoc.co", type: A,      record: "elon",             value: "143.239.87.40" }
     - { zone: "netsoc.co", type: CNAME,  record: "ldap",             value: "elon.netsoc.co" }
-    - { zone: "netsoc.co", type: CNAME,  record: "mysql",            value: "elon.netsoc.co"}
-
+    
     # tesla
     - { zone: "netsoc.co",  type: A,     record: "tesla",            value: "143.239.87.41" }
-
+    
     # boole
     - { zone: "netsoc.co",  type: CNAME, record: "ci",               value: "boole.netsoc.co" }
     - { zone: "netsoc.co",  type: CNAME, record: "docker",           value: "boole.netsoc.co" }
     - { zone: "netsoc.co",  type: CNAME, record: "portainer",        value: "boole.netsoc.co" }
     - { zone: "netsoc.co",  type: CNAME, record: "sentry",           value: "boole.netsoc.co" }
-
+    
     # bigbertha
     - { zone: "netsoc.dev", type: CNAME, record: "*.netsoc.dev",     value: "bigbertha.netsoc.dev" } 
     - { zone: "netsoc.dev", type: CNAME, record: "www.*.netsoc.dev", value: "bigbertha.netsoc.dev" } 
     - { zone: "netsoc.dev", type: CNAME, record: "netsoc.dev",       value: "bigbertha.netsoc.dev" } 
     - { zone: "netsoc.dev", type: CNAME, record: "ipa",              value: "bigbertha.netsoc.dev" } 
-
+    
+    - { zone: "netsoc.co", type: CNAME,  record: "mysql",            value: "bigbertha.netsoc.co" }
     - { zone: "netsoc.co",  type: CNAME, record: "logs",             value: "bigbertha.netsoc.co" }
     - { zone: "netsoc.co",  type: CNAME, record: "es",               value: "bigbertha.netsoc.co" }
     - { zone: "netsoc.co",  type: CNAME, record: "alerts",           value: "bigbertha.netsoc.co" }
@@ -71,9 +71,9 @@
     - { zone: "netsoc.co",  type: CNAME, record: "netsoc.co",        value: "bigbertha.netsoc.co" } 
     - { zone: "netsoc.co",  type: CNAME, record: "www.netsoc.co",    value: "bigbertha.netsoc.co" } 
     - { zone: "netsoc.co",  type: CNAME, record: "prom",             value: "bigbertha.netsoc.co" } 
-    - { zone: "netsoc.co",  type: CNAME, record: "tutorials",        value: "blog.netsoc.co" }
     - { zone: "netsoc.co",  type: CNAME, record: "vault",            value: "bigbertha.netsoc.co" } 
     - { zone: "netsoc.co",  type: CNAME, record: "wiki",             value: "bigbertha.netsoc.co" } 
+    - { zone: "netsoc.co",  type: CNAME, record: "tutorials",        value: "blog.netsoc.co" }
 
     # constitution
     - { zone: "netsoc.co",  type: CNAME, record: "constitution",     value: "uccnetworkingsociety.github.io" }
