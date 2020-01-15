@@ -18,7 +18,6 @@
   uri:
     url: "{{ hashivault_url }}/v1/sys/health"
     return_content: yes
-    validate_certs: no
     status_code: [200, 404, 501, 503, 502]
   register: prev
 
@@ -33,7 +32,6 @@
     scheme: https
     host: consul.netsoc.co
     port: 444
-    validate_certs: no
     name: Hashicorp Vault Token # why doesnt this get set? idk
     token_type: management
     token: "{{ consul_vault_token }}"
@@ -95,7 +93,6 @@
   uri:
     url: "{{ hashivault_url }}/v1/sys/health"
     return_content: yes
-    validate_certs: no
     status_code: [200, 501, 502, 503]
   register: health
   until: health.status == 501 or health.status == 503 or health.status == 200
@@ -114,7 +111,6 @@
   uri:
     url: "{{ hashivault_url }}/v1/sys/init"
     method: PUT
-    validate_certs: no
     return_content: yes
     body_format: json
     body: 
@@ -149,7 +145,6 @@
   uri:
     url: "{{ hashivault_url }}/v1/sys/unseal"
     method: PUT
-    validate_certs: no
     return_content: yes
     body_format: json
     body: 
@@ -171,7 +166,6 @@
     headers:
       X-Vault-Token: "{{ hashivault_root_token }}"
     method: GET
-    validate_certs: no
     return_content: yes
   register: ldap_check
 
@@ -183,7 +177,6 @@
     headers:
       X-Vault-Token: "{{ hashivault_root_token }}"
     method: POST
-    validate_certs: no
     body_format: json
     status_code: [204]
     body:
@@ -197,7 +190,6 @@
     headers:
       X-Vault-Token: "{{ hashivault_root_token }}"
     method: POST
-    validate_certs: no
     body_format: json
     status_code: [204]
     body:
@@ -217,7 +209,6 @@
     headers:
       X-Vault-Token: "{{ hashivault_root_token }}"
     method: POST
-    validate_certs: no
     body_format: json
     status_code: [204]
     body:
@@ -230,7 +221,6 @@
     headers:
       X-Vault-Token: "{{ hashivault_root_token }}"
     method: POST
-    validate_certs: no
     body_format: json
     status_code: [204]
     body:
@@ -243,8 +233,7 @@
     headers:
       X-Vault-Token: "{{ hashivault_root_token }}"
     method: POST
-    validate_certs: no
     body_format: json
     status_code: [204]
     body:
-      policy: "{{ lookup('file', './files/sysadmins_policy.hcl') }}"
+      policy: "{{ lookup('file', '../files/sysadmins_policy.hcl') }}"

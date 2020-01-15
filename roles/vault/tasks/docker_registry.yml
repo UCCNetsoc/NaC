@@ -5,7 +5,6 @@
     headers:
       X-Vault-Token: "{{ hashivault_root_token }}"
     method: GET
-    validate_certs: no
     return_content: yes
   register: engines
     
@@ -16,10 +15,52 @@
     headers:
       X-Vault-Token: "{{ hashivault_root_token }}"
     method: POST
-    validate_certs: no
     body_format: json
     status_code: [204]
     body:
       type: kv
       version: "2"
+
+- name: Create CI Auth Token
+  uri:
+    url: "{{ hashivault_url }}/v1/auth/token/create"
+    headers:
+      X-Vault-Token: "{{ hashivault_root_token }}"
+    method: POST
+    body_format: json
+    body:
+      display_name: CI Access Token
+      policies: ci
+      id: "{{ hashivault_docker_registry_token }}"
+      no_default_policy: true
+      ttl: "0"
   register: resp
+  failed_when: "resp.json != {\"errors\": [\"cannot create a token with a duplicate ID\"]}"
+
+- name: Configure CI group policy
+  run_once: true
+  uri:
+    url: "{{ hashivault_url }}/v1/sys/policy/ci"
+    headers:
+      X-Vault-Token: "{{ hashivault_root_token }}"
+    method: POST
+    body_format: json
+    status_code: [204]
+    body:
+      policy: "{{ lookup('file', '../files/ci_policy.hcl') }}"
+
+
+- name: Push Harbor secrets to Hashicorp Vault
+  uri:
+    url: "{{ hashivault_url }}/v1/docker_registry/harbor"
+    headers:
+      X-Vault-Token: "{{ hashivault_root_token }}"
+    method: PUT
+    body_format: json
+    status_code: [204]
+    body:
+      harbor_priv_user: "{{ harbor_priv_bot_user }}"
+      harbor_priv_token: "{{ harbor_priv_bot_token }}"
+      harbor_pub_user: "{{ harbor_pub_bot_user }}"
+      harbor_pub_token: "{{ harbor_pub_bot_token }}"
+
