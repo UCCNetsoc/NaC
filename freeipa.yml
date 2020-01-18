@@ -1,0 +1,31 @@
+
+- name: "Setup FreeIPA Server" 
+  hosts: bigbertha
+  roles:
+    - freeipa-server
+  vars:
+    ipa_realm: NETSOC.CO
+    ipa_server_hostname: ipa.netsoc.co
+    ipa_traefik_host_rule: ipa.netsoc.co
+  vars_files:
+    - vars/freeipa.yml  # passwords
+    - vars/secrets.yml
+  tags:
+    - install-freeipa-server
+
+
+# - name: "Setup FreeIPA Clients (feynman)"
+#   hosts: feynman
+#   roles:
+#     - freeipa-client
+#   vars:
+#     ipa_realm: NETSOC.DEV
+#     ipa_domain: netsoc.dev
+#     ipa_server_hostname: feyn-ipa.netsoc.dev
+#     ipa_client_hostname: "{{ inventory_hostname }}.netsoc.dev"
+#   vars_files:
+#     - vars/freeipa.yml  # passwords
+#   tags:
+#     - install-freeipa-server-feynman
+#     - install-freeipa-clients
+
