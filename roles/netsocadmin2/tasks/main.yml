@@ -1,0 +1,50 @@
+---
+- name: Login to registry
+  become: true
+  docker_login:
+    registry: "{{ docker_registry }}"
+    username: "{{ docker_registry_username }}"
+    password: "{{ docker_registry_password }}"
+
+- name: Install NetsocAdmin2
+  become: yes
+  docker_stack:
+    name: netsocadmin2
+    with_registry_auth: true
+    state: present
+    compose:
+      - version: "3.7"
+        services:
+          server:
+            image:  docker.netsoc.co/netsoc/netsocadmin:latest
+            volumes:
+              - "/media/odin/admin.netsoc.co/storage/backups:/backups"
+              - "/home/users:/home/users"
+              # - "/netsoc/netsocadmin2/wordpress_installer_config.py:/netsocadmin/wordpress_installer/wordpress_installer/config.py"
+              # - "/netsoc/netsocadmin2/admin_passwords.py:/netsocadmin/webapp/passwords.py"
+              - "/netsoc/netsocadmin2/config.py:/netsocadmin/netsocadmin/config.py"
+              - "/netsoc/netsocadmin2/.uri.db:/netsocadmin/netsocadmin/.uri.db"
+            networks:
+              traefik:
+            deploy:
+              mode: global
+              placement:
+                constraints:
+                  - node.hostname == leela
+                preferences:
+                  - spread: node.id
+              labels:
+                - "traefik.enable=true"
+                - "traefik.http.routers.netsocadmin2.rule=Host(`admin.netsoc.co`)"
+                - "traefik.http.routers.netsocadmin2.entrypoints=web-secure"
+                - "traefik.http.routers.netsocadmin2.tls.certResolver=letsencrypt"
+                - "traefik.http.services.netsocadmin2-service.loadbalancer.server.port=5050"
+                - "traefik.http.routers.netsocadmin2.service=netsocadmin2-service"
+                - "traefik.docker.network=traefik"
+              restart_policy:
+                condition: any
+                delay: 5s
+                max_attempts: 1
+        networks:
+          traefik:
+            external: true
