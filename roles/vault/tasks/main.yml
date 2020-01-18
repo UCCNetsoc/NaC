@@ -12,6 +12,7 @@
     name: vault
     driver: overlay
     attachable: yes
+    appends: yes
 
 - name: Get possible current Vault instance status
   run_once: true
@@ -31,7 +32,7 @@
   consul_acl_prefix:
     scheme: https
     host: consul.netsoc.co
-    port: 444
+    port: 443
     name: Hashicorp Vault Token # why doesnt this get set? idk
     token_type: management
     token: "{{ consul_vault_token }}"
