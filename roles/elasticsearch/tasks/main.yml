@@ -21,6 +21,7 @@
     name: elasticsearch
     driver: overlay
     attachable: yes
+    appends: yes
 
 - name: Ensure elasticsearch
   become: yes
@@ -60,13 +61,13 @@
                   - node.role == manager
                   - node.hostname == {{ inventory_hostname }}
               restart_policy:
-                condition: on-failure
+                condition: any
                 delay: 5s
                 max_attempts: 3
               labels:
                 - "traefik.enable=true"
                 - "traefik.http.routers.elasticsearch.entrypoints=web-secure"
-                - "traefik.http.routers.elasticsearch.rule=Host(`es.netsoc.co`)"
+                - "traefik.http.routers.elasticsearch.rule=Host(`es.netsoc.dev`)"
                 - "traefik.http.routers.elasticsearch.tls.certResolver=letsencrypt"
                 - "traefik.http.routers.elasticsearch.service=elasticsearch-service"
                 - "traefik.http.services.elasticsearch-service.loadbalancer.server.port=9200"
