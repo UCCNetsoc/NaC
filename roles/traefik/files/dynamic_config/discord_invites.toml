@@ -2,7 +2,7 @@
 [http.routers]
   [http.routers.discord-router]
     entrypoints = ["web-secure"]
-    rule = "Host(`discord.netsoc.dev`)"
+    rule = "Host(`discord.netsoc.co`)"
     middlewares = ["discord-redirect"]
     service = "unused-service"
     
@@ -11,7 +11,7 @@
 
   [http.routers.esports-router]
     entrypoints = ["web-secure"]
-    rule = "Host(`esports.netsoc.dev`)"
+    rule = "Host(`esports.netsoc.co`)"
     middlewares = ["esports-redirect"]
     service = "unused-service"
     
