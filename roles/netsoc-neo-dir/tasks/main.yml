@@ -3,7 +3,7 @@
   become: yes
   file:
     path: /netsoc-neo/
-    mode: 0770 # drwx-----
+    mode: 0770 
     owner: root
     group: root
     state: directory
@@ -12,7 +12,7 @@
   become: yes
   file:
     path: /netsoc-neo/docker-data
-    mode: 0770 # drwx-----
+    mode: 0770 
     owner: root
     group: root
     state: directory
@@ -21,7 +21,7 @@
   become: yes
   file:
     path: /netsoc-neo/certs
-    mode: 0770 # drwx-----
+    mode: 0770 
     owner: root
     group: root
     state: directory
