@@ -1,0 +1,12 @@
+---
+- name: Ensure Prometheus Server
+  hosts: prometheus_hosts
+  roles:
+    - grafana
+    - prometheus-server
+
+- name: Ensure Prometheus nodes
+  hosts: prometheus_nodes
+  roles:
+    - prometheus-exporters
+

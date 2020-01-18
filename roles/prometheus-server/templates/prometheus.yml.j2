@@ -1,0 +1,152 @@
+global:
+  scrape_interval:     5s # Set the scrape interval to every 5 seconds. Default is every 1 minute.
+  evaluation_interval: 5s # Evaluate rules every 5 seconds. The default is every 1 minute.
+
+rule_files:
+  - "/etc/prometheus/rules/*"
+
+scrape_configs:
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']
+        labels:
+          instance: "{{inventory_hostname}}"
+
+  - job_name: 'grafana'
+    static_configs:
+      - targets: ['grafana:3000']
+        labels:
+          instance: "{{inventory_hostname}}"
+
+  - job_name: 'expexp_metrics'
+    static_configs:
+    {% for h in groups['prometheus_nodes'] -%}
+      - 
+        targets:
+          - {{h}}:9999
+        labels:
+          instance: "{{h}}"
+    {% endfor %}
+
+  - job_name: 'node'
+    metrics_path: /proxy
+    params:
+      module:
+       - node 
+    static_configs:
+    {% for h in groups['prometheus_nodes'] -%}
+      - 
+        targets:
+          - {{h}}:9999
+        labels:
+          instance: "{{h}}"
+    {% endfor %}
+
+  - job_name: 'apache'
+    metrics_path: /proxy
+    params:
+      module:
+       - apache 
+    static_configs:
+    {% for h in groups['prometheus_apache'] -%}
+      - 
+        targets:
+          - {{h}}:9999
+        labels:
+          instance: "{{h}}"
+    {% endfor %}
+
+  - job_name: 'cadvisor'
+    metrics_path: /proxy
+    params:
+      module:
+        - cadvisor
+    static_configs:
+    {% for h in groups['prometheus_docker'] -%}
+      - 
+        targets:
+          - {{h}}:9999
+        labels:
+          instance: "{{h}}"
+    {% endfor %}
+
+  - job_name: 'minecraft-survival'
+    metrics_path: /proxy
+    params:
+      module:
+        - netcraft-survival
+    static_configs:
+      - 
+        targets:
+        - lovelace.netsoc.co:9999
+        labels:
+          instance: "{{inventory_hostname}}"
+
+  - job_name: 'minecraft-creative'
+    metrics_path: /proxy
+    params:
+      module:
+        - netcraft-creative
+    static_configs:
+      - 
+        targets:
+        - lovelace.netsoc.co:9999
+        labels:
+          instance: "{{inventory_hostname}}"
+
+  - job_name: 'site-up'
+    metrics_path: /probe
+    params:
+      module: [http_2xx]
+    static_configs:
+      - targets:
+        - 'https://netsoc.co/'
+        - 'https://motley.ie/'
+        - 'https://uccexpress.ie/'
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: __param_target
+      - source_labels: [__param_target]
+        target_label: instance
+        regex: '^https?:\/\/(.*)\/'
+      - target_label: __address__
+        replacement: blackbox_exporter:9115
+
+  - job_name: 'harbor-registry'
+    metrics_path: /probe
+    params:
+      module: [
+        harbor_health_jobservice, 
+        harbor_health_core,
+        harbor_health_redis,
+        harbor_health_database, 
+        harbor_health_registry,
+        harbor_health_registryctl,
+        harbor_health_portal,
+      ]
+    static_configs:
+      - targets:
+        - 'https://docker.netsoc.co/api/health'
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: __param_target
+      - source_labels: [__param__module]
+        target_label: harbor_component
+      - target_label: instance
+        replacement: docker.netsoc.co
+      - target_label: __address__
+        replacement: blackbox_exporter:9115
+
+  - job_name: 'ipmi'
+    metrics_path: /proxy
+    params:
+      module:
+       - ipmi 
+    static_configs:
+    {% for h in groups['prometheus_nodes'] -%}
+      - 
+        targets:
+          - {{h}}:9999
+        labels:
+          instance: "{{h}}"
+    {% endfor %}
