@@ -24,13 +24,13 @@
               mode: replicated
               replicas: 1
               restart_policy:
-                condition: on-failure
+                condition: any
                 delay: 5s
                 max_attempts: 3
               labels:
                 - "traefik.enable=true"
                 - "traefik.http.routers.kibana.entrypoints=web-secure"
-                - "traefik.http.routers.kibana.rule=Host(`logs.netsoc.co`)"
+                - "traefik.http.routers.kibana.rule=Host(`logs.netsoc.dev`)"
                 - "traefik.http.routers.kibana.tls.certResolver=letsencrypt"
                 - "traefik.http.routers.kibana.service=kibana-service"
                 - "traefik.http.services.kibana-service.loadbalancer.server.port=5601"
