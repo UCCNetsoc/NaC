@@ -6,7 +6,7 @@
     path: /netsoc-neo/docker-data/traefik
     owner: root
     group: root
-    mode: 0775
+    mode: 0770
     state: directory
 
 - name: Ensure /netsoc-neo/docker-data/traefik/dynamic_config created with 0775
@@ -15,7 +15,7 @@
     path: /netsoc-neo/docker-data/traefik/dynamic_config
     owner: root
     group: root
-    mode: 0775
+    mode: 0770
     state: directory
 
 - name: Sync files for /netsoc-neo/docker-data/traefik/dynamic_config/* to /traefik/dynamic_config/"
@@ -88,16 +88,17 @@
           server:
             image: traefik:2.0.2
             ports:
-              - target: 8080
-                published: 1339
-                protocol: tcp
-                mode: host
+              # dashboard
+              # - target: 8080
+              #   published: 1339
+              #   protocol: tcp
+              #   mode: host
               - target: 80
-                published: 81
+                published: 80
                 protocol: tcp
                 mode: host
               - target: 443
-                published: 444
+                published: 443
                 protocol: tcp
                 mode: host
             networks:
@@ -111,17 +112,29 @@
                 preferences:
                   - spread: node.id
               restart_policy:
-                condition: on-failure
+                condition: any
                 delay: 2s
                 max_attempts: 1
               labels:
-                # https://community.containo.us/t/global-http-to-https-redirect-in-v2/1658/3
-                #- "traefik.http.middlewares.redirect-to-https.redirectscheme.scheme=https"
                 # global redirect to https
                 - "traefik.enable=true"
-                - "traefik.http.routers.redirs.rule=hostregexp(`{host:.+}`)"
-                - "traefik.http.routers.redirs.entrypoints=web"
-                - "traefik.http.routers.redirs.middlewares=redirectToHttps"
+                - "traefik.docker.network=traefik"
+                - "traefik.http.routers.https-redirect.entrypoints=web"
+                - "traefik.http.routers.https-redirect.rule=HostRegexp(`{any:.*}`)"
+                - "traefik.http.routers.https-redirect.middlewares=https-redirect"
+                - "traefik.http.middlewares.https-redirect.redirectscheme.scheme=https"
+                - "traefik.http.middlewares.https-redirect.redirectscheme.port=443"
+                - "traefik.http.middlewares.https-redirect.redirectscheme.permanent=true"
+
+                # passworded dashboard
+                - "traefik.http.routers.dashboard.entrypoints=web-secure"
+                - "traefik.http.routers.dashboard.rule=Host(`traefik.netsoc.dev`)"
+                - "traefik.http.routers.dashboard.tls.certResolver=letsencrypt"
+                - "traefik.http.routers.dashboard.service=dashboard-service"
+                - "traefik.http.services.dashboard-service.loadbalancer.server.port=8080"
+                - "traefik.http.middlewares.dashboard-auth.basicauth.users={{ traefik_basic_auth }}"
+                - "traefik.http.routers.dashboard.middlewares=dashboard-auth@docker"
+
             volumes:
               - /var/run/docker.sock:/var/run/docker.sock
               - /netsoc-neo/docker-data/traefik/:/traefik/
@@ -140,7 +153,7 @@
                 preferences:
                   - spread: node.id
               restart_policy:
-                condition: on-failure
+                condition: any
                 delay: 10s
                 max_attempts: 1
               labels:
