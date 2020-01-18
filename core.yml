@@ -1,0 +1,19 @@
+
+- name: "Deploy Traefik, Netsoc.co, Netsoc Blog, Netsoc Wiki"
+  hosts: bigbertha
+  roles:
+    - traefik
+    - netsoc.co
+    - blog.netsoc.co
+    - wiki.netsoc.co
+  vars_files:
+    - vars/cloudflare.yml  # traefik certs
+    - vars/docker_registry.yml # netsoc.co image
+    - vars/mysql_server.yml # mysql server root
+    - vars/wiki.yml
+    - vars/ldap.yml
+    - vars/secrets.yml
+  tags:
+    - install-base
+    - install-swarm
+    - install-swarm-services
