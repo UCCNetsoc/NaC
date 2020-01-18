@@ -1,7 +1,7 @@
 [http.routers]
   [http.routers.leela-fallback]
     rule = "HostRegexp(`{.*}.netsoc.dev`) || HostRegexp(`www.{.*}.netsoc.dev`) || HostRegexp(`{.*}.netsoc.co`) || HostRegexp(`www.{.*}.netsoc.co`)"
-    entryPoints = ["web","web-secure"]
+    entryPoints = ["web-secure"]
     priority = 1
     service = "leela-fallback-service@file"
 
@@ -16,4 +16,3 @@
   [http.services.leela-fallback-service.loadBalancer]
     [[http.services.leela-fallback-service.loadBalancer.servers]]
       url = "http://leela.netsoc.co/"
-      
