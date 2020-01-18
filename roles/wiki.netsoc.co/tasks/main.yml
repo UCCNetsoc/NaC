@@ -26,7 +26,7 @@
     path: /netsoc-neo/docker-data/wiki.netsoc.co/
     owner: root
     group: root
-    mode: 0775
+    mode: 0770
     state: directory
 
 - name: Ensure LocalSettings.php configuration
@@ -57,12 +57,12 @@
                 constraints:
                   - node.hostname == {{ inventory_hostname }}
               restart_policy:
-                condition: on-failure
+                condition: any
                 delay: 5s
                 max_attempts: 1
               labels:
                 - "traefik.enable=true"
-                - "traefik.http.routers.wiki.rule=Host(`wiki.netsoc.dev`)"
+                - "traefik.http.routers.wiki.rule=Host(`wiki.netsoc.co`)"
                 - "traefik.http.routers.wiki.entrypoints=web-secure"
                 - "traefik.http.routers.wiki.tls.certResolver=letsencrypt"
                 - "traefik.http.routers.wiki.service=wiki-service"
