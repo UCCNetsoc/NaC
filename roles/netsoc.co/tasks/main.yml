@@ -21,14 +21,14 @@
                   - spread: node.id
               labels:
                 - "traefik.enable=true"
-                - "traefik.http.routers.netsoc_co.rule=Host(`netsoc.dev`)"
+                - "traefik.http.routers.netsoc_co.rule=Host(`netsoc.co`) || Host(`www.netsoc.co`)"
                 - "traefik.http.routers.netsoc_co.entrypoints=web-secure"
                 - "traefik.http.routers.netsoc_co.tls.certResolver=letsencrypt"
                 - "traefik.http.services.netsoc_co-service.loadbalancer.server.port=80"
                 - "traefik.http.routers.netsoc_co.service=netsoc_co-service"
                 - "traefik.docker.network=traefik"
               restart_policy:
-                condition: on-failure
+                condition: any
                 delay: 5s
                 max_attempts: 1
         networks:
