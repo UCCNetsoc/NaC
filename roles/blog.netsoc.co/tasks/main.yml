@@ -13,7 +13,7 @@
             networks:
               traefik:
             environment:
-              BASE_URL: "https://blog.netsoc.dev:444/"
+              BASE_URL: "https://blog.netsoc.co/"
             deploy:
               mode: global
               placement:
@@ -23,17 +23,17 @@
                   - spread: node.id
               labels:
                 - "traefik.enable=true"
-                - "traefik.http.routers.blog_netsoc_co.rule=Host(`blog.netsoc.dev`)"
+                - "traefik.http.routers.blog_netsoc_co.rule=Host(`blog.netsoc.co`)"
                 - "traefik.http.routers.blog_netsoc_co.entrypoints=web-secure"
                 - "traefik.http.routers.blog_netsoc_co.tls.certResolver=letsencrypt"
                 - "traefik.http.services.blog_netsoc_co-service.loadbalancer.server.port=80"
                 - "traefik.http.routers.blog_netsoc_co.service=blog_netsoc_co-service"
                 - "traefik.docker.network=traefik"
               restart_policy:
-                condition: on-failure
+                condition: any
                 delay: 5s
                 max_attempts: 1
         networks:
           traefik:
-            external:
+              external: true
               name: traefik
