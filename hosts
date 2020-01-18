@@ -34,3 +34,22 @@ lovelace
 
 [swarm_workers]
 leela
+
+[prometheus_hosts]
+bigbertha
+
+[prometheus_nodes]
+boole
+bigbertha
+leela
+lovelace
+
+[prometheus_docker]
+boole
+bigbertha
+leela
+lovelace
+
+[prometheus_apache]
+leela
+lovelace
