@@ -17,3 +17,19 @@
     - install-base
     - install-swarm
     - install-swarm-services
+
+- name: "Deploy NetsocAdmin2"
+  hosts: bigbertha # it says bertha but the constraint inside the role restricts it to leela
+  roles:
+    - netsocadmin2
+  vars_files:
+    - vars/cloudflare.yml  # traefik certs
+    - vars/docker_registry.yml # netsoc.co image
+    - vars/mysql_server.yml # mysql server root
+    - vars/wiki.yml
+    - vars/ldap.yml
+    - vars/secrets.yml
+  tags:
+    - install-base
+    - install-swarm
+    - install-swarm-services
