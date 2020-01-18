@@ -36,6 +36,8 @@
     name: consul
     driver: overlay
     attachable: yes
+    state: present
+    appends: yes
 
 - name: Ensure Hashicorp Consul client network
   become: yes
@@ -44,6 +46,7 @@
     driver: bridge
     scope: swarm
     attachable: yes
+    appends: yes
 
 - name: Ensure Consul Config in Docker Swarm Secrets
   run_once: true
@@ -112,7 +115,7 @@
                   - node.role == manager
                   - node.hostname == {{ inventory_hostname }}
               restart_policy:
-                condition: on-failure
+                condition: any
                 delay: 5s
                 max_attempts: 3
                 window: 60s
@@ -137,7 +140,7 @@
 - name: Wait for Leader elected
   run_once: true
   uri:
-    url: https://consul.netsoc.co:444/v1/status/leader
+    url: https://consul.netsoc.co/v1/status/leader
     return_content: yes
   register: response
   until: response.content_length != "2" and response.status == 200
@@ -168,7 +171,7 @@
   consul_acl_prefix:
     scheme: https
     host: consul.netsoc.co
-    port: 444
+    port: 443
     name: Agent Token - inter-agent comms # why doesnt this get set? idk
     token_type: management
     token: "{{ consul_agent_token }}"
