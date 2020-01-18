@@ -26,7 +26,7 @@
     path: "{{ item }}"
     owner: root
     group: root
-    mode: 0775
+    mode: 0770
     state: directory
   with_items:
     - /netsoc-neo/docker-data/pterodactyl/
@@ -61,6 +61,7 @@
     name: pterodactyl 
     driver: overlay
     attachable: yes
+    appends: yes
 
 - name: Ensure daemon core.json
   become: yes
@@ -111,7 +112,7 @@
               # into the docker webroot). These variables are also set via pterodactyl:env
               # and pterodactyl:mail.
               ##
-              APP_URL: "https://pterodactyl.netsoc.dev:444/"
+              APP_URL: "https://pterodactyl.netsoc.dev:443/"
               TIMEZONE: "UTC"
 
               CACHE_DRIVER: "redis"

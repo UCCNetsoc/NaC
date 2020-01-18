@@ -1,7 +1,7 @@
 {
     "web": {
         "host": "0.0.0.0",
-        "listen": 444,
+        "listen": 443,
         "ssl": {
             "enabled": true,
             "certificate": "/etc/certs/fullchain.pem",
@@ -50,7 +50,7 @@
         "count": 3
     },
     "remote": {
-        "base": "https://pterodactyl.netsoc.dev:444"
+        "base": "https://pterodactyl.netsoc.dev:443"
     },
     "uploads": {
         "size_limit": 100
