@@ -37,7 +37,7 @@
             external: true
         services:
           server:
-            image: docker.elastic.co/elasticsearch/elasticsearch:7.4.0
+            image: docker.elastic.co/elasticsearch/elasticsearch:7.4.2
             container_name: elasticsearch
             volumes:
               - /netsoc/docker-data/elasticsearch:/usr/share/elasticsearch/data

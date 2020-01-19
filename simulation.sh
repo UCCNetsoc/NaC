@@ -7,14 +7,16 @@ SERVERS=(leela bigbertha boole lovelace)
 if [[ $1 == 'teardown' ]]; then
     for server in ${SERVERS[@]}; do
         ip=$(lxc list --format json $server | jq -r .[0].state.network.eth0.addresses[0].address)
-        $(lxc ls | grep $server) &> /dev/null
+        lxc ls | grep $server &> /dev/null
         exists=$?
-        
-        if [[ exists == 0 ]]; then
+
+        if [[ $exists == 0 ]]; then
+            
             state=$(lxc list --format json $server | jq -r .[0].status)
-            (ssh-keygen -R $ip) &> /dev/null
+            ssh-keygen -R $ip &> /dev/null
 
             printf '.'
+
             if [[ $state != "Stopped" ]]; then
                 lxc stop $server
             fi
