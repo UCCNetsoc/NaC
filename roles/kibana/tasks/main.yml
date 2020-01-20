@@ -13,7 +13,7 @@
             external: true
         services:
           server:
-            image: docker.elastic.co/kibana/kibana:7.4.2
+            image: kibana:7.5.1
             container_name: kibana
             environment:
               ELASTICSEARCH_HOSTS: http://elasticsearch:9200

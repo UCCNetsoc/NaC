@@ -2,7 +2,7 @@ datacenter = "cix-main"
 primary_datacenter = "cix-main"
 server = false
 ui = false
-node_name = "{{ inventory_hostname }}.consul-client.netsoc.co"
+node_name = "{{ inventory_hostname }}.consul-client.netsoc.dev"
 
 leave_on_terminate = true
 retry_join = ["consul"]
