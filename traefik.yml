@@ -1,0 +1,8 @@
+---
+- name: Deploy Traefik
+  hosts: bigbertha
+  roles:
+    - traefik
+  vars_files:
+    - vars/cloudflare.yml  # traefik certs
+    - vars/secrets.yml
