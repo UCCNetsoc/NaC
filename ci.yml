@@ -1,0 +1,11 @@
+---
+- name: Ensure Drone Server, Agent and DB
+  hosts: swarm_managers
+  vars_files:
+    - vars/ci.yml
+    - vars/discord.yml
+    - vars/mysql_server.yml
+    - vars/vault.yml
+    - vars/secrets.yml
+  roles:
+  - ci

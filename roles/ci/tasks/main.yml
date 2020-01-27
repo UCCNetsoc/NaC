@@ -1,0 +1,141 @@
+---
+- name: Ensure Drone MySQL Database
+  run_once: true
+  mysql_db:
+    name: "{{ drone_mysql_database }}"
+    login_user: "{{ mysql_admin_username }}"
+    login_host: "{{ mysql_server }}"
+    login_password: "{{ mysql_admin_password }}"
+    state: present
+
+- name: Ensure Drone MySQL User
+  run_once: true
+  mysql_user:
+    name: "{{ drone_mysql_user }}"
+    password: "{{ drone_mysql_password }}"
+    priv: "{{ drone_mysql_database}}.*:ALL"
+    host: "%"
+    login_host: "{{ mysql_server }}"
+    login_user: "{{ mysql_admin_username }}"
+    login_password: "{{ mysql_admin_password }}"
+    state: present
+
+- name: Set log_bin_trust_function_creators=1
+  run_once: true
+  mysql_variables:
+    login_user: "{{ mysql_admin_username }}"
+    login_host: "{{ mysql_server }}"
+    login_password: "{{ mysql_admin_password }}"
+    variable: log_bin_trust_function_creators
+    value: 1
+
+- name: Ensure Drone network
+  run_once: true
+  become: yes
+  docker_network:
+    name: drone
+    driver: overlay
+    attachable: yes
+
+- name: Ensure Drone Stack
+  run_once: true
+  become: yes
+  docker_stack:
+    state: present
+    name: drone
+    compose:
+      - version: '3.7'
+        networks:
+          vault:
+            external: true
+          traefik:
+            external: true
+          drone:
+            external: true
+        services:
+          server: 
+            image: drone/drone:1.6.4
+            container_name: drone_server
+            environment:
+              DRONE_GITHUB_SERVER: https://github.com
+              DRONE_GITHUB_CLIENT_ID: eabeb15df953b3daf847
+              DRONE_GITHUB_CLIENT_SECRET: "{{ drone_github_secret }}"
+              DRONE_RPC_SECRET: "{{ drone_rpc_secret }}"
+              DRONE_SERVER_HOST: ci.netsoc.co
+              DRONE_TLS_AUTOCERT: "false"
+              DRONE_SERVER_PROTO: https
+              DRONE_DATABASE_DRIVER: mysql
+              DRONE_DATABASE_DATASOURCE: "{{ drone_mysql_user }}:{{ drone_mysql_password }}@tcp({{ mysql_server }}:3306)/{{ drone_mysql_database }}?parseTime=true"
+              DRONE_SECRET_ENDPOINT: http://drone_vault:3000
+              DRONE_SECRET_TOKEN: "{{ drone_vault_secret }}"
+              DRONE_JSONNET_ENABLED: "true"
+              DRONE_STATUS_NAME: uccnetsoc/ci/drone
+              DRONE_AGENTS_ENABLED: "true"
+            networks:
+              traefik:
+              drone:
+                aliases:
+                  - drone_server
+            deploy:
+              mode: replicated
+              replicas: 1
+              restart_policy:
+                condition: any
+                delay: 5s
+                max_attempts: 3
+              labels:
+                - "traefik.enable=true"
+                - "traefik.http.routers.drone.entrypoints=web-secure"
+                - "traefik.http.routers.drone.rule=Host(`ci.netsoc.co`)"
+                - "traefik.http.routers.drone.tls.certResolver=letsencrypt"
+                - "traefik.http.routers.drone.service=drone-service"
+                - "traefik.http.services.drone-service.loadbalancer.server.port=80"
+                - "traefik.docker.network=traefik"                
+          agent:
+            image: drone/agent:1.6.2
+            container_name: drone_agent_bert
+            environment:
+              DRONE_TRACE: "true"
+              DRONE_RUNNER_NAME: agent_bert
+              DRONE_RPC_PROTO: https
+              DRONE_RPC_HOST: ci.netsoc.co
+              DRONE_RPC_SECRET: "{{ drone_rpc_secret }}"
+              DRONE_RUNNER_CAPACITY: "4"
+              DRONE_SECRET_ENDPOINT: http://drone_vault:3000
+              DRONE_SECRET_SECRET: "{{ drone_vault_secret }}"
+              DRONE_LIMIT_EVENTS: UCCNetsoc/*
+            volumes:
+              - /var/run/docker.sock:/var/run/docker.sock
+            networks:
+              drone:
+            deploy:
+              mode: replicated
+              replicas: 1
+              restart_policy:
+                condition: any
+                delay: 5s
+                max_attempts: 3
+              placement:
+                constraints:
+                  - node.role == manager                
+          vault:
+            image: drone/vault
+            container_name: drone_vault
+            environment:
+              DRONE_DEBUG: "true"
+              VAULT_TOKEN: "{{ hashivault_docker_registry_token }}"
+              VAULT_ADDR: "{{ hashivault_url }}"
+              DRONE_SECRET: "{{ drone_vault_secret }}"
+            deploy:
+              mode: replicated
+              replicas: 1
+              restart_policy:
+                condition: any
+                delay: 5s
+                max_attempts: 3
+            networks:
+              traefik:
+              vault:
+              drone:
+                aliases:
+                  - drone_vault
