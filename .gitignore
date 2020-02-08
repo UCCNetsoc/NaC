@@ -1,0 +1,4 @@
+# python venv for ansible
+bin/
+lib/
+include/
