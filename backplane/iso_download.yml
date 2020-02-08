@@ -1,0 +1,4 @@
+- name: "Ensure ISOs downloaded"
+  hosts: all
+  roles:
+    - iso-download
