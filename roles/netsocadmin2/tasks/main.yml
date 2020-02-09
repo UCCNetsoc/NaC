@@ -17,6 +17,7 @@
         services:
           server:
             image:  docker.netsoc.co/netsoc/netsocadmin:latest
+            hostname: admin.netsoc.co
             volumes:
               - "/media/odin/admin.netsoc.co/storage/backups:/backups"
               - "/home/users:/home/users"
