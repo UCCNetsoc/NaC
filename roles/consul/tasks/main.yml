@@ -108,9 +108,7 @@
           traefik:
             external: true
         services:
-          server_bootstrap:
-            hostname: server-bootstrap
-            container_name: consul_server_bootstrap
+          server:
             image: consul:1.6.1
             networks:
               traefik:
@@ -131,7 +129,6 @@
               placement:
                 constraints:
                   - node.role == manager
-                  - node.hostname == {{ inventory_hostname }}
               restart_policy:
                 condition: any
                 delay: 5s

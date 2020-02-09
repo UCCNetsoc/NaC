@@ -41,7 +41,7 @@
                 protocol: tcp
                 mode: host
             networks:
-              #portainer:
+              portainer:
               traefik:
             deploy:
               mode: global
