@@ -1,0 +1,49 @@
+
+- name: Fetch ISO from URL & verify checksum
+  get_url:
+    url: "{{ iso_url }}"
+    dest: "/var/lib/vz/template/iso/{{ iso_file }}"
+    checksum: "{{ iso_checksum }}"
+
+- name: Ensure packer directory on server
+  file:
+    path: /root/NaC/packer
+    state: directory
+    mode: '0700'
+
+- name: Ensure template provisioning folder on server
+  file:
+    path: "/root/NaC/packer/{{ template_name }}"
+    state: directory
+    mode: '0700'
+
+- name: Ensure provision directory copied to server
+  copy:
+    src: "./{{ provision_directory }}"
+    dest: "/root/NaC/packer/."
+
+- name: Ensure any templates in provisioning directory, provisioned
+  template:
+    src: "{{ item }}"
+    dest: "/root/NaC/packer/{{ template_name }}/{{ item | basename | regex_replace('\\.j2', '') }}"
+  with_fileglob:
+    - "./{{ provision_directory }}/*.j2"
+
+- name: Call packer
+  become: yes
+  command:
+    chdir: /root/NaC/packer/{{ template_name }}
+    cmd: >
+      packer build
+      -var 'proxmox_api_url={{ proxmox_api_url }}'
+      -var 'proxmox_username={{ proxmox_username }}'
+      -var 'proxmox_password={{ proxmox_password }}'
+      -var 'proxmox_node={{ proxmox_node }}'
+      -var 'iso_file={{ iso_file }}'
+      packer.json
+  
+  register: io
+
+- debug: msg="{{ io.stdout }}"
+- debug: msg="{{ io.stderr }}"
+      

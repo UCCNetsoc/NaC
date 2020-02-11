@@ -1,5 +1,0 @@
-- name: Ensure Ubuntu 18.04 LTS ISO
-  get_url:
-    url: https://ftp.heanet.ie/mirrors/ubuntu-cdimage/releases/bionic/release/ubuntu-18.04.3-server-amd64.iso
-    dest: /var/lib/vz/template/iso/ubuntu-18.04.3-server-amd64.iso
-    checksum: md5:cb7cd5a0c94899a04a536441c8b6d2bf

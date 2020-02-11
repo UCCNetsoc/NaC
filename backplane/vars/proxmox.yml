@@ -1,0 +1,1 @@
+proxmox_password: "{{ vault_proxmox_password }}"
