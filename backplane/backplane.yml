@@ -1,0 +1,7 @@
+- name: Ensure Backplane requirements
+  hosts: all
+  gather_facts: no
+  roles:
+    - ansible
+    - nac-dir
+    - packer
