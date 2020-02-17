@@ -1,0 +1,23 @@
+- name: "Ensure Vyos Packer template"
+  hosts: proxmox_master
+  roles:
+    - role: proxmox-template
+      vars: 
+        provision_directory: ./packer/netsoc-vyos-router
+        packer_vars:
+          template_name: "netsoc-vyos-router"
+          iso_url: "http://packages.vyos.net/iso/release/1.1.8/vyos-1.1.8-amd64.iso"
+          iso_file: vyos-1.1.8-amd64.iso
+          iso_checksum: sha1:ff4c8e1822e653d8d85f4a90f30c6d2ac047514c
+          vyos_bind_ip: "{{ hostvars.vyos_feynman_preprovision.ansible_host }}/24"
+          vyos_bind_vlan_id: "10"
+          vyos_ssh_key_type:
+            "{{ lookup('file', '../../' + hostvars.vyos_feynman_preprovision.ansible_ssh_private_key_file + '.pub').split(' ')[0] }}"
+          vyos_ssh_key_key:
+            "{{ lookup('file', '../../' + hostvars.vyos_feynman_preprovision.ansible_ssh_private_key_file + '.pub').split(' ')[1] }}"
+          vyos_password:
+            "{{ vyos_template_password }}"
+  vars_files:
+    - vars/vyos.yml
+    - vars/proxmox.yml
+    - vars/secrets.yml
