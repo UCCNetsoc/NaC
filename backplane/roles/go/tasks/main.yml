@@ -1,0 +1,3 @@
+- name: Ensure go installed
+  apt:
+    name: golang

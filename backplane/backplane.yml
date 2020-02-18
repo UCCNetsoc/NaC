@@ -1,7 +1,9 @@
 - name: Ensure Backplane requirements
-  hosts: all
+  hosts: proxmox_hosts
   gather_facts: no
   roles:
     - ansible
     - nac-dir
     - packer
+    - go
+    - terraform
