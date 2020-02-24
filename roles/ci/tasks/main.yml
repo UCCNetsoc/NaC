@@ -119,7 +119,8 @@
                 constraints:
                   - node.role == manager                
           vault:
-            image: drone/vault
+            #image: drone/vault
+            image: strum355/drone-vault
             container_name: drone_vault
             environment:
               DRONE_DEBUG: "true"
