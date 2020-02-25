@@ -82,7 +82,7 @@
               restart_policy:
                 condition: any
                 delay: 5s
-                max_attempts: 3
+                max_attempts: 5
               labels:
                 - "traefik.enable=true"
                 - "traefik.http.routers.drone.entrypoints=web-secure"
@@ -114,7 +114,7 @@
               restart_policy:
                 condition: any
                 delay: 5s
-                max_attempts: 3
+                max_attempts: 5
               placement:
                 constraints:
                   - node.role == manager                
@@ -133,7 +133,7 @@
               restart_policy:
                 condition: any
                 delay: 5s
-                max_attempts: 3
+                max_attempts: 5
             networks:
               traefik:
               vault:

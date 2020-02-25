@@ -59,7 +59,7 @@
               restart_policy:
                 condition: any
                 delay: 5s
-                max_attempts: 1
+                max_attempts: 5
               labels:
                 - "traefik.enable=true"
                 - "traefik.http.routers.wiki.rule=Host(`wiki.netsoc.co`)"

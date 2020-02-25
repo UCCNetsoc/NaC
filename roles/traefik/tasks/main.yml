@@ -109,7 +109,7 @@
               restart_policy:
                 condition: any
                 delay: 2s
-                max_attempts: 1
+                max_attempts: 5
               labels:
                 # global redirect to https
                 - "traefik.enable=true"
@@ -150,7 +150,7 @@
               restart_policy:
                 condition: any
                 delay: 10s
-                max_attempts: 1
+                max_attempts: 5
               labels:
                 - "traefik.enable=true"
                 - "traefik.http.routers.whoami.rule=Host(`whoami.netsoc.dev`)"

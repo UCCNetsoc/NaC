@@ -51,7 +51,7 @@
               restart_policy:
                 condition: on-failure
                 delay: 5s
-                max_attempts: 1
+                max_attempts: 5
               labels:
                 - "traefik.enable=true"
                 - "traefik.http.routers.portainer.rule=Host(`portainer.netsoc.dev`)"

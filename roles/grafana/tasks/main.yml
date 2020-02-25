@@ -68,7 +68,7 @@
               restart_policy:
                 condition: any
                 delay: 5s
-                max_attempts: 3
+                max_attempts: 5
             volumes:
               - "/netsoc-neo/docker-data/grafana/config:/etc/grafana"
               - "/netsoc-neo/docker-data/grafana/data:/var/lib/grafana"

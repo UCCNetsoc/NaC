@@ -7,7 +7,9 @@
     - vars/ldap.yml
     - vars/secrets.yml
   roles:
-  - vault
+    - vault
+  tags:
+    - server
 
 - name: Set Docker Registry secrets in Hashicorp Vault
   hosts: swarm_creators

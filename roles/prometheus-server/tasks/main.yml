@@ -84,7 +84,7 @@
                 restart_policy:
                   condition: any
                   delay: 5s
-                  max_attempts: 1
+                  max_attempts: 5
               volumes:
                 - "/netsoc-neo/docker-data/prometheus/config:/etc/prometheus"
                 - "/netsoc-neo/docker-data/prometheus/data:/prometheus"
@@ -101,7 +101,7 @@
                 restart_policy:
                   condition: on-failure
                   delay: 5s
-                  max_attempts: 1
+                  max_attempts: 5
               volumes:
                 - "/netsoc-neo/docker-data/blackbox_exporter/blackbox_exporter.yaml:/config/blackbox_exporter.yaml"
           networks:

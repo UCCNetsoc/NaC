@@ -8,7 +8,7 @@
     compose:
       - version: "3.7"
         services:
-          hugo:
+          server:
             image: docker.netsoc.co/public/blog.netsoc.co:latest
             networks:
               traefik:
@@ -32,7 +32,7 @@
               restart_policy:
                 condition: any
                 delay: 5s
-                max_attempts: 1
+                max_attempts: 5
         networks:
           traefik:
               external: true
