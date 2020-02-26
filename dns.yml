@@ -65,13 +65,13 @@
     - { zone: "netsoc.co",  type: CNAME, record: "vault",            value: "bigbertha.netsoc.co" } 
     - { zone: "netsoc.co",  type: CNAME, record: "wiki",             value: "bigbertha.netsoc.co" } 
     - { zone: "netsoc.co",  type: CNAME, record: "impressive",       value: "bigbertha.netsoc.co" }
+    - { zone: "netsoc.co",  type: CNAME, record: "hlm",              value: "bigbertha.netsoc.co" }
 
     # constitution
     - { zone: "netsoc.co",  type: CNAME, record: "constitution",     value: "uccnetworkingsociety.github.io" }
     
     - { zone: "netsoc.co",  type: CNAME, record: "*.evan.netsoc.co", value: "leela.netsoc.co" } 
     - { zone: "netsoc.co",  type: CNAME, record: "www.*.evan.netsoc.co", value: "leela.netsoc.co" } 
-    - { zone: "netsoc.co",  type: CNAME, record: "hlm",              value: "leela.netsoc.co" }
     - { zone: "netsoc.co",  type: CNAME, record: "unf2b",            value: "leela.netsoc.co" }
 
     # lovelace
