@@ -1,0 +1,13 @@
+---
+- name: "Ensure Netsoc Discord Bot deployed"
+  docker_swarm_service:
+    image: docker.netsoc.co/public/netsocbot:latest
+    name: netsocbot
+    state: present
+    restart_config:
+      condition: any
+    env:
+      NETSOCBOT_TOKEN: "{{ netsocbot_discord_token }}"
+      NETSOCBOT_ROLEIDS: "631196785913888768,621141587434405919"
+      NETSOCBOT_PREFIX: "!"
+      NETSOCBOT_SENDGRID_TOKEN: "{{ sendgrid_apikey }}"

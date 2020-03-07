@@ -1,0 +1,9 @@
+---
+- name: "Netsoc Discord Bot"
+  hosts: swarm_creators
+  vars_files:
+  - vars/netsocbot.yml
+  - vars/email.yml
+  - vars/secrets.yml
+  roles: 
+  - netsocbot
