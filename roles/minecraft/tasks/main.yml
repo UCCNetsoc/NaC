@@ -1,0 +1,46 @@
+---
+- name: Ensure directory
+  become: yes
+  file:
+    path: '/servers/minecraft-{{ item.folder }}'
+    owner: 1000
+    group: 1000
+    mode: 0770
+    state: directory
+  with_items:
+    - { folder: survival }
+    - { folder: creative }
+
+- name: Create server.properties
+  become: yes
+  template:
+    dest: '/servers/minecraft-{{ item.gamemode }}/server.properties'
+    src: server.properties.j2
+    owner: 1000
+    group: 1000
+    mode: 0440
+  vars:
+    gamemode: '{{ item.gamemode }}'
+  with_items:
+    - { gamemode: survival }
+    - { gamemode: creative }
+
+- name: NetCraft Minecraft Server - Survival
+  become: yes
+  docker_container:
+    image: itzg/minecraft-server:latest
+    name: netcraft-survival
+    command: --noconsole
+    state: started
+    restart_policy: unless-stopped
+    env:
+      EULA: "TRUE"
+      TYPE: "SPIGOT"
+      MEMORY: "3G"
+      VERSION: "1.15.2"
+    ports:
+      - "9225:9225"
+      - "25566:25565"
+      - "8123:8123"
+    volumes:
+      - "/servers/minecraft-survival:/data"
