@@ -40,12 +40,11 @@
   docker_stack:
     state: present
     name: grafana
-    #with_registry_auth: true
     compose:
       - version: "3.5"
         services:
           server:
-            image: "grafana/grafana:6.3.5"
+            image: "grafana/grafana:6.6.2"
             restart: always
             networks:
               traefik:
@@ -73,7 +72,7 @@
               - "/netsoc-neo/docker-data/grafana/config:/etc/grafana"
               - "/netsoc-neo/docker-data/grafana/data:/var/lib/grafana"
             environment:
-              GF_SECURITY_ADMIN_PASSWORD: sample_text_fake_password_XD_no_really_this_is_fake
+              GF_SECURITY_ADMIN_PASSWORD: "{{ grafana_admin_pass }}"
               GF_SERVER_ROOT_URL: "https://grafana.netsoc.dev"
         networks:
           traefik:
