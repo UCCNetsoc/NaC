@@ -35,7 +35,7 @@
     restart_policy: unless-stopped
     env:
       EULA: "TRUE"
-      TYPE: "SPIGOT"
+      TYPE: "PAPER"
       MEMORY: "3G"
       VERSION: "1.15.2"
     ports:
