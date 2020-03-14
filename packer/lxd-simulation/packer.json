@@ -16,7 +16,7 @@
   "provisioners": [
     {
       "type": "shell",
-      "script": "./packer/setup.sh"
+      "script": "./packer/lxd-simulation/setup.sh"
     }
   ]
 }
