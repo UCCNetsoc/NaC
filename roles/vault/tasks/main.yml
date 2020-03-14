@@ -85,7 +85,7 @@
       delay: 20s
       order: stop-first
     networks:
-      - consul_client
+      - consul
       - vault
       - traefik
 

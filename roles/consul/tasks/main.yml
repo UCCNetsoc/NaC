@@ -7,35 +7,18 @@
       - pyhcl
     state: present
   tags:
-    - client
     - server
 
-- name: Ensure Consul server and client directories for data and config
+- name: Ensure Consul server directories for data
   become: yes
   file:
-    path: '/netsoc-neo/{{ item.folder }}'
+    path: '/netsoc-neo/docker-data/consul'
     owner: 1000
     group: 1000
     mode: 0770
     state: directory
-  with_items:
-    - { folder: docker-data/consul }
-    - { folder: docker-data/consul-client }
-    - { folder: docker/consul-client }
   tags:
-    - client
     - server    
-
-- name: Copy Consul client config to hosts
-  become: yes
-  template:
-    dest: /netsoc-neo/docker/consul-client/config.hcl
-    src: ./files/client_config.hcl
-    owner: 1000
-    group: 1000
-    mode: 0440
-  tags:
-    - client
 
 - name: Ensure Hashicorp Consul network
   when: inventory_hostname in groups.swarm_creators
@@ -49,25 +32,17 @@
   tags:
     - server    
 
-- name: Ensure Hashicorp Consul client network
-  become: yes
-  docker_network:
-    name: consul_client
-    driver: bridge
-    scope: swarm
-    attachable: yes
-    appends: yes
-  tags:
-    - client
-
 - name: Ensure Consul Config in Docker Swarm Secrets
   run_once: true
   become: yes
   docker_secret:
-    name: consul_config.hcl
-    data: "{{ lookup('template', './files/config.hcl') }}"
+    name: "{{ item.name }}.hcl"
+    data: "{{ lookup('template', '{{ item.file }}.hcl') }}"
   register: result
   ignore_errors: true
+  with_items:
+    - { name: consul_config, file: config }
+    - { name: consul_bootstrap_config, file: bootstrap_config }
   tags:
     - server    
 
@@ -86,8 +61,11 @@
   when: result is failed
   become: yes
   docker_secret:
-    name: consul_config.hcl
-    data: "{{ lookup('template', './files/config.hcl') }}"
+    name: "{{ item.name }}.hcl"
+    data: "{{ lookup('template', '{{ item.file }}.hcl') }}"
+  with_items:
+    - { name: consul_config, file: config }
+    - { name: consul_bootstrap_config, file: bootstrap_config }
   tags:
     - server    
   
@@ -102,14 +80,41 @@
         secrets:
           consul_config.hcl:
             external: true
+          consul_bootstrap_config.hcl:
+            external: true
         networks:
           consul:
             external: true
           traefik:
             external: true
         services:
+          bootstrap:
+            image: consul:1.7.1
+            networks:
+              consul:
+                aliases:
+                  - consul_bootstrap
+            command: 'agent -config-file=/run/secrets/consul_bootstrap_config.hcl'
+            hostname: bootstrap.consul.netsoc.dev
+            environment:
+              - CONSUL_BIND_INTERFACE=eth0
+            secrets:
+              - consul_bootstrap_config.hcl
+            deploy:
+              endpoint_mode: dnsrr # Needed to get cluster to not rely on pre-known IPs
+              mode: replicated
+              replicas: 1
+              restart_policy:
+                condition: any
+                delay: 5s
+                max_attempts: 5
+                window: 60s
+              update_config:
+                parallelism: 1
+                delay: 20s
+                order: start-first
           server:
-            image: consul:1.6.1
+            image: consul:1.7.1
             networks:
               traefik:
               consul:
@@ -164,28 +169,6 @@
   retries: 10
   tags:
     - server
-
-- name: Ensure Hashicorp Consul client agents
-  become: yes
-  docker_container:
-    state: started
-    name: consul_client_agent
-    hostname: consul_client
-    image: consul:1.6.1
-    command: 'agent -config-file=/consul/config.hcl'
-    restart_policy: always
-    networks_cli_compatible: yes
-    env:
-      CONSUL_BIND_INTERFACE: eth1
-    volumes:
-      - /netsoc-neo/docker/consul-client/config.hcl:/consul/config.hcl
-      - /netsoc-neo/docker-data/consul-client:/consul/data
-    networks:
-      - name: consul
-      - name: consul_client
-        aliases: consul_client
-  tags:
-    - client
 
 - name: Push Consul Agent token
   run_once: true

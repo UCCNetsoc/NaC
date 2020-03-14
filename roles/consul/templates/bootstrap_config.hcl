@@ -1,11 +1,10 @@
 datacenter = "cix-main"
 primary_datacenter = "cix-main"
 server = true
-ui = true
+ui = false
 
 leave_on_terminate = false
-retry_join = ["consul"]
-bootstrap_expect = 3
+bootstrap_expect = 4
 
 client_addr = "0.0.0.0"
 
