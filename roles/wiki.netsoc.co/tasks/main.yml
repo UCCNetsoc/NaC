@@ -62,7 +62,7 @@
                 max_attempts: 5
               labels:
                 - "traefik.enable=true"
-                - "traefik.http.routers.wiki.rule=Host(`wiki.netsoc.co`)"
+                - "traefik.http.routers.wiki.rule=Host(`wiki.{{ co_site }}`)"
                 - "traefik.http.routers.wiki.entrypoints=web-secure"
                 - "traefik.http.routers.wiki.tls.certResolver=letsencrypt"
                 - "traefik.http.routers.wiki.service=wiki-service"

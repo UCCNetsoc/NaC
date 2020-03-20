@@ -31,7 +31,7 @@
                 max_attempts: 5
               labels:
                 - "traefik.enable=true"
-                - "traefik.http.routers.hlm_netsoc_co.rule=Host(`hlm.netsoc.co`)"
+                - "traefik.http.routers.hlm_netsoc_co.rule=Host(`hlm.{{ co_site }}`)"
                 - "traefik.http.routers.hlm_netsoc_co.entrypoints=web-secure"
                 - "traefik.http.routers.hlm_netsoc_co.tls.certResolver=letsencrypt"
                 - "traefik.http.services.hlm_netsoc_co-service.loadbalancer.server.port=5000"

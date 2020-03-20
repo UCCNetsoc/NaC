@@ -86,7 +86,7 @@
               labels:
                 - "traefik.enable=true"
                 - "traefik.http.routers.drone.entrypoints=web-secure"
-                - "traefik.http.routers.drone.rule=Host(`ci.netsoc.co`)"
+                - "traefik.http.routers.drone.rule=Host(`ci.{{ co_site }}`)"
                 - "traefik.http.routers.drone.tls.certResolver=letsencrypt"
                 - "traefik.http.routers.drone.service=drone-service"
                 - "traefik.http.services.drone-service.loadbalancer.server.port=80"

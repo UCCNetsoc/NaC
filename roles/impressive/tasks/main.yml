@@ -25,7 +25,7 @@
               labels:
                 - "traefik.enable=true"
                 - "traefik.http.routers.impressive.entrypoints=web-secure"
-                - "traefik.http.routers.impressive.rule=Host(`impressive.netsoc.co`)"
+                - "traefik.http.routers.impressive.rule=Host(`impressive.{{ co_site }}`)"
                 - "traefik.http.routers.impressive.tls.certResolver=letsencrypt"
                 - "traefik.http.routers.impressive.service=impressive-service"
                 - "traefik.http.services.impressive-service.loadbalancer.server.port=3000"

@@ -90,7 +90,7 @@
                 max_attempts: 5
               labels:
                 - "traefik.enable=true"
-                - "traefik.http.routers.ipa.rule=Host(`ipa.netsoc.dev`)"
+                - "traefik.http.routers.ipa.rule=Host(`ipa.{{ dev_site }}`)"
                 - "traefik.http.routers.ipa.entrypoints=web-secure"
                 - "traefik.http.routers.ipa.tls.certResolver=letsencrypt"
                 - "traefik.http.routers.ipa.middlewares=fix-host@docker"

@@ -51,9 +51,8 @@
   docker_stack:
       state: present
       name: prometheus
-      #with_registry_auth: true
       compose:
-        - version: "3.5"
+        - version: "3.7"
           services:
             server:
               image: "prom/prometheus:v2.11.2"
@@ -75,7 +74,7 @@
                     - spread: node.id
                 labels:
                   - "traefik.enable=true"
-                  - "traefik.http.routers.prom.rule=Host(`prometheus.netsoc.dev`)"
+                  - "traefik.http.routers.prom.rule=Host(`prometheus.{{ dev_site }}`)"
                   - "traefik.http.routers.prom.entrypoints=web-secure"
                   - "traefik.http.routers.prom.tls.certResolver=letsencrypt"
                   - "traefik.http.services.prom-service.loadbalancer.server.port=9090"

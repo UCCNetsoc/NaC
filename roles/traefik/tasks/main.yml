@@ -18,6 +18,44 @@
     mode: 0770
     state: directory
 
+####################################################
+## START FOR LOCALHOST ANSIBLE TESTING PURPOSES ####
+####################################################
+
+- name: Ensure python OpenSSL dependencies are installed.
+  become: yes
+  when: "'lxc' in ansible_virtualization_type"
+  pip:
+    name: pyOpenSSL
+    state: present
+
+- name: Generate localhost key
+  become: yes
+  when: "'lxc' in ansible_virtualization_type"
+  openssl_privatekey:
+    path: /netsoc-neo/docker-data/traefik/localhost.key
+
+- name: Generate localhost CSR
+  become: yes
+  when: "'lxc' in ansible_virtualization_type"
+  openssl_csr:
+    path: /netsoc-neo/docker-data/traefik/localhost.csr
+    privatekey_path: /netsoc-neo/docker-data/traefik/localhost.key
+    common_name: '*.netsoc.localhost'
+
+- name: Generate localhost certs if in development
+  become: yes
+  when: "'lxc' in ansible_virtualization_type"
+  openssl_certificate:
+    provider: selfsigned
+    path: /netsoc-neo/docker-data/traefik/localhost.cert
+    privatekey_path: /netsoc-neo/docker-data/traefik/localhost.key
+    csr_path: /netsoc-neo/docker-data/traefik/localhost.csr
+
+####################################################
+### END FOR LOCALHOST ANSIBLE TESTING PURPOSES #####
+####################################################
+
 - name: Sync files for /netsoc-neo/docker-data/traefik/dynamic_config/* to /traefik/dynamic_config/"
   become: yes
   synchronize:
@@ -26,22 +64,24 @@
     perms: no # Don't preserve permissions
     delete: yes # Remove files that do not exist in src from dest
     recursive: true
-  # copy:
-  #   src: "{{ item.src }}"
-  #   dest: "/netsoc-neo/docker-data/traefik/dynamic_config/{{ item.path }}"
-  #   owner: root
-  #   group: root
-  #   mode: "{{ item.mode }}"
-  #   backup: yes
-  # with_filetree:
-  #   - files/dynamic_config
-  # when: item.state == "file"
 
+- name: Sync template files for /netsoc-neo/docker-data/traefik/dynamic_config/* to /traefik/dynamic_config/"
+  become: yes
+  template:
+    src: "{{ item.src }}"
+    dest: "/netsoc-neo/docker-data/traefik/dynamic_config/{{ item.path | replace('.j2', '') }}"
+    owner: root
+    group: root
+    mode: "{{ item.mode }}"
+    backup: yes
+  with_filetree:
+    - templates/dynamic_config/
+  when: item.state == "file"
 
 - name: Copy Traefik Static Config
   become: yes
-  copy:
-    src: files/static_config.toml
+  template:
+    src: static_config.toml.j2
     dest: /netsoc-neo/docker-data/traefik/static_config.toml
 
 - name: Ensure Cloudflare DNS token in Docker Swarm Secrets
@@ -96,6 +136,10 @@
                 published: 443
                 protocol: tcp
                 mode: host
+              - target: 8080
+                published: 8080
+                protocol: tcp
+                mode: host
             networks:
               traefik:
             deploy:
@@ -123,8 +167,8 @@
 
                 # passworded dashboard
                 - "traefik.http.routers.dashboard.entrypoints=web-secure"
-                - "traefik.http.routers.dashboard.rule=Host(`traefik.netsoc.dev`)"
-                - "traefik.http.routers.dashboard.tls.certResolver=letsencrypt"
+                - "traefik.http.routers.dashboard.rule=Host(`traefik.{{ dev_site }}`)"
+                - "traefik.http.routers.dashboard.tls"
                 - "traefik.http.routers.dashboard.service=dashboard-service"
                 - "traefik.http.services.dashboard-service.loadbalancer.server.port=8080"
                 - "traefik.http.middlewares.dashboard-auth.basicauth.users={{ traefik_basic_auth }}"
@@ -153,14 +197,12 @@
                 max_attempts: 5
               labels:
                 - "traefik.enable=true"
-                - "traefik.http.routers.whoami.rule=Host(`whoami.netsoc.dev`)"
+                - "traefik.http.routers.whoami.rule=Host(`whoami.{{ dev_site }}`)"
                 - "traefik.http.routers.whoami.entrypoints=web-secure"
-                - "traefik.http.routers.whoami.tls.certResolver=letsencrypt"
                 - "traefik.http.services.whoami-service.loadbalancer.server.port=80"
                 - "traefik.http.routers.whoami.service=whoami-service"
                 - "traefik.docker.network=traefik"
             image: "containous/whoami"
-            # container_name: "simple-service"
             networks:
               traefik:
         secrets:

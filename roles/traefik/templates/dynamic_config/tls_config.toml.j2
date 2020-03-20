@@ -1,3 +1,15 @@
+{% if 'lxc' in ansible_virtualization_type %}
+[[tls.certificates]]
+    certFile = "/traefik/localhost.cert"
+    keyFile = "/traefik/localhost.key"   
+
+[tls.stores]
+    [tls.stores.default]
+        [tls.stores.default.defaultCertificate]
+            certFile = "/traefik/localhost.cert"
+            keyFile = "/traefik/localhost.key"        
+{% endif %}
+
 [tls.options]
   [tls.options.default]
     minVersion = "VersionTLS12"

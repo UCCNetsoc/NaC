@@ -149,7 +149,7 @@
                   - node.hostname == {{ inventory_hostname }}
               labels:
                 - "traefik.enable=true"
-                - "traefik.http.routers.pterodactyl.rule=Host(`pterodactyl.netsoc.dev`)"
+                - "traefik.http.routers.pterodactyl.rule=Host(`pterodactyl.{{ dev_site }}`)"
                 - "traefik.http.routers.pterodactyl.entrypoints=web-secure"
                 - "traefik.http.routers.pterodactyl.tls.certResolver=letsencrypt"
                 - "traefik.http.routers.pterodactyl.service=pterodactyl-service"
@@ -198,7 +198,7 @@
             #     max_attempts: 5
             #   labels:
             #     - "traefik.enable=true"
-            #     - "traefik.http.routers.pterodactyl-daemon.rule=Host(`pterodactyl-daemon.netsoc.dev`)"
+            #     - "traefik.http.routers.pterodactyl-daemon.rule=Host(`pterodactyl-daemon.{{ dev_site }})"
             #     - "traefik.http.routers.pterodactyl-daemon.entrypoints=web-secure"
             #     - "traefik.http.routers.pterodactyl-daemon.tls.certResolver=letsencrypt"
             #     - "traefik.http.routers.pterodactyl-daemon.service=pterodactyl-daemon-service"

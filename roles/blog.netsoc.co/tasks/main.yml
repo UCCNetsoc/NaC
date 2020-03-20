@@ -23,7 +23,7 @@
                   - spread: node.id
               labels:
                 - "traefik.enable=true"
-                - "traefik.http.routers.blog_netsoc_co.rule=Host(`blog.netsoc.co`)"
+                - "traefik.http.routers.blog_netsoc_co.rule=Host(`blog.{{ co_site }}`)"
                 - "traefik.http.routers.blog_netsoc_co.entrypoints=web-secure"
                 - "traefik.http.routers.blog_netsoc_co.tls.certResolver=letsencrypt"
                 - "traefik.http.services.blog_netsoc_co-service.loadbalancer.server.port=80"

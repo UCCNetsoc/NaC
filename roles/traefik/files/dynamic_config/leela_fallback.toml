@@ -5,12 +5,12 @@
     priority = 1
     service = "leela-fallback-service@file"
 
-  [http.routers.leela-fallback.tls]
-    certResolver = "letsencrypt"
+  #[http.routers.leela-fallback.tls]
+  #  certResolver = "letsencrypt"
 
-    [[http.routers.leela-fallback.tls.domains]]
-      main = "netsoc.co"
-      sans = ["*.netsoc.co", "*.netsoc.dev", "netsoc.dev"]
+  # [[http.routers.leela-fallback.tls.domains]]
+  #    main = "netsoc.co"
+  #    sans = ["*.netsoc.co", "*.netsoc.dev", "netsoc.dev"]
 
 [http.services]
   [http.services.leela-fallback-service.loadBalancer]

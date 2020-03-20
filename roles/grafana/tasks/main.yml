@@ -58,7 +58,7 @@
                   - spread: node.id
               labels:
                 - "traefik.enable=true"
-                - "traefik.http.routers.grafana.rule=Host(`grafana.netsoc.dev`)"
+                - "traefik.http.routers.grafana.rule=Host(`grafana.{{ dev_site }}`)"
                 - "traefik.http.routers.grafana.entrypoints=web-secure"
                 - "traefik.http.routers.grafana.tls.certResolver=letsencrypt"
                 - "traefik.http.services.grafana-service.loadbalancer.server.port=3000"
@@ -73,7 +73,7 @@
               - "/netsoc-neo/docker-data/grafana/data:/var/lib/grafana"
             environment:
               GF_SECURITY_ADMIN_PASSWORD: "{{ grafana_admin_pass }}"
-              GF_SERVER_ROOT_URL: "https://grafana.netsoc.dev"
+              GF_SERVER_ROOT_URL: "https://grafana.{{ dev_site }}"
         networks:
           traefik:
             name: traefik

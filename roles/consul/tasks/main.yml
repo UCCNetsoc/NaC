@@ -146,7 +146,7 @@
               labels:
                 - "traefik.enable=true"
                 - "traefik.http.routers.consul.entrypoints=web-secure"
-                - "traefik.http.routers.consul.rule=Host(`consul.netsoc.dev`)"
+                - "traefik.http.routers.consul.rule=Host(`consul.{{ dev_site }}`)"
                 - "traefik.http.routers.consul.tls.certResolver=letsencrypt"
                 - "traefik.http.routers.consul.service=consul-service"
                 - "traefik.http.services.consul-service.loadbalancer.server.port=8500"
@@ -162,7 +162,7 @@
 - name: Wait for Leader elected
   run_once: true
   uri:
-    url: https://consul.netsoc.dev/v1/status/leader
+    url: https://consul.{{ dev_site }}/v1/status/leader
     return_content: yes
   register: response
   until: response.content_length != "2" and response.status == 200
@@ -174,7 +174,7 @@
   run_once: true
   consul_acl_prefix:
     scheme: https
-    host: consul.netsoc.dev
+    host: consul.{{ dev_site }}
     port: 443
     name: Agent Token - inter-agent comms # why doesnt this get set? idk
     token_type: management

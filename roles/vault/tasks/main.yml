@@ -31,7 +31,7 @@
   run_once: true
   consul_acl_prefix:
     scheme: https
-    host: consul.netsoc.dev
+    host: consul.{{ dev_site }}
     port: 443
     name: Hashicorp Vault Token # why doesnt this get set? idk
     token_type: management
@@ -70,7 +70,7 @@
         - node.role == manager
     labels:
       traefik.enable: "true"
-      traefik.http.routers.vault.rule: Host(`vault.netsoc.dev`)
+      traefik.http.routers.vault.rule: Host(`vault.{{ dev_site }}`)
       traefik.http.services.vault-service.loadbalancer.server.port: '8200'
       traefik.http.routers.vault.tls.certResolver: letsencrypt
       traefik.http.routers.vault.service: vault-service

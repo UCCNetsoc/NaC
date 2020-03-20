@@ -54,7 +54,7 @@
                 max_attempts: 5
               labels:
                 - "traefik.enable=true"
-                - "traefik.http.routers.portainer.rule=Host(`portainer.netsoc.dev`)"
+                - "traefik.http.routers.portainer.rule=Host(`portainer.{{ dev_site }}`)"
                 - "traefik.http.routers.portainer.entrypoints=web-secure"
                 - "traefik.http.routers.portainer.tls.certResolver=letsencrypt"
                 - "traefik.http.routers.portainer.service=portainer-service"

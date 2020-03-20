@@ -36,7 +36,7 @@
                   - spread: node.id
               labels:
                 - "traefik.enable=true"
-                - "traefik.http.routers.netsocadmin2.rule=Host(`admin.netsoc.co`)"
+                - "traefik.http.routers.netsocadmin2.rule=Host(`admin.{{ co_site }}`)"
                 - "traefik.http.routers.netsocadmin2.entrypoints=web-secure"
                 - "traefik.http.routers.netsocadmin2.tls.certResolver=letsencrypt"
                 - "traefik.http.services.netsocadmin2-service.loadbalancer.server.port=5050"

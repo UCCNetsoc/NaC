@@ -67,7 +67,7 @@
               labels:
                 - "traefik.enable=true"
                 - "traefik.http.routers.elasticsearch.entrypoints=web-secure"
-                - "traefik.http.routers.elasticsearch.rule=Host(`es.netsoc.dev`)"
+                - "traefik.http.routers.elasticsearch.rule=Host(`es.{{ dev_site }}`)"
                 - "traefik.http.routers.elasticsearch.tls.certResolver=letsencrypt"
                 - "traefik.http.routers.elasticsearch.service=elasticsearch-service"
                 - "traefik.http.services.elasticsearch-service.loadbalancer.server.port=9200"

@@ -11,7 +11,8 @@
 
 [serversTransport]
   insecureSkipVerify = true
-  
+
+{% if 'lxc' not in ansible_virtualization_type %}
 [certificatesResolvers]
   [certificatesResolvers.letsencrypt]
     [certificatesResolvers.letsencrypt.acme]
@@ -20,6 +21,7 @@
       [certificatesResolvers.letsencrypt.acme.dnsChallenge]
         provider = "cloudflare"
         delayBeforeCheck = 0
+{% endif %}
 
 [providers]
   [providers.file]

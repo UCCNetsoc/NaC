@@ -38,6 +38,9 @@ for server in "${SERVERS[@]}"; do
     lxc launch netsoc_infra "$server" -c security.nesting=true
 done
 
+lxc config device add bigbertha port80 proxy listen=tcp:0.0.0.0:80 connect=tcp:127.0.0.1:80
+lxc config device add bigbertha port443 proxy listen=tcp:0.0.0.0:443 connect=tcp:127.0.0.1:443
+
 echo 'Sleeping to give containers time to obtain ipv4 address...'
 sleep 5
 
