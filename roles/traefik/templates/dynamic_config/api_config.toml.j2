@@ -1,6 +1,0 @@
-{% if 'lxc' in ansible_virtualization_type %}
-[http.routers.internal-api]
-    rule = "Host(`traefik.{{ dev_site }}`) && PathPrefix(`/api`)"
-    entryPoints = ["web-secure"]
-    service = "api@internal"
-{% endif %}

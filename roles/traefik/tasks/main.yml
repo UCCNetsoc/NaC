@@ -56,15 +56,6 @@
 ### END FOR LOCALHOST ANSIBLE TESTING PURPOSES #####
 ####################################################
 
-- name: Sync files for /netsoc-neo/docker-data/traefik/dynamic_config/* to /traefik/dynamic_config/"
-  become: yes
-  synchronize:
-    src: files/dynamic_config/
-    dest: /netsoc-neo/docker-data/traefik/dynamic_config/
-    perms: no # Don't preserve permissions
-    delete: yes # Remove files that do not exist in src from dest
-    recursive: true
-
 - name: Sync template files for /netsoc-neo/docker-data/traefik/dynamic_config/* to /traefik/dynamic_config/"
   become: yes
   template:

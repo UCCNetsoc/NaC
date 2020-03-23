@@ -21,13 +21,13 @@
                   - spread: node.id
               labels:
                 - "traefik.enable=true"
-                - "traefik.http.routers.netsoc_co.rule=Host(`netsoc.co`) || Host(`www.{{ co_site }}`)"
+                - "traefik.http.routers.netsoc_co.rule=Host(`{{ co_site }}`) || Host(`www.{{ co_site }}`)"
                 - "traefik.http.routers.netsoc_co.entrypoints=web-secure"
                 - "traefik.http.routers.netsoc_co.tls.certResolver=letsencrypt"
                 - "traefik.http.services.netsoc_co-service.loadbalancer.server.port=80"
                 - "traefik.http.routers.netsoc_co.service=netsoc_co-service"
-                - "traefik.http.middlewares.rk-redirect.redirectregex.regex=^https://netsoc.co/(r(?:[^k].*)|[^r].*)?$$"
-                - "traefik.http.middlewares.rk-redirect.redirectregex.replacement=https://netsoc.co/rk/$${1}"
+                - "traefik.http.middlewares.rk-redirect.redirectregex.regex=^https://{{ co_site }}/(r(?:[^k].*)|[^r].*)?$$"
+                - "traefik.http.middlewares.rk-redirect.redirectregex.replacement=https://{{ co_site }}/rk/$${1}"
                 - "traefik.http.middlewares.rk-redirect.redirectregex.permanent=true"
                 - "traefik.http.middlewares.rk-strip.stripprefix.prefixes=/rk"
                 - "traefik.http.routers.netsoc_co.middlewares=rk-redirect@docker,rk-strip@docker"
