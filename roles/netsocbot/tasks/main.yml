@@ -1,12 +1,18 @@
 ---
 - name: "Ensure Netsoc Discord Bot deployed"
+  become: yes
   docker_swarm_service:
     image: docker.netsoc.co/public/netsocbot:latest
+    force_update: yes
+    resolve_image: yes
     name: netsocbot
     state: present
     restart_config:
       condition: any
+    limits:
+      memory: 120M
     env:
+      JAVA_OPTIONS: -Xmx80M -Xms50M
       NETSOCBOT_TOKEN: "{{ netsocbot_discord_token }}"
       NETSOCBOT_ROLEIDS: "631196785913888768,621141587434405919"
       NETSOCBOT_PREFIX: "!"
