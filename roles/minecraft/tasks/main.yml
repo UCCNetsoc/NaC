@@ -28,18 +28,20 @@
 - name: NetCraft Minecraft Server - Survival
   become: yes
   docker_container:
-    image: itzg/minecraft-server:latest
-    name: netcraft-survival
-    command: --noconsole
+    image: itzg/minecraft-server:adopt13
+    name: netsoc-survival
     state: started
     restart_policy: unless-stopped
+    memory: 6G
     env:
       EULA: "TRUE"
       TYPE: "PAPER"
-      MEMORY: "3G"
+      INIT_MEMORY: 1G
+      MAX_MEMORY: 5G
       VERSION: "1.15.2"
     ports:
       - "25565:25565"
       - "1194:25565"
+      - "127.0.0.1:9225:9225"
     volumes:
       - "/servers/minecraft-survival:/data"
