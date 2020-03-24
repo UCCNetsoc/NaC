@@ -1,0 +1,76 @@
+{
+    "description": "Generic Proxmox Template Packer file",
+    "variables": {
+      "proxmox_api_url": "https://localhost:8006/api2/json",
+      "proxmox_username": "root@pam",
+      "proxmox_password": "",
+      "proxmox_node": "",
+      "http_base_url": "",
+      "iso_file": "",
+      "vm_root_password": ""
+    },
+    "sensitive-variables": [
+      "proxmox_password",
+      "vm_root_password"
+    ],
+    "provisioners": [
+      {
+        "type": "ansible",
+        "playbook_file": "./main.yml"
+      }
+    ],
+    "builders": [
+      {
+        "type": "proxmox",
+        "proxmox_url": "{{ user `proxmox_api_url`}}",
+        "insecure_skip_tls_verify": true,
+        "username": "{{ user `proxmox_username`}}",
+        "password": "{{ user `proxmox_password`}}",
+        "node": "{{ user `proxmox_node` }}",
+
+        "template_name": "netsoc-ubuntu-server",
+        "template_description": "Ubuntu Server for Netsoc",
+        "boot_wait": "5s",
+        "http_directory": ".",
+        "boot_command": [
+          "<esc><wait2><esc><wait2>",
+          "<enter><wait>",
+          "/install/vmlinuz<wait>",
+          " initrd=/install/initrd.gz",
+          " auto-install/enable=true",
+          " priority=critical",
+          " passwd/root-login=true",
+          " passwd/make-user=false",
+          " passwd/root-password={{ user `vm_root_password`}}",
+          " passwd/root-password-again={{ user `vm_root_password`}}",
+          " url={{ user `http_base_url`}}/preseed.cfg",
+          " --<wait><enter><wait>"
+        ],
+        
+        "ssh_username": "root",
+        "ssh_password": "{{ user `vm_root_password`}}",
+        "ssh_timeout": "25m",
+  
+        "unmount_iso": "true",
+        "iso_file": "local:iso/{{ user `iso_file`}}",
+
+        "cores": "2",
+        "os": "l26",
+
+        "network_adapters": [
+          {
+            "bridge": "vmbr1"
+          }
+        ],
+        
+        "disks": [
+          {
+            "type": "scsi",
+            "disk_size": "5G",
+            "storage_pool": "local-lvm",
+            "storage_pool_type": "lvm"
+          }
+        ]
+      }
+    ]
+  }

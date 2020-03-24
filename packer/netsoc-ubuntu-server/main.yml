@@ -1,0 +1,12 @@
+---
+- name: "Provision image"
+  hosts: default
+  become: true
+  roles:
+    - ansible-requirements
+    - apt-upgrade
+    - essential-utils
+    - netsoc-dir
+    - docker
+    - shells
+    - apt-autoremove

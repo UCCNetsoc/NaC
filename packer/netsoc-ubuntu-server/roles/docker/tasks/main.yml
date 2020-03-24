@@ -1,0 +1,68 @@
+---
+- name: Ensure /etc/docker
+  become: yes
+  file:
+    path: /etc/docker
+    state: directory
+
+- name: Ensure /etc/docker/daemon.json
+  become: yes
+  template:
+    src: ./files/daemon.json
+    dest: /etc/docker/daemon.json
+
+- name: Ensure Docker dependencies
+  become: yes
+  apt:
+    pkg:
+      - apt-transport-https
+      - ca-certificates
+      - curl
+      - software-properties-common
+    state: latest
+    install_recommends: no
+    update_cache: yes
+
+- name: Ensure Docker GPG key
+  become: yes
+  apt_key:
+    url: https://download.docker.com/linux/ubuntu/gpg
+
+- name: Ensure Docker APT repo
+  become: yes
+  apt_repository:
+    repo: deb [arch=amd64] https://download.docker.com/linux/ubuntu {{ansible_distribution_release}} stable
+
+- name: Ensure Docker
+  become: yes
+  apt: 
+    name: docker-ce
+    state: latest
+    update_cache: yes
+
+- name: Ensure Docker Compose dependencies
+  become: yes
+  apt:
+    name: python3-pip
+    state: latest
+
+- name: Ensure Docker Compose
+  become: yes
+  pip:
+    name: docker-compose
+    state: latest
+
+- name: Reload Docker daemon
+  become: yes
+  systemd:
+    state: restarted
+    daemon_reload: no
+    name: docker
+
+- name: Adding netsoc user to Docker group
+  become: yes
+  user:
+    name: "netsoc"
+    shell: "/bin/bash"
+    groups: "docker"
+    append: "yes"

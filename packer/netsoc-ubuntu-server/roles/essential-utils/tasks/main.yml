@@ -1,0 +1,29 @@
+---
+
+- name: "Ensure Essential Utilities Installed"
+  apt:
+    name: "{{ item }}"
+    state: latest
+  with_items:
+    - iotop
+    - iftop
+    - htop
+    - git
+    - mysql-client
+    - tmux
+    - vim
+    - curl
+    - wget
+    - ncdu
+    - ranger
+    - ldnsutils
+    - nmap
+    - nano
+    - less
+    - mosh
+    - sudo
+    - sshfs
+    - freeipa-client
+    - oddjob-mkhomedir
+    - python3-apt
+    - python3-pip

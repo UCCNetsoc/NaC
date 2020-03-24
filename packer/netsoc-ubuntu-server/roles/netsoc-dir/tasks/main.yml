@@ -1,0 +1,27 @@
+---
+- name: "Create netsoc directory"
+  become: yes
+  file:
+    path: /netsoc/
+    mode: 0770 
+    owner: root
+    group: root
+    state: directory
+
+- name: "Create /netsoc/docker-data directory"
+  become: yes
+  file:
+    path: /netsoc/docker-data
+    mode: 0770 
+    owner: root
+    group: root
+    state: directory
+
+- name: "Create /netsoc/certs directory"
+  become: yes
+  file:
+    path: /netsoc/certs
+    mode: 0770 
+    owner: root
+    group: root
+    state: directory
