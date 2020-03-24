@@ -1,5 +1,0 @@
-- name: Ensure NaC directory
-  file:
-    path: /root/NaC
-    state: directory
-    mode: '0700'
