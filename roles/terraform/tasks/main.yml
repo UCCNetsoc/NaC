@@ -1,0 +1,46 @@
+
+- name: Ensure unarchive requirements
+  apt:
+    name:  unzip
+    state: present
+
+- name: Ensure Terraform 0.12.20
+  unarchive:
+    src: https://releases.hashicorp.com/terraform/0.12.20/terraform_0.12.20_linux_amd64.zip
+    dest: /usr/local/bin
+    mode: +x
+    remote_src: yes
+
+- name: Ensure Proxmox Provider
+  command:
+    cmd: go install "github.com/Telmate/terraform-provider-proxmox/cmd/terraform-provider-proxmox"
+
+- name: Ensure Proxmox Provisioner
+  command:
+    cmd: go install "github.com/Telmate/terraform-provider-proxmox/cmd/terraform-provisioner-proxmox"
+
+- name: Ensure terraform.d dir
+  file:
+    path: /root/.terraform.d/
+    state: directory
+    mode: '0755'
+
+- name: Ensure terraform plugins dir
+  file:
+    path: /root/.terraform.d/plugins
+    state: directory
+    mode: '0755'
+
+- name: Copy Proxmox provider plugin binaries
+  copy:
+    remote_src: true
+    src: /root/go/bin/terraform-provider-proxmox
+    dest: /root/.terraform.d/plugins/terraform-provider-proxmox
+    mode: '0755'
+
+- name: Copy Proxmox provisoner plugin binaries
+  copy:
+    remote_src: true
+    src: /root/go/bin/terraform-provisioner-proxmox
+    dest: /root/.terraform.d/plugins/terraform-provisioner-proxmox
+    mode: '0755'

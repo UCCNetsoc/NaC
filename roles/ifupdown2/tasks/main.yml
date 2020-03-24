@@ -1,0 +1,4 @@
+- name: Ensure ifupdown2
+  apt:
+    name: ifupdown2
+    state: latest

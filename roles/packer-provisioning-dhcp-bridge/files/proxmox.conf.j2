@@ -1,0 +1,14 @@
+# Disable DNS
+port=0
+
+interface={{ bridge_interface }}
+dhcp-authoritative
+
+bind-interfaces
+domain=netsoc.co
+# start, end, netmask
+dhcp-range={{ dhcp_range_begin }},{{ dhcp_range_end }},{{ dhcp_netmask }},{{ dhcp_lease_length }}
+
+dhcp-option=option:router,{{ bridge_address }}
+dhcp-option=option:ntp-server,{{ dhcp_ntp_servers }}
+dhcp-option=option:dns-server,{{ dhcp_dns_servers }}
