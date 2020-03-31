@@ -1,0 +1,23 @@
+---
+
+- name: Ensure cloud-init metadata file
+  copy:
+    content: |
+      # Managed by Ansible NaC, do not modify
+      {{ cloudinit_metadata }}
+    dest: "/var/lib/vz/snippets/{{ name }}.metadata.yml"
+  
+- name: Ensure cloud-init userdata file
+  copy:
+    content: |
+      # Managed by Ansible NaC, do not modify
+      {{ cloudinit_userdata }}
+    dest: "/var/lib/vz/snippets/{{ name }}.userdata.yml"
+
+- name: Ensure cloud-init networking
+  copy:
+    content: |
+      # Managed by Ansible NaC, do not modify
+      {{ cloudinit_networkconfig }}
+    dest: "/var/lib/vz/snippets/{{ name }}.networkconfig.yml"
+
