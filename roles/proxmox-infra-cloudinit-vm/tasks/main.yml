@@ -21,3 +21,18 @@
       {{ cloudinit_networkconfig }}
     dest: "/var/lib/vz/snippets/{{ name }}.networkconfig.yml"
 
+- name: Ensure Proxmox VM created
+  proxmox_kvm:
+    api_host: "localhost"
+    api_user: "{{ proxmox_username }}"
+    api_password: "{{ proxmox_password }}"
+    clone: "{{ template }}"
+    timeout: "{{ template_timeout }}"
+    node: "{{ inventory_hostname }}"
+    target: "{{ inventory_hostname }}"
+    name: "{{ name }}"
+    description: "{{ inventory_description }}"
+    storage: "local-lvm"
+    full: yes
+    cores: "4"
+  register: vm
