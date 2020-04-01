@@ -4,21 +4,16 @@
   docker_stack:
     state: present
     name: netsoc_co
-    # with_registry_auth: true
     compose:
       - version: "3.7"
         services:
-          nginx:
+          live:
             image: docker.netsoc.co/public/netsoc.co:latest
             networks:
               traefik:
             deploy:
-              mode: global
-              placement:
-                constraints:
-                  - node.hostname == {{ inventory_hostname }}
-                preferences:
-                  - spread: node.id
+              mode: replicated
+              replicas: 1
               labels:
                 - "traefik.enable=true"
                 - "traefik.http.routers.netsoc_co.rule=Host(`{{ co_site }}`) || Host(`www.{{ co_site }}`)"
@@ -36,6 +31,31 @@
                 condition: any
                 delay: 5s
                 max_attempts: 5
+          staging:
+            image: docker.netsoc.co/public/netsoc.co:new
+            networks:
+              traefik:
+            deploy:
+              mode: replicated
+              replicas: 1
+              labels:
+                - "traefik.enable=true"
+                - "traefik.http.routers.netsoc_co_new.rule=Host(`{{ dev_site }}`) || Host(`www.{{ dev_site }}`)"
+                - "traefik.http.routers.netsoc_co_new.entrypoints=web-secure"
+                - "traefik.http.routers.netsoc_co_new.tls.certResolver=letsencrypt"
+                - "traefik.http.services.netsoc_co_new-service.loadbalancer.server.port=80"
+                - "traefik.http.routers.netsoc_co_new.service=netsoc_co_new-service"
+                - "traefik.http.middlewares.rk-redirect_dev_dev.redirectregex.regex=^https://{{ dev_site }}/(r(?:[^k].*)|[^r].*)?$$"
+                - "traefik.http.middlewares.rk-redirect_dev.redirectregex.replacement=https://{{ dev_site }}/rk/$${1}"
+                - "traefik.http.middlewares.rk-redirect_dev.redirectregex.permanent=true"
+                - "traefik.http.middlewares.rk-strip_dev.stripprefix.prefixes=/rk"
+                - "traefik.http.routers.netsoc_co_new.middlewares=rk-redirect_dev@docker,rk-strip_dev@docker"
+                - "traefik.docker.network=traefik"
+              restart_policy:
+                condition: any
+                delay: 5s
+                max_attempts: 5
         networks:
           traefik:
-            external: true  
+            external: true
+          

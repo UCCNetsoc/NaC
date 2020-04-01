@@ -70,22 +70,22 @@
     # constitution
     - { zone: "netsoc.co",  type: CNAME, record: "constitution",     value: "uccnetworkingsociety.github.io" }
     
-    - { zone: "netsoc.co",  type: CNAME, record: "*.evan.netsoc.co", value: "leela.netsoc.co" } 
-    - { zone: "netsoc.co",  type: CNAME, record: "www.*.evan.netsoc.co", value: "leela.netsoc.co" } 
-    - { zone: "netsoc.co",  type: CNAME, record: "unf2b",            value: "leela.netsoc.co" }
+    - { zone: "netsoc.co",  type: CNAME, record: "*.evan.netsoc.co",      value: "leela.netsoc.co" } 
+    - { zone: "netsoc.co",  type: CNAME, record: "www.*.evan.netsoc.co",  value: "leela.netsoc.co" } 
+    - { zone: "netsoc.co",  type: CNAME, record: "unf2b",                 value: "leela.netsoc.co" }
 
     # lovelace
     - { zone: "netsoc.dev", type: CNAME, record: "pterodactyl-daemon", value: "lovelace.netsoc.dev" }
-    - { zone: "netsoc.co", type: CNAME, record: "pterodactyl-daemon", value: "lovelace.netsoc.co" }
+    - { zone: "netsoc.co",  type: CNAME, record: "pterodactyl-daemon", value: "lovelace.netsoc.co" }
+    - { zone: "netsoc.co",  type: CNAME, record: "minecraft",          value: "lovelace.netsoc.co" }
 
-    - { zone: "netsoc.co",  type: CNAME, record: "minecraft",        value: "lovelace.netsoc.co"}
 
     - { zone: "netsoc.co", type: TXT, record: "_dmarc", value: "v=DMARC1; p=none" }
     - { zone: "netsoc.co", type: TXT, record: "netsoc.co", value: "v=spf1 mx include:zoho.com include:u1980078.wl.sendgrid.net -all" }
     - { zone: "netsoc.co", type: TXT, record: "zoho._domainkey.netsoc.co", value: "k=rsa; t=y; p=MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQCB3sWPAMJHYvSCWEueINNaIsPy4OeAQgFsm3y+IcOSUcXJUhHr+LrYGuD9SZzIEh0ekm0Usm73gRz4LgGYfeZ9SXbR3H1LupOETGym0FRRQnAjnXI9L/wfaOzYwbpKm04lhpbobhAwrtsUcgMyo+wmEByM3AR25+YDmlUuijmNTwIDAQAB" }
 
     # "floating" CNAMEs
-    - { zone: "netsoc.co",  type: CNAME, record: "userdomains", value: "leela.netsoc.co"}
+    - { zone: "netsoc.co",  type: CNAME, record: "userdomains", value: "leela.netsoc.co" }
 
     # MX
     - { zone: "netsoc.co", type: MX, record: "netsoc.co", value: "mx.zoho.com" }

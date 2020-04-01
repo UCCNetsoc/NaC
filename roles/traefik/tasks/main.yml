@@ -41,7 +41,7 @@
   openssl_csr:
     path: /netsoc-neo/docker-data/traefik/localhost.csr
     privatekey_path: /netsoc-neo/docker-data/traefik/localhost.key
-    common_name: '*.netsoc.localhost'
+    common_name: '*.netsoc.*.localhost'
 
 - name: Generate localhost certs if in development
   become: yes
