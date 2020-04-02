@@ -20,7 +20,7 @@ parse_yaml() {
 
 editor_preserve=$EDITOR
 export EDITOR=cat
-ansible-vault edit ../vars/secrets.yml > ./_secrets.yml 
+ansible-vault edit vars/secrets.yml > ./_secrets.yml 
 eval $(parse_yaml _secrets.yml "vault_")
 rm _secrets.yml
 export EDITOR=$editor_preserve
