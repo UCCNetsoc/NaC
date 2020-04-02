@@ -13,6 +13,7 @@
 
 import sys
 import yaml
+import os
 import json
 from optparse import OptionParser
 
