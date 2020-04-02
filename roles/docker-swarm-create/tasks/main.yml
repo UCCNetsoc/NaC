@@ -1,0 +1,31 @@
+---
+- name: "Check if host enrolled as manager"
+  become: yes
+  shell: "docker node ls"      # Will return an non-zero error code if the swarm does not exist
+  register: swarm_ls
+  changed_when: "swarm_ls.rc != 0"
+  ignore_errors: true
+
+# Skipped if swarm exists
+- name: "Ensure swarm initialized"
+  become: yes
+  shell: "docker swarm init --advertise-addr={{ ansible_host }}:2377"
+  when: swarm_ls.rc != 0      # Don't create the swarm if the previous docker node ls returned zero
+
+- name: "Ensure known manager token"
+  become: yes
+  shell: "docker swarm join-token --quiet manager"
+  register: swarm_manager_token_result
+
+- name: "Ensure known manager token fact"
+  set_fact:
+    swarm_manager_token: "{{ swarm_manager_token_result.stdout }}"
+
+- name: "Ensure known worker token"
+  become: yes
+  shell: "docker swarm join-token --quiet worker"
+  register: swarm_worker_token_result
+
+- name: "Ensure known worker token fact"
+  set_fact:
+    swarm_worker_token: "{{ swarm_worker_token_result.stdout }}"
