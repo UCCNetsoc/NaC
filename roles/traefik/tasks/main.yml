@@ -175,29 +175,6 @@
               - "cloudflare_dns_api_token.txt"
             environment:
               CLOUDFLARE_DNS_API_TOKEN_FILE: "/run/secrets/cloudflare_dns_api_token.txt"
-          whoami:
-            deploy:
-              mode: global
-              placement:
-                constraints:
-                  # - node.role == manager
-                  - node.hostname == {{ inventory_hostname }}
-                preferences:
-                  - spread: node.id
-              restart_policy:
-                condition: any
-                delay: 10s
-                max_attempts: 5
-              labels:
-                - "traefik.enable=true"
-                - "traefik.http.routers.whoami.rule=Host(`whoami.{{ dev_site }}`)"
-                - "traefik.http.routers.whoami.entrypoints=web-secure"
-                - "traefik.http.services.whoami-service.loadbalancer.server.port=80"
-                - "traefik.http.routers.whoami.service=whoami-service"
-                - "traefik.docker.network=traefik"
-            image: "containous/whoami"
-            networks:
-              traefik:
         secrets:
           cloudflare_dns_api_token.txt:
             external: true
