@@ -49,6 +49,8 @@
             networks:
               traefik:
               monitoring:
+                aliases: 
+                  - grafana
             deploy:
               mode: global
               placement:
