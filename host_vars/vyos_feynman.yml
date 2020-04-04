@@ -1,0 +1,7 @@
+---
+ansible_host: 10.0.10.1
+ansible_ssh_port: 22
+ansible_connection: network_cli
+ansible_network_os: vyos
+ansible_user: vyos
+ansible_ssh_private_key_file: "./keys/vyos_feynman_preprovision/id_rsa"
