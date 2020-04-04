@@ -1,0 +1,1 @@
+packer_root_password: {{ vault_packer_root_password }}
