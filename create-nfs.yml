@@ -1,0 +1,61 @@
+---
+
+- name: "Ensure NFS"
+  hosts: lovelace
+  roles:
+    - role: proxmox-infra-cloudinit-vm
+      vars:
+        vm:
+          name: "nfs"
+          protection: yes
+          clone: "netsoc-ubuntu-server-{{ inventory_hostname }}"
+          timeout: 300
+          description: |
+            groups:
+              - vms
+              - nfs
+            vars:
+              ansible_user: netsoc
+              ansible_ssh_private_key_file: "/root/NaC-repo/keys/nfs/id_rsa"
+              ansible_python_interpreter: "/usr/bin/python3"
+          net:
+            net0: "virtio,bridge=vmbr0,tag=30"
+          scsi:
+            scsi1: "local-lvm:25,format=raw"
+          cores: 4
+          memory: 4096
+        cloudinit:
+          metadata: |
+            local-hostname: nfs
+          userdata: |
+            #cloud-config
+            users:
+              - name: netsoc
+                gecos: Netsoc Management User
+                primary_group: netsoc
+                sudo: ALL=(ALL) NOPASSWD:ALL
+                ssh_authorized_keys:
+                  - {{ ssh_key_sig }}
+          networkconfig: |
+            version: 2
+            ethernets:
+              30:
+                match:
+                  name: "en*"
+                addresses:
+                  - 10.0.30.2/24  
+                gateway4: 10.0.30.1
+        wait_for_ssh: "10.0.30.2"
+  vars:
+    ssh_key_sig: "{{ lookup('file', './keys/nfs/id_rsa.pub') }}"
+  vars_files:
+    - vars/proxmox.yml
+    - vars/secrets.yml
+
+- name: "Reload inventory to pull new VMs"
+  hosts: 127.0.0.1
+  connection: local
+  tasks:
+    - meta: refresh_inventory
+
+- import_playbook: "provision-nfs.yml"
