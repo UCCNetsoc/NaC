@@ -1,0 +1,29 @@
+- name: "Ensure NFS server disk made"
+  hosts: nfs
+  become: yes
+  roles:
+    - role: simple-disk
+      vars:
+        device: "/dev/sdb"
+        part_size: "100%"
+        fstype: "ext4"
+        mount_path: "/mnt/nfs"
+        mount_opts: "rw"
+
+- name: "Ensure NFS server"
+  hosts: nfs
+  become: yes
+  tasks:
+    - file:
+        path: "/mnt/nfs/docker-data"
+        state: directory
+    - file:
+        path: "/mnt/nfs/docker-data/freeipa"
+        state: directory
+  roles:
+    - role: nfs-server-docker
+      vars:
+        nfs_disk: "/mnt/nfs"
+        exports: |
+          /nfs/docker-data                                   10.0.30.0/24(rw,sync,no_root_squash,sec=krb5p)
+          /nfs/docker-data/freeipa  {{ hostvars['ipa']['ansible_host'] }}(rw,sync,no_root_squash)
