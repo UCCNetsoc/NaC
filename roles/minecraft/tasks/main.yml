@@ -9,7 +9,7 @@
     state: directory
   with_items:
     - { folder: survival }
-    - { folder: creative }
+    #- { folder: creative }
 
 - name: Create server.properties
   become: yes
@@ -23,12 +23,12 @@
     gamemode: '{{ item.gamemode }}'
   with_items:
     - { gamemode: survival }
-    - { gamemode: creative }
+    #- { gamemode: creative }
 
 - name: NetCraft Minecraft Server - Survival
   become: yes
   docker_container:
-    image: itzg/minecraft-server:adopt13
+    image: itzg/minecraft-server:openj9
     name: netsoc-survival
     state: started
     restart_policy: unless-stopped
@@ -39,6 +39,7 @@
       INIT_MEMORY: 1G
       MAX_MEMORY: 5G
       VERSION: "1.15.2"
+      JVM_XX_OPTS: "-Xtune:virtualized -Xgc:concurrentScavenge -Xgc:dnssExpectedTimeRatioMaximum=3 -Xgc:scvNoAdaptiveTenure -Xdisableexplicitgc"
     ports:
       - "25565:25565"
       - "1194:25565"
