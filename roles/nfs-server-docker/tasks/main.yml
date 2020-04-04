@@ -1,0 +1,21 @@
+- name: "Create exports file"
+  copy:
+    content: |
+      {{ exports }}
+    dest: "/root/exports.txt"
+
+- name: "Ensure Docker NFS server"
+  docker_container:
+    name: nfs
+    state: present
+    recreate: yes
+    image: "erichough/nfs-server2.21"
+    volumes:
+      - "{{ nfs_disk }}:/nfs"
+      - /root/exports.txt:/etc/exports:ro
+      - /lib/modules:/lib/modules
+    capabilities:
+      - SYS_ADMIN
+      - SYS_MODULE
+    ports:
+      - "2049:2049"
