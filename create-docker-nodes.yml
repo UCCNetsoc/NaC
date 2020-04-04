@@ -1,0 +1,103 @@
+---
+
+- name: "Ensure Docker Nodes"
+  hosts: proxmox_hosts
+  roles:
+    # Manager VM
+    - role: proxmox-infra-cloudinit-vm
+      when: "ansible_play_hosts_all.index(inventory_hostname) < 5"
+      vars:
+        vm:
+          name: "manager{{ ansible_play_hosts_all.index(inventory_hostname) }}.docker"
+          clone: "netsoc-ubuntu-server-{{ inventory_hostname }}"
+          timeout: 300
+          description: |
+            groups:
+              - vms
+              - docker_nodes
+              - docker_managers
+            vars:
+              ansible_user: netsoc
+              ansible_ssh_private_key_file: "/root/NaC-repo/keys/docker_nodes/id_rsa"
+              ansible_python_interpreter: "/usr/bin/python3"
+          net:
+            net0: "virtio,bridge=vmbr0,tag=30"
+          cores: 4
+          memory: 4096
+        cloudinit:
+          metadata: |
+            local-hostname: manager{{ ansible_play_hosts_all.index(inventory_hostname) }}.docker
+          userdata: |
+            #cloud-config
+            users:
+              - name: netsoc
+                gecos: Netsoc Management User
+                primary_group: netsoc
+                sudo: ALL=(ALL) NOPASSWD:ALL
+                ssh_authorized_keys:
+                  - {{ ssh_key_sig }}
+          networkconfig: |
+            version: 2
+            ethernets:
+              30:
+                match:
+                  name: "en*"
+                addresses:
+                  - 10.0.30.{{ 100 + ansible_play_hosts_all.index(inventory_hostname) }}/24
+                gateway4: 10.0.30.1
+        wait_for_ssh: "10.0.30.{{ 100 + ansible_play_hosts_all.index(inventory_hostname) }}"
+    # Worker VM
+    - role: proxmox-infra-cloudinit-vm
+      vars:
+        vm:
+          name: "worker{{ ansible_play_hosts_all.index(inventory_hostname) }}.docker"
+          clone: "netsoc-ubuntu-server-{{ inventory_hostname }}"
+          timeout: 300
+          description: |
+            groups:
+              - vms
+              - docker_nodes
+              - docker_workers
+            vars:
+              ansible_user: netsoc
+              ansible_ssh_private_key_file: "/root/NaC-repo/keys/docker_nodes/id_rsa"
+              ansible_python_interpreter: "/usr/bin/python3"
+          net:
+            net0: "virtio,bridge=vmbr0,tag=30"
+          cores: 4
+          memory: 4096
+        cloudinit:
+          metadata: |
+            local-hostname: worker{{ ansible_play_hosts_all.index(inventory_hostname) }}.docker
+          userdata: |
+            #cloud-config
+            users:
+              - name: netsoc
+                gecos: Netsoc Management User
+                primary_group: netsoc
+                sudo: ALL=(ALL) NOPASSWD:ALL
+                ssh_authorized_keys:
+                  - {{ ssh_key_sig }}
+          networkconfig: |
+            version: 2
+            ethernets:
+              30:
+                match:
+                  name: "en*"
+                addresses:
+                  - 10.0.30.{{ 200 + ansible_play_hosts_all.index(inventory_hostname) }}/24
+                gateway4: 10.0.30.1
+        wait_for_ssh: "10.0.30.{{ 200 + ansible_play_hosts_all.index(inventory_hostname) }}"
+  vars:
+    ssh_key_sig: "{{ lookup('file', './keys/docker_nodes/id_rsa.pub') }}"
+  vars_files:
+    - vars/proxmox.yml
+    - vars/secrets.yml
+
+- name: "Reload inventory to pull new VMs"
+  hosts: 127.0.0.1
+  connection: local
+  tasks:
+    - meta: refresh_inventory
+
+- import_playbook: "provision-docker-nodes.yml"
