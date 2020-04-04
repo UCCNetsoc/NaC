@@ -1,0 +1,30 @@
+- name: "Ensure data disk is partitioned"
+  parted:
+    device: "{{ device }}"
+    number: 1
+    state: present
+    part_end: "{{ part_size }}"
+
+- name: "Ensure data disk is ext4"
+  filesystem:
+    fstype: "{{ fstype }}"
+    dev: "{{ device }}1" # i.e /dev/sdb1
+    # grow fs if it already exists
+    resizefs: yes
+
+- name: "Get data disk uuid"
+  shell: "blkid -s UUID -o value {{ device }}1"
+  register: uuid_result
+
+- name: "Ensure path for data disk mount"
+  file:
+    path: "{{ mount_path }}"
+    state: directory
+
+- name: "Ensure data disk mount"
+  mount:
+    path: "{{ mount_path }}"
+    fstype: "{{ fstype }}"
+    src: "UUID={{ uuid_result.stdout | trim }}"
+    opts: "{{ mount_opts }}"
+    state: present
