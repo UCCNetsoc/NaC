@@ -1,0 +1,14 @@
+---
+
+- name: Resize partition
+  parted:
+    device: "{{ pv_device }}"
+    number: "{{ partition_number }}"
+    state: present
+    part_end: "{{ partition_size }}"
+
+- name: Resize physical volume (PV)
+  shell: "pvresize {{ pv_device }}{{ partition_number }}"
+
+- name: Extend logical volume
+  shell: "lvextend -r {{ lv_device }} -l +100%FREE"
