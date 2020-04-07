@@ -1,0 +1,75 @@
+---
+
+- name: Ensure freeipa-data dir
+  become: yes
+  file:
+    path: "{{ ipa_mount }}/freeipa-data"
+    owner: root
+    group: root
+    mode: 0770
+    state: directory
+
+- name: Ensure freeipa-mods dir
+  become: yes
+  file:
+    path: "{{ ipa_mount }}/freeipa-mods"
+    owner: root
+    group: root
+    mode: 0770
+    state: directory
+
+- name: Ensure HTTP redirect disabler
+  become: yes
+  copy:
+    src: "files/ipa-rewrite.conf"
+    dest: "{{ ipa_mount }}/freeipa-mods/ipa-rewrite.conf"
+
+- name: Ensure FreeIPA server container
+  become: yes
+  docker_container:
+    name: freeipa_server
+    state: started
+    recreate: yes
+    image: freeipa/freeipa-server
+    read_only: true
+    hostname: "{{ ipa_server_hostname }}"
+    command: >
+      --unattended
+      --realm={{ ipa_realm }}
+      --ds-password={{ ipa_ds_password }}
+      --admin-password={{ ipa_admin_password }}
+      --setup-dns
+      --forwarder=1.1.1.1
+      --ssh-trust-dns
+    env: # environment:
+      IPA_SERVER_HOSTNAME: "{{ ipa_server_hostname }}"
+    volumes:
+      - "/sys/fs/cgroup:/sys/fs/cgroup:ro"
+      - "/etc/machine-id:/etc/machine-id"
+      - "{{ ipa_mount }}/freeipa-data/:/data"
+      - "{{ ipa_mount }}/freeipa-mods/ipa-rewrite.conf:/data/etc/httpd/conf.d/ipa-rewrite.conf"
+    ports:
+      - "{{ ipa_ip }}:80:80"
+      - "{{ ipa_ip }}:443:443"
+      - "{{ ipa_ip }}:389:389"   # ldap
+      - "{{ ipa_ip }}:636:636"   # ldaps
+      - "{{ ipa_ip }}:88:88"     # kerberos
+      - "{{ ipa_ip }}:464:464"   # kpasswd 
+      - "{{ ipa_ip }}:749:749"   # kpasswd
+      - "{{ ipa_ip }}:123:123"   # ntp
+    tmpfs:
+      - "/run"
+      - "/tmp"
+    sysctls:
+      # Fixes:
+      # DEBUG The ipa-server-install command failed, exception: 
+      # RuntimeError: IPv6 stack is enabled in the kernel but there is no interface that has ::1 address assigned.
+      # Add ::1 address resolution to "lo" interface. You might need to enable IPv6 on the interface "lo" in sysctl.conf.
+      net.ipv6.conf.lo.disable_ipv6: 0
+
+- name: "Wait for install to finish (8-12 minutes, check {{ ipa_mount }}/freeipa-data/var/log/ipa-server-configure-first.log if time out)"
+  become: yes
+  wait_for:
+    path: "{{ ipa_mount }}/freeipa-data/var/log/ipa-server-configure-first.log"
+    search_regex: "FreeIPA server configured."
+    timeout: 1200 # 20 minutes
