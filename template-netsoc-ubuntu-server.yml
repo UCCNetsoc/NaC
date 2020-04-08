@@ -1,5 +1,5 @@
 - name: "Ensure Ubuntu Template"
-  hosts: lovelace
+  hosts: proxmox_hosts
   roles:
     - role: packer-proxmox-template
       vars: 
