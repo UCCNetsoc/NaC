@@ -3,7 +3,7 @@
     device: "{{ device }}"
     number: 1
     state: present
-    part_end: "{{ part_size }}"
+    part_end: "{{ partition_size }}"
 
 - name: "Ensure data disk is ext4"
   filesystem:
@@ -27,4 +27,4 @@
     fstype: "{{ fstype }}"
     src: "UUID={{ uuid_result.stdout | trim }}"
     opts: "{{ mount_opts }}"
-    state: present
+    state: mounted
