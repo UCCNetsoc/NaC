@@ -45,9 +45,10 @@ for node in proxmox.nodes.get():
             try:
                 ifaces = proxmox.nodes(node['node']).qemu(vm['vmid']).agent.get('network-get-interfaces')
                 for iface in ifaces['result']:
-                    for ipinfo in iface['ip-addresses']:
-                        if ipinfo['ip-address'].split('.')[0] == '10':
-                            ssh_ip = ipinfo['ip-address']
+                    if 'ip-addresses' in iface:
+                        for ipinfo in iface['ip-addresses']:
+                            if ipinfo['ip-address'].split('.')[0] == '10':
+                                ssh_ip = ipinfo['ip-address']
 
             except ResourceException:
                 # If the agent isn't running on the machine, ignore that machine
