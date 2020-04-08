@@ -27,3 +27,5 @@
     - oddjob-mkhomedir
     - python3-apt
     - python3-pip
+    - e2fsprogs
+    - apparmor-utils
