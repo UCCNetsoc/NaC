@@ -1,0 +1,8 @@
+
+# - include: backplane.yml
+- include: create-auth.yml
+- include: provision-auth.yml
+# - include: create-nfs.yml
+# - include: provision-nfs.yml
+# - include: create-docker-nodes.yml
+# - include: provision-docker-nodes.yml
