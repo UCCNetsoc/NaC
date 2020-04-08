@@ -1,6 +1,20 @@
 ---
 
+- name: "Install LVM Auto Extend Script"
+  become: yes
+  copy:
+    content: |
+      #!/bin/sh
+      parted ---pretend-input-tty {{ device }} resizepart {{ lvm_extended_partition }} 100% 
+      parted ---pretend-input-tty {{ device }} resizepart {{ lvm_pv_partition }}  100%
+      pvresize {{ device }}{{ lvm_pv_partition }}
+      lvextend -r /dev/mapper/{{ lvm_vg_lv }} -l +100%FREE
+
+    mode: u=rx,g=rx,o=r
+    dest: /opt/lvm_auto_resize.sh
+
 - name: "Install LVM Auto Extend Service"
+  become: yes
   copy:
     content: |
       [Unit]
@@ -8,10 +22,7 @@
 
       [Service]
       Type=oneshot
-      ExecStart=parted ---pretend-input-tty resizepart {{ device }} resizepart {{ lvm_extended_partition }} 100% && \
-                parted ---pretend-input-tty resizepart {{ device }} resizepart {{ lvm_pv_partition }}  100%      && \
-                pvresize {{ device }}{{ lvm_pv_partition }}                                                      && \
-                lvextend -r /dev/mapper/{{ lvm_vg_lv }} -l +100%FREE
+      ExecStart=/opt/lvm_auto_resize.sh
 
       [Install]
       WantedBy=multi-user.target
