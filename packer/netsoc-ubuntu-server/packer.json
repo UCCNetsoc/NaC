@@ -1,12 +1,13 @@
 {
     "description": "Generic Proxmox Template Packer file",
     "variables": {
-      "proxmox_api_url": "https://localhost:8006/api2/json",
-      "proxmox_username": "root@pam",
+      "vm_id": "",
+      "template_name": "",
+      "proxmox_api_url": "",
+      "proxmox_username": "",
       "proxmox_password": "",
       "proxmox_node": "",
       "http_base_url": "",
-      "iso_file": "",
       "vm_root_password": ""
     },
     "sensitive-variables": [
@@ -22,14 +23,24 @@
     "builders": [
       {
         "type": "proxmox",
-        "proxmox_url": "{{ user `proxmox_api_url`}}",
         "insecure_skip_tls_verify": true,
+        "proxmox_url": "{{ user `proxmox_api_url`}}",
         "username": "{{ user `proxmox_username`}}",
         "password": "{{ user `proxmox_password`}}",
         "node": "{{ user `proxmox_node` }}",
-
-        "template_name": "netsoc-ubuntu-server",
+        
+        "vm_id": "{{ user `vm_id`}}",
+        "vm_name": "{{ user `vm_name`}}",
+        "template_name": "{{ user `template_name`}}",
         "template_description": "Ubuntu Server for Netsoc",
+
+        "iso_url": "http://cdimage.ubuntu.com/ubuntu/releases/bionic/release/ubuntu-18.04.4-server-amd64.iso",
+        "iso_checksum_type": "sha256",
+        "iso_checksum": "e2ecdace33c939527cbc9e8d23576381c493b071107207d2040af72595f8990b",
+        "iso_storage_pool": "local",
+
+        "unmount_iso": "true",
+
         "boot_wait": "5s",
         "http_directory": ".",
         "boot_command": [
@@ -51,24 +62,23 @@
         "ssh_password": "{{ user `vm_root_password`}}",
         "ssh_timeout": "25m",
   
-        "unmount_iso": "true",
-        "iso_file": "local:iso/{{ user `iso_file`}}",
-
         "cores": "2",
         "os": "l26",
 
         "network_adapters": [
           {
+            "model": "virtio",
             "bridge": "vmbr1"
           }
         ],
         
         "disks": [
           {
-            "type": "scsi",
-            "disk_size": "5G",
+            "type": "virtio",
+            "disk_size": "10G",
             "storage_pool": "local-lvm",
-            "storage_pool_type": "lvm"
+            "storage_pool_type": "lvm",
+            "format": "raw"
           }
         ]
       }
