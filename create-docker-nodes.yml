@@ -45,6 +45,9 @@
                 addresses:
                   - 10.0.30.{{ 100 + ansible_play_hosts_all.index(inventory_hostname) }}/24
                 gateway4: 10.0.30.1
+                nameservers:
+                  search: ["ipa.netsoc.co", "netsoc.co"]
+                  addresses: [1.1.1.1, 8.8.8.8]
         wait_for_ssh: "10.0.30.{{ 100 + ansible_play_hosts_all.index(inventory_hostname) }}"
     # Worker VM
     - role: proxmox-infra-cloudinit-vm
@@ -87,6 +90,9 @@
                 addresses:
                   - 10.0.30.{{ 200 + ansible_play_hosts_all.index(inventory_hostname) }}/24
                 gateway4: 10.0.30.1
+                nameservers:
+                  search: ["ipa.netsoc.co", "netsoc.co"]
+                  addresses: [1.1.1.1, 8.8.8.8]
         wait_for_ssh: "10.0.30.{{ 200 + ansible_play_hosts_all.index(inventory_hostname) }}"
   vars:
     ssh_key_sig: "{{ lookup('file', './keys/docker_nodes/id_rsa.pub') }}"
