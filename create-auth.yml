@@ -1,30 +1,36 @@
 ---
 
-- name: "Ensure IPA"
+
+- name: "Ensure Auth server"
   hosts: lovelace
   roles:
     - role: proxmox-infra-cloudinit-vm
       vars:
         vm:
-          name: "ipa"
+          name: "auth"
           protection: yes
           clone: "netsoc-ubuntu-server-{{ inventory_hostname }}"
           timeout: 300
           description: |
             groups:
               - vms
-              - ipa
+              - auth
             vars:
               ansible_user: netsoc
-              ansible_ssh_private_key_file: "/root/NaC-repo/keys/ipa/id_rsa"
+              ansible_ssh_private_key_file: "/root/NaC-repo/keys/auth/id_rsa"
               ansible_python_interpreter: "/usr/bin/python3"
           net:
             net0: "virtio,bridge=vmbr0,tag=30"
+            net1: "virtio,bridge=vmbr0,tag=30"
+          additional_disks:
+            virtio1: "local-lvm:15,format=raw"
+          resize_disks:
+            virtio0: "+10G"
           cores: 4
           memory: 2048
         cloudinit:
           metadata: |
-            local-hostname: ipa
+            local-hostname: auth
           userdata: |
             #cloud-config
             users:
@@ -37,15 +43,27 @@
           networkconfig: |
             version: 2
             ethernets:
-              30:
+              30a:
                 match:
-                  name: "en*"
+                  name: ens18
+                addresses:
+                  - 10.0.30.10/24
+                gateway4: 10.0.30.1
+                nameservers:
+                  search: ["ipa.netsoc.co"]
+                  addresses: [1.1.1.1, 8.8.8.8]
+              30b:
+                match:
+                  name: ens19
                 addresses:
                   - 10.0.30.3/24
                 gateway4: 10.0.30.1
-        wait_for_ssh: "10.0.30.3"
+                nameservers:
+                  search: ["ipa.netsoc.co", "netsoc.co"]
+                  addresses: [127.0.0.1]
+        wait_for_ssh: "10.0.30.2"
   vars:
-    ssh_key_sig: "{{ lookup('file', './keys/nfs/id_rsa.pub') }}"
+    ssh_key_sig: "{{ lookup('file', './keys/auth/id_rsa.pub') }}"
   vars_files:
     - vars/proxmox.yml
     - vars/secrets.yml
@@ -55,5 +73,3 @@
   connection: local
   tasks:
     - meta: refresh_inventory
-
-# - import_playbook: "provision-ipa.yml"
