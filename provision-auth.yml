@@ -1,0 +1,32 @@
+- name: "Ensure IPA server disk mounted"
+  hosts: auth
+  become: yes
+  roles:
+    - role: simple-disk
+      vars:
+        device: "/dev/vdb"
+        partition_size: "100%"
+        fstype: "ext4"
+        mount_path: "/mnt/freeipa-disk"
+        mount_opts: "rw"
+    - role: freeipa-server-docker
+      vars:
+        ipa_ip: "10.0.30.2"
+        ipa_mount: "/mnt/freeipa-disk"
+        ipa_realm: IPA.NETSOC.CO
+        ipa_domain: ipa.netsoc.co
+        ipa_server_hostname: ipa-container.ipa.netsoc.co
+        ipa_ds_password: n1ce_meme
+        ipa_admin_password: n1ce_meme
+
+- name: "Enroll Auth in IPA server"
+  hosts: auth
+  roles:
+    - role: freeipa-client
+      vars:
+        ipa_realm: IPA.NETSOC.CO
+        ipa_server_hostname: ipa.netsoc.co
+        ipa_client_hostname: auth.ipa.netsoc.co
+        ipa_domain: ipa.netsoc.co
+        ipa_ds_password: n1ce_meme
+        ipa_admin_password: n1ce_meme
