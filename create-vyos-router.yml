@@ -1,0 +1,49 @@
+---
+
+- name: "Ensure Router"
+  hosts: lovelace
+  roles:
+    - role: proxmox-infra-cloudinit-vm
+      vars:
+        vm:
+          name: "vyos-router"
+          protection: yes
+          timeout: 300
+          description: |
+            groups:
+              - vms
+              - vyos-router
+            vars:
+              ansible_user: vyos
+              ansible_ssh_private_key_file: "/root/NaC-repo/keys/vyos-router/id_rsa"
+              ansible_python_interpreter: "/usr/bin/python3"
+          net:
+            net0: "virtio,bridge=vmbr1"
+          additional_disks:
+            cdrom: "local:iso/vyos-1.3-rolling-amd64.iso"
+          cores: 2
+          memory: 2048
+        cloudinit:
+          nocloud_drive: ide3
+          metadata: |
+            local-hostname: vyos-router
+          userdata: |
+            #cloud-config
+            users:
+              - name: netsoc
+                gecos: Netsoc Management User
+                primary_group: netsoc
+                sudo: ALL=(ALL) NOPASSWD:ALL
+                ssh_authorized_keys:
+                  - {{ ssh_key_sig }}
+  vars:
+    ssh_key_sig: "{{ lookup('file', './keys/vyos-router/id_rsa.pub') }}"
+  vars_files:
+    - vars/proxmox.yml
+    - vars/secrets.yml
+
+- name: "Reload inventory to pull new VMs"
+  hosts: 127.0.0.1
+  connection: local
+  tasks:
+    - meta: refresh_inventory
