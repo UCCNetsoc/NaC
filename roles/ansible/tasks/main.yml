@@ -11,10 +11,10 @@
 - name: Ensure python3-distutils
   apt:
     name: python3-distutils
-
+  
 - name: Ensure pip installed
-  become: yes
-  raw: "curl https://bootstrap.pypa.io/get-pip.py | python3 get-pip.py"
+  apt:
+    name: python3-pip
 
 - name: Ensure upgraded pip and ansible pip requirements
   become: yes
@@ -22,5 +22,6 @@
     name:
       - pip
       - ansible
+      - proxmoxer
     state: latest
     extra_args: --upgrade
