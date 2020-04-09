@@ -1,0 +1,4 @@
+cloudinit:
+    metadata: ""
+    userdata: ""
+    networkconfig: ""
