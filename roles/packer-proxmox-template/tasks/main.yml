@@ -43,7 +43,7 @@
     msg: "nohup bash -c 'nohup python3 -m http.server {{ http_port }} --bind {{ http_bind_address }} -d /root/NaC/{{ provision_directory }} & echo $!'"
 
 - name: "Fork Python HTTP server in local directory"
-  raw:  nohup bash -c 'nohup python3 -m http.server {{ http_port }} --bind {{ http_bind_address }} -d /root/NaC/{{ provision_directory }} & echo $!'
+  raw:  nohup bash -c 'nohup python3 -m http.server {{ http_port }} --bind {{ http_bind_address }} -d /root/NaC/{{ provision_directory }} >/dev/null 2>&1 & echo $!'
   register: http_pid_result
 
 - debug: msg="{{ http_pid_result.stdout }}"
@@ -92,6 +92,10 @@
   set_fact:
     packer_vars_argument: "{{ packer_vars_argument }} -var '{{ item.key }}={{ item.value }}' "
   loop: "{{ packer_vars | dict2items }}"
+  when: "packer_vars is defined"
+
+- debug:
+    msg: "{{ packer_vars_argument }}"
 
 - name: Remove a previous template if it exists
   proxmox_kvm:
@@ -109,6 +113,7 @@
     api_host: "{{ proxmox_node }}"
     name: "packer-{{ template_name }}-{{ inventory_hostname }}"
     state: stopped
+    force: yes
   ignore_errors: true
 
 - name: Remove a previous building template if it exists
