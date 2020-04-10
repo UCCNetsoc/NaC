@@ -77,7 +77,7 @@
     # lovelace
     - { zone: "netsoc.dev", type: CNAME, record: "pterodactyl-daemon", value: "lovelace.netsoc.dev" }
     - { zone: "netsoc.co",  type: CNAME, record: "pterodactyl-daemon", value: "lovelace.netsoc.co" }
-    - { zone: "netsoc.co",  type: CNAME, record: "minecraft",          value: "lovelace.netsoc.co" }
+    - { zone: "netsoc.co",  type: CNAME, record: "minecraft",          value: "feynman.netsoc.co" }
 
 
     - { zone: "netsoc.co", type: TXT, record: "_dmarc", value: "v=DMARC1; p=none" }
