@@ -1,0 +1,2 @@
+freeipa_ds_password: "{{ vault_ipa_ds_password }}"
+freeipa_admin_password: "{{ vault_ipa_admin_password }}"
