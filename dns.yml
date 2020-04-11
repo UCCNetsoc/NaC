@@ -3,6 +3,7 @@
   hosts: 127.0.0.1
   connection: local
   vars_files:
+    - vars/ip_allocation.yml
     - vars/cloudflare.yml
     - vars/secrets.yml
   tasks:
@@ -16,7 +17,5 @@
         account_email:    "{{ cloudflare_api_email }}"
         account_api_token: "{{ cloudflare_api_key }}"
       with_items:
-          # NS for clients
-          - { zone: "netsoc.co", type: A,      record: "ipa",     value: "10.0.30.2"     }
-          - { zone: "netsoc.co", type: NS,     record: "vm", value: "ipa.netsoc.co" }
-          
+        # A record for use before the DNS is first setup on auth
+        - { zone: "netsoc.co", type: A,      record: "ipa", value: "{{ ip_allocation.freeipa_base }}" }

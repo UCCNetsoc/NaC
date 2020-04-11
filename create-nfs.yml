@@ -12,7 +12,7 @@
           timeout: 300
           description: |
             groups:
-              - vms
+              - vm
               - nfs
             vars:
               ansible_user: netsoc
@@ -26,7 +26,7 @@
           memory: 4096
         cloudinit:
           metadata: |
-            local-hostname: nfs
+            local-hostname: nfs.ipa.netsoc.co
           userdata: |
             #cloud-config
             users:
@@ -43,12 +43,12 @@
                 match:
                   name: "en*"
                 addresses:
-                  - 10.0.30.4/24  
+                  - {{ ip_allocation.nfs }}/24  
                 gateway4: 10.0.30.1
                 nameservers:
-                  search: ["ipa.netsoc.co", "netsoc.co"]
+                  search: ["ipa.netsoc.co"]
                   addresses: [1.1.1.1, 8.8.8.8]
-        wait_for_ssh: "10.0.30.4"
+        wait_for_ssh: {{ ip_allocation.nfs }}
   vars:
     ssh_key_sig: "{{ lookup('file', './keys/nfs/id_rsa.pub') }}"
   vars_files:

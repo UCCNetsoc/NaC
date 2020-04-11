@@ -13,7 +13,7 @@
           timeout: 300
           description: |
             groups:
-              - vms
+              - vm
               - auth
             vars:
               ansible_user: netsoc
@@ -30,7 +30,7 @@
           memory: 2048
         cloudinit:
           metadata: |
-            local-hostname: auth
+            local-hostname: auth.ipa.netoc.co
           userdata: |
             #cloud-config
             users:
@@ -47,7 +47,7 @@
                 match:
                   name: ens18
                 addresses:
-                  - 10.0.30.10/24
+                  - {{ ip_allocation.freeipa_base }}/24
                 gateway4: 10.0.30.1
                 nameservers:
                   search: ["ipa.netsoc.co"]
@@ -56,15 +56,16 @@
                 match:
                   name: ens19
                 addresses:
-                  - 10.0.30.3/24
+                  - {{ ip_allocation.keycloak_base }}/24
                 gateway4: 10.0.30.1
                 nameservers:
                   search: ["ipa.netsoc.co", "netsoc.co"]
-                  addresses: [127.0.0.1]
-        wait_for_ssh: "10.0.30.2"
+                  addresses: {{ ip_allocation.nameservers }}
+        wait_for_ssh: "{{ ip_allocation.freeipa_base }}"
   vars:
     ssh_key_sig: "{{ lookup('file', './keys/auth/id_rsa.pub') }}"
   vars_files:
+    - vars/ip_allocation.yml
     - vars/proxmox.yml
     - vars/secrets.yml
 
