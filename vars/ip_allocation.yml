@@ -1,0 +1,28 @@
+ip_allocation:
+  # FreeIPA - hosted in auth
+  # 1 master (+4 replicas in the future)
+  # 10.0.30.10-10.0.30.14
+  freeipa_base:         "10.0.30.10" 
+
+  # DNS - hosted in auth by FreeIPA
+  # 5 IPA servers/replicas + fallback CF/Google
+  nameservers:          ["10.0.30.10", "10.0.30.11", "10.0.30.12", "10.0.30.13", "10.0.30.14", "10.0.30.15", "1.1.1.1", "8.8.8.8"]
+
+  # Keycloak - hosted in auth
+  # 1 node (+4 replicas in the future)
+  # # 10.0.30.15 - 10.0.30.19
+  keycloak_base:        "10.0.30.15"  # 10.0.30.15 - 10.0.30.19   5 nodes
+
+  # NFS
+  # 10.0.30.30
+  nfs:                  "10.0.30.30"
+
+  # Docker Swarm Managers
+  # 5 managers
+  # 10.0.30.200 - 10.0.30.214
+  docker_manager_base:  "10.0.30.200"
+
+  # Docker Swarm Workers
+  # n workers
+  # 10.0.30.215 and upwards
+  docker_worker_base:   "10.0.30.215" 
