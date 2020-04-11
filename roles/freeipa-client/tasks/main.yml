@@ -11,7 +11,7 @@
 
 - name: "Enroll server as a FreeIPA client"
   become: yes
-  command: "ipa-client-install --unattended --server {{ ipa_server_hostname }} --domain {{ ipa_domain }} --realm {{ ipa_realm }} --hostname {{ ipa_client_hostname }} --principal admin --password {{ ipa_admin_password }}" 
+  command: "ipa-client-install --unattended --server {{ server_hostname }} --domain {{ domain }} --realm {{ realm }} --hostname {{ client_hostname }} --principal admin --password {{ admin_password }}" 
   register: result
 
 - debug: msg="{{ result.stdout }}"

@@ -3,7 +3,7 @@
 - name: Ensure freeipa-data dir
   become: yes
   file:
-    path: "{{ ipa_mount }}/freeipa-data"
+    path: "{{ mount }}/freeipa-data"
     owner: root
     group: root
     mode: 0770
@@ -12,7 +12,7 @@
 - name: Ensure freeipa-mods dir
   become: yes
   file:
-    path: "{{ ipa_mount }}/freeipa-mods"
+    path: "{{ mount }}/freeipa-mods"
     owner: root
     group: root
     mode: 0770
@@ -22,7 +22,7 @@
   become: yes
   copy:
     src: "files/ipa-rewrite.conf"
-    dest: "{{ ipa_mount }}/freeipa-mods/ipa-rewrite.conf"
+    dest: "{{ mount }}/freeipa-mods/ipa-rewrite.conf"
 
 - name: Ensure FreeIPA server container
   become: yes
@@ -32,31 +32,38 @@
     recreate: yes
     image: freeipa/freeipa-server
     read_only: true
-    hostname: "{{ ipa_server_hostname }}"
+    hostname: "{{ domain }}"
     command: >
       --unattended
-      --realm={{ ipa_realm }}
-      --ds-password={{ ipa_ds_password }}
-      --admin-password={{ ipa_admin_password }}
+      --realm={{ realm }}
+      --ds-password={{ ds_password }}
+      --admin-password={{ admin_password }}
       --setup-dns
-      --forwarder=1.1.1.1
+      --forwarder="1.1.1.1"
+      --forward-policy=only
       --ssh-trust-dns
+      --no-host-dns
+      --allow-zone-overlap
     env: # environment:
-      IPA_SERVER_HOSTNAME: "{{ ipa_server_hostname }}"
+      IPA_SERVER_HOSTNAME: "{{ domain }}"
     volumes:
       - "/sys/fs/cgroup:/sys/fs/cgroup:ro"
       - "/etc/machine-id:/etc/machine-id"
-      - "{{ ipa_mount }}/freeipa-data/:/data"
-      - "{{ ipa_mount }}/freeipa-mods/ipa-rewrite.conf:/data/etc/httpd/conf.d/ipa-rewrite.conf"
+      - "{{ mount }}/freeipa-data/:/data"
+      - "{{ mount }}/freeipa-mods/ipa-rewrite.conf:/data/etc/httpd/conf.d/ipa-rewrite.conf"
+    # https://github.com/freeipa/freeipa-container/commit/9f49a2ffff86fc441e8ac6cbcfb68526add42769
+    dns_servers:
+      - 127.0.0.1
     ports:
-      - "{{ ipa_ip }}:80:80"
-      - "{{ ipa_ip }}:443:443"
-      - "{{ ipa_ip }}:389:389"   # ldap
-      - "{{ ipa_ip }}:636:636"   # ldaps
-      - "{{ ipa_ip }}:88:88"     # kerberos
-      - "{{ ipa_ip }}:464:464"   # kpasswd 
-      - "{{ ipa_ip }}:749:749"   # kpasswd
-      - "{{ ipa_ip }}:123:123"   # ntp
+      - "{{ ip }}:80:80"
+      - "{{ ip }}:443:443"
+      - "{{ ip }}:389:389"   # ldap
+      - "{{ ip }}:636:636"   # ldaps
+      - "{{ ip }}:88:88"     # kerberos
+      - "{{ ip }}:464:464"   # kpasswd 
+      - "{{ ip }}:749:749"   # kpasswd
+      - "{{ ip }}:123:123"   # ntp
+      - "{{ ip }}:53:53"   # dns
     tmpfs:
       - "/run"
       - "/tmp"
@@ -67,9 +74,13 @@
       # Add ::1 address resolution to "lo" interface. You might need to enable IPv6 on the interface "lo" in sysctl.conf.
       net.ipv6.conf.lo.disable_ipv6: 0
 
-- name: "Wait for install to finish (8-12 minutes, check {{ ipa_mount }}/freeipa-data/var/log/ipa-server-configure-first.log if time out)"
+- name: "Wait for install to finish (8-12 minutes, check {{ mount }}/freeipa-data/var/log/ipa-server-configure-first.log if time out)"
   become: yes
   wait_for:
-    path: "{{ ipa_mount }}/freeipa-data/var/log/ipa-server-configure-first.log"
-    search_regex: "FreeIPA server configured."
+    path: "{{ mount }}/freeipa-data/var/log/ipaserver-install.log"
+    search_regex: "The ipa-server-install command was successful"
     timeout: 1200 # 20 minutes
+
+- name: "Wait"
+  pause:
+    seconds: 5
