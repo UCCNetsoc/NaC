@@ -8,7 +8,7 @@
     - shell: docker build -t vyos-builder docker
       args:
         chdir: /root/NaC-repo/vyos-build
-    - shell: docker run --rm -it --privileged -v $(pwd):/vyos -w /vyos vyos-builder bash -c "./configure --custom-package qemu-guest-agent --custom-package expect && sudo make iso"
+    - shell: docker run --rm -it --privileged -v $(pwd):/vyos -w /vyos vyos-builder bash -c "./configure --custom-package qemu-guest-agent --custom-package expect && sudo make openstack"
       args:
         chdir: /root/NaC-repo/vyos-build
 
