@@ -11,22 +11,29 @@
         mount_opts: "rw"
     - role: freeipa-server-docker
       vars:
-        ipa_ip: "10.0.30.2"
-        ipa_mount: "/mnt/freeipa-disk"
-        ipa_realm: IPA.NETSOC.CO
-        ipa_domain: ipa.netsoc.co
-        ipa_server_hostname: ipa-container.ipa.netsoc.co
-        ipa_ds_password: n1ce_meme
-        ipa_admin_password: n1ce_meme
+        ip: "{{ ansible_ens18.ipv4.address }}"
+        mount: "/mnt/freeipa-disk"
+        realm: IPA.NETSOC.CO
+        domain: ipa.netsoc.co
+        server_hostname: ipa-container.ipa.netsoc.co
+        ds_password: "{{ freeipa_ds_password }}"
+        admin_password: "{{ freeipa_admin_password }}"
+  vars_files:
+    - "vars/ip_allocation.yml"
+    - "vars/freeipa.yml"
+    - "vars/secrets.yml"
 
 - name: "Enroll Auth in IPA server"
   hosts: auth
   roles:
     - role: freeipa-client
       vars:
-        ipa_realm: IPA.NETSOC.CO
-        ipa_server_hostname: ipa.netsoc.co
-        ipa_client_hostname: auth.ipa.netsoc.co
-        ipa_domain: ipa.netsoc.co
-        ipa_ds_password: n1ce_meme
-        ipa_admin_password: n1ce_meme
+        realm: IPA.NETSOC.CO
+        server_hostname: ipa.netsoc.co
+        client_hostname: auth.ipa.netsoc.co
+        domain: ipa.netsoc.co
+        ds_password: "{{ freeipa_ds_password }}"
+        admin_password: "{{ freeipa_admin_password }}"
+  vars_files:
+    - "vars/freeipa.yml"
+    - "vars/secrets.yml"

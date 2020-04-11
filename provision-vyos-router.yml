@@ -1,0 +1,8 @@
+---
+
+- name: "Provision router"
+  hosts: vyos-router
+  tasks:
+    - vyos_config:
+        lines:
+          - set system host-name ayylmao
