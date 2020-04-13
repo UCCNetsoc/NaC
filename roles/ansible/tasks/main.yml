@@ -23,5 +23,6 @@
       - pip
       - ansible
       - proxmoxer
+      - netaddr
     state: latest
     extra_args: --upgrade
