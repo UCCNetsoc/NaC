@@ -1,0 +1,70 @@
+
+{
+    "description": "Generic Proxmox Template Packer file",
+    "variables": {
+      "proxmox_api_url": "https://localhost:8006/api2/json",
+      "proxmox_username": "root@pam",
+      "proxmox_password": "",
+      "proxmox_node": "",
+      "iso_file": ""
+    },
+    "provisioners": [
+        {
+            "type": "shell",
+            "scripts": ["./install.expect"],
+            "environment_vars": ["VYOS_PASSWORD={{ user `vyos_password`}}"]
+        }
+    ],
+    "builders": [
+      {
+        "type": "proxmox",
+        "proxmox_url": "{{ user `proxmox_api_url`}}",
+        "insecure_skip_tls_verify": true,
+        "username": "{{ user `proxmox_username`}}",
+        "password": "{{ user `proxmox_password`}}",
+        "node": "{{ user `proxmox_node` }}",
+
+        "vm_id": "{{ user `vm_id`}}",
+        "vm_name": "{{ user `vm_name`}}",
+        "template_name": "{{ user `template_name`}}",
+        "template_description": "Vyos Router for Netsoc",
+        
+        "boot_wait": "10s",
+        "boot_command": [
+          "<enter><wait10><wait10><wait10><wait10><wait10><wait10><wait10>",
+          "vyos<enter><wait>",
+          "vyos<enter><wait>",
+          "configure<enter><wait>",
+          "set interfaces ethernet eth0 address dhcp<enter><wait>",
+          "set service ssh port 22<enter><wait>",
+          "commit<enter><wait>"
+        ],
+
+        "ssh_username": "vyos",
+        "ssh_password": "vyos",
+        "ssh_timeout": "25m",
+        
+        "unmount_iso": "true",
+        "iso_file": "local:iso/{{ user `iso_file`}}",
+
+        "cores": "2",
+        "os": "l26",
+
+        "network_adapters": [
+          {
+            "model": "virtio",
+            "bridge": "vmbr1"
+          }
+        ],
+        
+        "disks": [
+          {
+            "type": "virtio",
+            "disk_size": "5G",
+            "storage_pool": "local-lvm",
+            "storage_pool_type": "lvm"
+          }
+        ]
+      }
+    ]
+  }
