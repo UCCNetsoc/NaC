@@ -7,7 +7,7 @@
     - ifupdown2
     - packer
 
-- name: Ensure Terraform on control proxmox host
-  hosts: proxmox_master
-  roles:
-    - terraform
+# - name: Ensure Terraform on control proxmox host
+#   hosts: proxmox_master
+#   roles:
+#     - terraform
