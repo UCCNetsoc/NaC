@@ -1,1 +1,1 @@
-vyos_template_password: "{{ vault_vyos_template_password }}"
+vyos_password: "{{ vault_vyos_password }}"
