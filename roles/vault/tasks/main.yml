@@ -54,7 +54,7 @@
   become: yes
   docker_swarm_service:
     state: present
-    image: vault:1.4.0-rc1
+    image: vault:1.4.0
     name: vault_server
     command: docker-entrypoint.sh server -config=/run/secrets/vault_config.hcl
     env:
