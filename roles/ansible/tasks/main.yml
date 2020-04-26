@@ -26,3 +26,9 @@
       - netaddr
     state: latest
     extra_args: --upgrade
+
+- name: Ensure Galaxy roles
+  command: ansible-galaxy collection install {{ item }} 
+  with_items:
+    - freeipa.ansible_freeipa
+  ignore_errors: yes
