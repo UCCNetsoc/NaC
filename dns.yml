@@ -18,6 +18,5 @@
         account_api_token: "{{ cloudflare_api_key }}"
       with_items:
         # A record for use before the DNS is first setup on auth
-        - { zone: "netsoc.co", type: A,      record: "ipa.vm", value: "{{ ip_allocation.freeipa_base }}" }
-        - { zone: "netsoc.co", type: NS,     record: "vm",     value: "ipa.vm" }
+        - { zone: "netsoc.co", type: A, record: "ipa.vm", value: "{{ ip_allocation.freeipa_base }}" }
         
