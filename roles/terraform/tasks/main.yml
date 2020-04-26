@@ -13,11 +13,11 @@
 
 - name: Ensure Proxmox Provider
   command:
-    cmd: go install "github.com/Telmate/terraform-provider-proxmox/cmd/terraform-provider-proxmox"
+    cmd: go get "github.com/Telmate/terraform-provider-proxmox/cmd/terraform-provider-proxmox"
 
 - name: Ensure Proxmox Provisioner
   command:
-    cmd: go install "github.com/Telmate/terraform-provider-proxmox/cmd/terraform-provisioner-proxmox"
+    cmd: go get "github.com/Telmate/terraform-provider-proxmox/cmd/terraform-provisioner-proxmox"
 
 - name: Ensure terraform.d dir
   file:
