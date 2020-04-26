@@ -1,0 +1,21 @@
+---
+
+- name: Fix from default value match
+  become: yes
+  lineinfile:
+    path: /etc/ssh/sshd_config
+    regexp: '^#PermitRootLogin prohibit-password'
+    line: PermitRootLogin no
+    owner: root
+    group: root
+
+- name: Fix from preseed value match
+  become: yes
+  lineinfile:
+    path: /etc/ssh/sshd_config
+    regexp: '^PermitRootLogin yes'
+    line: PermitRootLogin no
+    owner: root
+    group: root
+
+# Do not restart sshd yet
