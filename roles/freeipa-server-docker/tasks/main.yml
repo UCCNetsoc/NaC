@@ -6,7 +6,9 @@
     path: "{{ mount }}/freeipa-data"
     owner: root
     group: root
-    mode: 0770
+    # needs to 775 as this folder is accessed internally by a dirsrv user
+    # https://github.com/freeipa/freeipa-container/issues/281
+    mode: 0775
     state: directory
 
 - name: Ensure freeipa-mods dir
@@ -15,7 +17,7 @@
     path: "{{ mount }}/freeipa-mods"
     owner: root
     group: root
-    mode: 0770
+    mode: 0775
     state: directory
 
 - name: Ensure HTTP redirect disabler
@@ -24,6 +26,7 @@
     src: "files/ipa-rewrite.conf"
     dest: "{{ mount }}/freeipa-mods/ipa-rewrite.conf"
 
+
 - name: Ensure FreeIPA server container
   become: yes
   docker_container:
@@ -31,39 +34,39 @@
     state: started
     recreate: yes
     image: freeipa/freeipa-server
-    read_only: true
-    hostname: "{{ domain }}"
     command: >
       --unattended
       --realm={{ realm }}
+      --domain={{ domain }}
       --ds-password={{ ds_password }}
       --admin-password={{ admin_password }}
       --setup-dns
-      --forwarder="1.1.1.1"
+      --forwarder=8.8.8.8
       --forward-policy=only
       --ssh-trust-dns
-      --no-host-dns
-      --allow-zone-overlap
+    restart: yes
+    etc_hosts: # extra_hosts:
+      '{ "{{ server_hostname }}": "{{ ip }}" }' 
     env: # environment:
-      IPA_SERVER_HOSTNAME: "{{ domain }}"
-    volumes:
-      - "/sys/fs/cgroup:/sys/fs/cgroup:ro"
-      - "/etc/machine-id:/etc/machine-id"
-      - "{{ mount }}/freeipa-data/:/data"
-      - "{{ mount }}/freeipa-mods/ipa-rewrite.conf:/data/etc/httpd/conf.d/ipa-rewrite.conf"
-    # https://github.com/freeipa/freeipa-container/commit/9f49a2ffff86fc441e8ac6cbcfb68526add42769
+      IPA_SERVER_HOSTNAME: "{{ server_hostname }}"
+      IPA_SERVER_IP: "{{ ip }}"
     dns_servers:
       - 127.0.0.1
     ports:
-      - "{{ ip }}:80:80"
-      - "{{ ip }}:443:443"
-      - "{{ ip }}:389:389"   # ldap
-      - "{{ ip }}:636:636"   # ldaps
-      - "{{ ip }}:88:88"     # kerberos
-      - "{{ ip }}:464:464"   # kpasswd 
-      - "{{ ip }}:749:749"   # kpasswd
-      - "{{ ip }}:123:123"   # ntp
-      - "{{ ip }}:53:53"   # dns
+      - "{{ ip }}:80:80"      # http
+      - "{{ ip }}:443:443"    # https
+      - "{{ ip }}:389:389"    # ldap
+      - "{{ ip }}:636:636"    # ldaps
+      - "{{ ip }}:88:88"      # kerberos
+      - "{{ ip }}:464:464"    # kpasswd 
+      - "{{ ip }}:749:749"    # kpasswd
+      - "{{ ip }}:123:123"    # ntp
+      - "{{ ip }}:53:53/tcp"  # dns
+      - "{{ ip }}:53:53/udp"
+    volumes:
+      - "/sys/fs/cgroup:/sys/fs/cgroup:ro"
+      - "/etc/machine-id:/etc/machine-id"
+      - "{{ mount }}/freeipa-data/:/data:Z"
     tmpfs:
       - "/run"
       - "/tmp"
@@ -80,6 +83,29 @@
     path: "{{ mount }}/freeipa-data/var/log/ipaserver-install.log"
     search_regex: "The ipa-server-install command was successful"
     timeout: 1200 # 20 minutes
+
+# - name: Insert trusted network ACLs 
+#   blockinfile:
+#     path: "{{ mount }}/freeipa-data/etc/named.conf"
+#     insertbefore: "BOF"
+#     marker: "# Trusted Network For DNS Queries - {mark}"
+#     block: |
+#       acl "trusted_network" {
+#         {{ ip | ipsubnet(24) }};
+#       };
+
+
+# - name: Modify /data/etc/named to support queries from intralan
+#   blockinfile:
+#     path: "{{ mount }}/freeipa-data/etc/named.conf"
+#     insertafter: "options"
+#     marker: "# Enable Trusted Network For DNS Queries - {mark}"
+#     block: |
+#       allow-recursion { trusted_network; };
+#       allow-query-cache { trusted_network; };
+
+# - name: Restart IPA
+#   command: docker exec -it freeipa_server bash -c 'ipactl stop && ipactl start'
 
 - name: "Wait"
   pause:
