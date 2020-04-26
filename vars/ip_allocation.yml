@@ -6,7 +6,8 @@ ip_allocation:
 
   # DNS - hosted in auth by FreeIPA
   # 5 IPA servers/replicas + fallback CF/Google
-  nameservers:          ["10.0.30.10", "10.0.30.11", "10.0.30.12", "10.0.30.13", "10.0.30.14", "10.0.30.15", "1.1.1.1", "8.8.8.8"]
+  nameservers:          [10.0.30.10,10.0.30.11]
+  search:               [vm.netsoc.co]
 
   # Keycloak - hosted in auth
   # 1 node (+4 replicas in the future)
