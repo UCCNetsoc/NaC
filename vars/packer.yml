@@ -1,1 +1,1 @@
-packer_root_password: "{{ vault_packer_root_password }}"
+provisioning_root_password: "{{ vault_provisioning_root_password }}"
