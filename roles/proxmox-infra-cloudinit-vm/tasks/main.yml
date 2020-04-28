@@ -22,7 +22,7 @@
 - name: Ensure cloud-init userdata file
   copy:
     content: |
-      {{ cloudinit.userdata | default('#cloud-config')  }}
+      {{ cloudinit.userdata | default('#cloud-config\n')  }}
     dest: "/var/lib/vz/snippets/{{ vm.name }}.userdata.yml"
 
 - name: Ensure cloud-init networking
@@ -31,6 +31,8 @@
       {{ cloudinit.networkconfig | default('') }}
     dest: "/var/lib/vz/snippets/{{ vm.name }}.networkconfig.yml"
 
+# Proxmox goes ape if 2 VMs get cloned simulatenously and both choose the same ID (due to the sequential numbering system)
+# Use a hash of the ID instead 
 - set_fact:
     vm_hash_id: "{{ range(1000, 5000000) | random(seed=vm.name+'-'+inventory_hostname) }}"
 
@@ -113,6 +115,9 @@
   shell: qm resize {{ vmid }} {{ item.key }} {{ item.value }}
   with_dict: "{{ vm.resize_disks | default('{}') }}"
 
+- name: Ensure serial console
+  shell: qm set {{ vmid }} -serial0 socket
+
 # it doesn't set description either fml
 - name: Set Description
   raw: qm set {{ vmid }} --description "{{ vm.description }}"
@@ -143,5 +148,5 @@
   wait_for:
     port: 22
     search_regex: OpenSSH
-    host: "{{ wait_for_ssh }}"
+    host: "{{ wait_for_ssh | ipmath(0) }}" # ipmath(0) will remove the subnet mask if they added it in
   when: wait_for_ssh is defined
