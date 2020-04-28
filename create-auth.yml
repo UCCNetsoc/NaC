@@ -7,8 +7,8 @@
     - role: proxmox-infra-cloudinit-vm
       vars:
         vm:
-          name: "auth"
-          protection: yes
+          name: "auth.vm.netsoc.co"
+          protection: no
           clone: "netsoc-ubuntu-server-{{ inventory_hostname }}"
           timeout: 300
           description: |
@@ -16,21 +16,18 @@
               - vm
               - auth
             vars:
-              ansible_user: netsoc
               ansible_ssh_private_key_file: "/root/NaC-repo/keys/auth/id_rsa"
-              ansible_python_interpreter: "/usr/bin/python3"
           net:
             net0: "virtio,bridge=vmbr0,tag=30"
             net1: "virtio,bridge=vmbr0,tag=30"
-          additional_disks:
-            virtio1: "local-lvm:15,format=raw"
           resize_disks:
-            virtio0: "+10G"
+            virtio0: "+5G"
+          additional_disks:
+            virtio1: "local-lvm:25,format=raw"
           cores: 4
           memory: 2048
         cloudinit:
-          metadata: |
-            local-hostname: auth.ipa.netoc.co
+          metadata: ""
           userdata: |
             #cloud-config
             users:
@@ -40,6 +37,9 @@
                 sudo: ALL=(ALL) NOPASSWD:ALL
                 ssh_authorized_keys:
                   - {{ ssh_key_sig }}
+            preserve_hostname: false
+            manage_etc_hosts: true
+            fqdn: auth.vm.netsoc.co
           networkconfig: |
             version: 2
             ethernets:
@@ -47,21 +47,22 @@
                 match:
                   name: ens18
                 addresses:
-                  - {{ ip_allocation.freeipa_base }}/24
+                  - {{ ip_allocation.freeipa_base }}
                 gateway4: 10.0.30.1
                 nameservers:
-                  search: ["ipa.netsoc.co"]
-                  addresses: [1.1.1.1, 8.8.8.8]
+                  search: {{ ip_allocation.search }}
+                  addresses: {{ ip_allocation.nameservers }}
               30b:
                 match:
                   name: ens19
                 addresses:
-                  - {{ ip_allocation.keycloak_base }}/24
+                  - {{ ip_allocation.keycloak_base }}
                 gateway4: 10.0.30.1
                 nameservers:
-                  search: ["ipa.netsoc.co", "netsoc.co"]
+                  search: {{ ip_allocation.search }}
                   addresses: {{ ip_allocation.nameservers }}
-        wait_for_ssh: "{{ ip_allocation.freeipa_base }}"
+        wait_for_ssh: "{{ ip_allocation.freeipa_base | ipmath(ansible_play_hosts_all.index(inventory_hostname)) }}"
+                
   vars:
     ssh_key_sig: "{{ lookup('file', './keys/auth/id_rsa.pub') }}"
   vars_files:
@@ -74,3 +75,5 @@
   connection: local
   tasks:
     - meta: refresh_inventory
+
+- import_playbook: provision-auth.yml
