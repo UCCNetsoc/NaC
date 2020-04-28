@@ -1,0 +1,59 @@
+- name: AppArmor rules
+  copy:
+    content: |
+      #include <tunables/global>
+      profile erichough-nfs flags=(attach_disconnected,mediate_deleted) {
+        #include <abstractions/lxc/container-base>
+        mount fstype=nfs*,
+        mount fstype=rpc_pipefs,
+      }
+    dest: "/etc/apparmor.d/erichough-nfs"
+
+- name: Load AppArmor rules
+  become: yes
+  shell: "aa-complain /etc/apparmor.d/erichough-nfs"
+
+- name: "Create exports file"
+  copy:
+    content: |
+      {{ exports }}
+    dest: "{{ nfs_mount }}/exports.txt"
+
+- shell: systemctl stop rpcbind
+
+- name: "Ensure Docker NFS server"
+  docker_container:
+    name: nfs
+    state: started
+    recreate: yes
+    image: "erichough/nfs-server:2.2.1"
+    hostname: "{{ hostname }}"
+    dns_servers:
+      - "10.0.30.10"
+    volumes:
+      - "{{ nfs_mount }}:/nfs"
+      - "{{ nfs_mount }}/exports.txt:/etc/exports:ro"
+      - /lib/modules:/lib/modules
+      - "{{ krb5_keytab }}:/etc/krb5.keytab:ro"
+      - "{{ krb5_conf }}:/etc/krb5.conf:ro"
+      # Required by the FreeIPA krb5.conf
+      - "/etc/krb5.conf.d/:/etc/krb5.conf.d/"
+      - "/var/lib/sss/pubconf/krb5.include.d/:/var/lib/sss/pubconf/krb5.include.d/"
+    env:
+      NFS_ENABLE_KERBEROS: "1"
+    capabilities:
+      - SYS_ADMIN
+      - SYS_MODULE
+    ports:
+      - "2049:2049"
+      - "2049:2049/udp"
+      - "111:111"
+      - "111:111/udp"      
+      - "32765:32765"
+      - "32765:32765/udp"
+      - "32767:32767"
+      - "32767:32767/udp"
+    security_opts:
+      - "apparmor=erichough-nfs"
+
+- shell: systemctl start rpcbind
