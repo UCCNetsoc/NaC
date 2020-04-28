@@ -3,3 +3,4 @@ proxmox_username: "root@pam"
 proxmox_node: "{{ inventory_hostname }}"
 http_bind_address: "10.0.100.1"
 cloudinit: no
+packer_vars:
