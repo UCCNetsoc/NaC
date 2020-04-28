@@ -17,3 +17,5 @@
         lvm_extended_partition: "2"
         lvm_pv_partition: "5"
         lvm_vg_lv: "system-root"
+    - serial-console
+    - unpermit-root-login

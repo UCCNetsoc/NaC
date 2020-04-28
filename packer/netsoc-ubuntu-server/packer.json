@@ -52,30 +52,31 @@
           " priority=critical",
           " passwd/root-login=true",
           " passwd/make-user=false",
-          " passwd/root-password={{ user `vm_root_password`}}",
-          " passwd/root-password-again={{ user `vm_root_password`}}",
+          " passwd/root-password={{ user `provisioning_root_password`}}",
+          " passwd/root-password-again={{ user `provisioning_root_password`}}",
           " url={{ user `http_base_url`}}/preseed.cfg",
           " --<wait><enter><wait>"
         ],
         
         "ssh_username": "root",
-        "ssh_password": "{{ user `vm_root_password`}}",
+        "ssh_password": "{{ user `provisioning_root_password`}}",
         "ssh_timeout": "25m",
   
+        "cpu_type": "host",
         "cores": "2",
+        "memory": "1024",
         "os": "l26",
-
         "network_adapters": [
           {
             "model": "virtio",
             "bridge": "vmbr1"
           }
         ],
-        
+        "scsi_controller": "virtio-scsi-pci",
         "disks": [
           {
             "type": "virtio",
-            "disk_size": "10G",
+            "disk_size": "8G",
             "storage_pool": "local-lvm",
             "storage_pool_type": "lvm",
             "format": "raw"

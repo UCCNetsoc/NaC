@@ -29,3 +29,5 @@
     - python3-pip
     - e2fsprogs
     - apparmor-utils
+    - nfs-common
+    - autofs
