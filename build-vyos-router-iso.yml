@@ -5,10 +5,11 @@
     - git:
         repo: https://github.com/vyos/vyos-build.git
         dest: /root/NaC-repo/vyos-build
+        version: "31acba87d1b4168c86f2ceec14ecb30b4ffefd13"
     - shell: docker build -t vyos-builder docker
       args:
         chdir: /root/NaC-repo/vyos-build
-    - shell: docker run --rm -it --privileged -v $(pwd):/vyos -w /vyos vyos-builder bash -c "./configure --custom-package qemu-guest-agent --custom-package expect && sudo make openstack"
+    - shell: docker run --rm -it --privileged -v $(pwd):/vyos -w /vyos vyos-builder bash -c "./configure --custom-package qemu-guest-agent --custom-package expect && sudo make iso"
       args:
         chdir: /root/NaC-repo/vyos-build
 
@@ -18,4 +19,4 @@
   tasks:
     - copy:
         src: /root/NaC-repo/vyos-build/build/live-image-amd64.hybrid.iso
-        dest: /var/lib/vz/template/iso/vyos-1.3-rolling-amd64.iso
+        dest: /var/lib/vz/template/iso/vyos-amd64.iso
