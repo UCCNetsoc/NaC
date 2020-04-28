@@ -1,5 +1,6 @@
 #!/bin/bash
-# Source this script extract ENV from the Ansible Vault to get the Terraform files working correctly
+# Source this script extract ENV from the Ansible Vault for Proxmox secrets
+# PM_API_URL, PM_USER, PM_PASS
 
 # Wow! https://stackoverflow.com/a/21189044
 parse_yaml() {
@@ -18,14 +19,14 @@ parse_yaml() {
     }'
 }
 
-editor_preserve=$EDITOR
 export EDITOR=cat
 ansible-vault edit vars/secrets.yml > ./_secrets.yml 
 eval $(parse_yaml _secrets.yml "vault_")
 rm _secrets.yml
-export EDITOR=$editor_preserve
+export EDITOR=vi
 
-export PM_API_URL="https://localhost:8006/api2/json"
+export PM_API_URL="https://$vault_proxmox_host:8006/api2/json"
+export PM_HOST=$vault_proxmox_host
 export PM_USER=root@pam
 export PM_PASS=$vault_proxmox_password
 

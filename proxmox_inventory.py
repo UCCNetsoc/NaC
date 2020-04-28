@@ -4,7 +4,6 @@
 # 
 # Your VM descriptions should look something like this:
 #
-# ansible:
 #   groups:
 #       - user
 #   vars:
@@ -18,7 +17,7 @@ import json
 from optparse import OptionParser
 
 from proxmoxer import ProxmoxAPI, ResourceException
-proxmox = ProxmoxAPI('localhost', user=os.environ['PM_USER'], password=os.environ['PM_PASS'], verify_ssl=False)
+proxmox = ProxmoxAPI(os.environ['PM_HOST'], user=os.environ['PM_USER'], password=os.environ['PM_PASS'], verify_ssl=False)
 
 # If you're maintaining this script for future use
 # Here is a good tutorial on Ansible custom inventories
