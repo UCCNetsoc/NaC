@@ -25,7 +25,7 @@
     --hostname {{ client_hostname }}
     --principal admin
     --password {{ admin_password }}
-    --ip-address={{ client_ip_address }}
+    --ip-address {{ client_ip_address }}
     --force-join
     --ssh-trust-dns
   register: result
