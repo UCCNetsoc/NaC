@@ -84,29 +84,29 @@
     search_regex: "The ipa-server-install command was successful"
     timeout: 1200 # 20 minutes
 
-# - name: Insert trusted network ACLs 
-#   blockinfile:
-#     path: "{{ mount }}/freeipa-data/etc/named.conf"
-#     insertbefore: "BOF"
-#     marker: "# Trusted Network For DNS Queries - {mark}"
-#     block: |
-#       acl "trusted_network" {
-#         {{ ip | ipsubnet(24) }};
-#       };
+- name: Insert trusted network ACLs 
+  blockinfile:
+    path: "{{ mount }}/freeipa-data/etc/named.conf"
+    insertbefore: "BOF"
+    marker: "# Trusted Network For Recursive DNS Queries - {mark}"
+    block: |
+      acl "trusted_network" {
+        {{ ip | ipsubnet(24) }};
+      };
 
 
-# - name: Modify /data/etc/named to support queries from intralan
-#   blockinfile:
-#     path: "{{ mount }}/freeipa-data/etc/named.conf"
-#     insertafter: "options"
-#     marker: "# Enable Trusted Network For DNS Queries - {mark}"
-#     block: |
-#       allow-recursion { trusted_network; };
-#       allow-query-cache { trusted_network; };
+- name: Modify /data/etc/named to support queries from intralan
+  blockinfile:
+    path: "{{ mount }}/freeipa-data/etc/named.conf"
+    insertafter: "options"
+    marker: "# Enable Trusted Network For Recursive DNS Queries - {mark}"
+    block: |
+      allow-recursion { trusted_network; };
+      allow-query-cache { trusted_network; };
 
-# - name: Restart IPA
-#   command: docker exec -it freeipa_server bash -c 'ipactl stop && ipactl start'
+- name: Restart IPA
+  command: docker restart freeipa_server
 
 - name: "Wait"
   pause:
-    seconds: 5
+    seconds: 10
