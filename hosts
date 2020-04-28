@@ -4,6 +4,3 @@ feynman
 [proxmox_hosts]
 feynman
 lovelace
-
-[routers_internal]
-#vyos_feynman_preprovision

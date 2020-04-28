@@ -7,10 +7,19 @@
   shell: echo 'conf-dir=/etc/dnsmasq.d/,*.conf' >> /etc/dnsmasq.conf
 
 - name: Template proxmox.conf (dnsmasq entries)
-  file:
+  template:
     src: "files/proxmox.conf.j2"
     dest: "/etc/dnsmasq.d/proxmox.conf"
 
+- name: Insert bridge into interfaces file
+  blockinfile:
+    path: /etc/network/interfaces
+    insertafter: EOF
+    block: |
+      # Packer provisioning subnetwork
+      auto {{ bridge_interface }}
+      iface {{ bridge_interface }} inet static
+      
 - interfaces_file:
     dest: /etc/network/interfaces
     iface: "{{ bridge_interface }}"
@@ -26,7 +35,6 @@
     - { option: "post-down" }
     - { option: "post-down" }
     - { option: "post-down" }
-
 
 - interfaces_file:
     dest: /etc/network/interfaces
@@ -46,10 +54,10 @@
     - { option: "post-up", value: "iptables -t raw -I PREROUTING -i fwbr+ -j CT --zone 1" }
     - { option: "post-down", value: "iptables -t nat -D POSTROUTING -s '{{ bridge_address }}/{{ bridge_netmask }}' -o {{ nat_interface }} -j MASQUERADE && iptables -t raw -D PREROUTING -i fwbr+ -j CT --zone 1" }
 
+- name: Reload networking
+  command: ifreload -a
+
 - name: Start dnsmasq
   systemd:
     name: dnsmasq
     state: restarted
-
-- name: Reload networking
-  command: ifreload -a
