@@ -1,4 +1,13 @@
-- name: "Ensure IPA server disk mounted"
+- hosts: auth
+  become: yes
+  tasks:
+    # Because the Auth server also hosts the FreeIPA DNS server
+    # We configured it in create-auth.yml with cloudinit to use itself as it's DNS server
+    # However we haven't created the FreeIPA installation yet so we need to use a temporary nameserver
+    - shell: |
+        systemctl stop systemd-resolved && cat /etc/resolv.conf | sed -e "s/nameserver 127.0.0.53/nameserver 1.1.1.1/" | tee /etc/resolv.conf
+
+- name: "Ensure IPA server disk mounted and IPA server created"
   hosts: auth
   become: yes
   roles:
@@ -7,15 +16,15 @@
         device: "/dev/vdb"
         partition_size: "100%"
         fstype: "ext4"
-        mount_path: "/mnt/freeipa-disk"
+        mount_path: "/mnt/auth-data-disk"
         mount_opts: "rw"
     - role: freeipa-server-docker
       vars:
         ip: "{{ ansible_ens18.ipv4.address }}"
-        mount: "/mnt/freeipa-disk"
-        realm: IPA.NETSOC.CO
-        domain: ipa.netsoc.co
-        server_hostname: ipa-container.ipa.netsoc.co
+        mount: "/mnt/auth-data-disk"
+        realm: VM.NETSOC.CO
+        domain: vm.netsoc.co
+        server_hostname: ipa.vm.netsoc.co
         ds_password: "{{ freeipa_ds_password }}"
         admin_password: "{{ freeipa_admin_password }}"
   vars_files:
@@ -23,15 +32,24 @@
     - "vars/freeipa.yml"
     - "vars/secrets.yml"
 
-- name: "Enroll Auth in IPA server"
-  hosts: auth
+- hosts: auth
+  become: yes
+  tasks:
+    # Restore DNS
+    - shell: |
+        systemctl restart systemd-resolved
+
+
+- name: "Enroll in IPA server"
+  hosts: auth 
   roles:
     - role: freeipa-client
       vars:
-        realm: IPA.NETSOC.CO
-        server_hostname: ipa.netsoc.co
-        client_hostname: auth.ipa.netsoc.co
-        domain: ipa.netsoc.co
+        realm: VM.NETSOC.CO
+        domain: vm.netsoc.co
+        server_hostname: ipa.vm.netsoc.co
+        client_hostname: auth.vm.netsoc.co
+        client_ip_address: "{{ ansible_ens19.ipv4.address }}"
         ds_password: "{{ freeipa_ds_password }}"
         admin_password: "{{ freeipa_admin_password }}"
   vars_files:

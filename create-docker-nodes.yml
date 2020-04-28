@@ -8,25 +8,24 @@
       when: "ansible_play_hosts_all.index(inventory_hostname) < 5"
       vars:
         vm:
-          name: "manager{{ ansible_play_hosts_all.index(inventory_hostname) }}.docker"
+          name: "manager{{ ansible_play_hosts_all.index(inventory_hostname) }}.docker.vm.netsoc.co"
           clone: "netsoc-ubuntu-server-{{ inventory_hostname }}"
           timeout: 300
           description: |
             groups:
               - vm
-              - docker_nodes
+              - docker
               - docker_managers
             vars:
-              ansible_user: netsoc
-              ansible_ssh_private_key_file: "/root/NaC-repo/keys/docker_nodes/id_rsa"
-              ansible_python_interpreter: "/usr/bin/python3"
+              ansible_ssh_private_key_file: "/root/NaC-repo/keys/docker/id_rsa"
           net:
             net0: "virtio,bridge=vmbr0,tag=30"
+          resize_disks:
+            virtio0: "+5G"
           cores: 4
           memory: 4096
         cloudinit:
-          metadata: |
-            local-hostname: manager{{ ansible_play_hosts_all.index(inventory_hostname) }}.docker.ipa.netsoc.co
+          metadata: ""
           userdata: |
             #cloud-config
             users:
@@ -36,6 +35,9 @@
                 sudo: ALL=(ALL) NOPASSWD:ALL
                 ssh_authorized_keys:
                   - {{ ssh_key_sig }}
+            preserve_hostname: false
+            manage_etc_hosts: true
+            fqdn: manager{{ ansible_play_hosts_all.index(inventory_hostname) }}.docker.vm.netsoc.co
           networkconfig: |
             version: 2
             ethernets:
@@ -46,32 +48,31 @@
                   - {{ ip_allocation.docker_manager_base | ipmath(ansible_play_hosts_all.index(inventory_hostname)) }}/24
                 gateway4: 10.0.30.1
                 nameservers:
-                  search: ["ipa.netsoc.co", "netsoc.co"]
+                  search: {{ ip_allocation.search }}
                   addresses: {{ ip_allocation.nameservers }}
         wait_for_ssh: "{{ ip_allocation.docker_manager_base | ipmath(ansible_play_hosts_all.index(inventory_hostname)) }}"
     # Worker VM
     - role: proxmox-infra-cloudinit-vm
       vars:
         vm:
-          name: "worker{{ ansible_play_hosts_all.index(inventory_hostname) }}.docker"
+          name: "worker{{ ansible_play_hosts_all.index(inventory_hostname) }}.docker.vm.netsoc.co"
           clone: "netsoc-ubuntu-server-{{ inventory_hostname }}"
           timeout: 300
           description: |
             groups:
               - vm
-              - docker_nodes
+              - docker
               - docker_workers
             vars:
-              ansible_user: netsoc
-              ansible_ssh_private_key_file: "/root/NaC-repo/keys/docker_nodes/id_rsa"
-              ansible_python_interpreter: "/usr/bin/python3"
+              ansible_ssh_private_key_file: "/root/NaC-repo/keys/docker/id_rsa"
           net:
             net0: "virtio,bridge=vmbr0,tag=30"
+          resize_disks:
+            virtio0: "+5G"
           cores: 4
           memory: 4096
         cloudinit:
-          metadata: |
-            local-hostname: worker{{ ansible_play_hosts_all.index(inventory_hostname) }}.docker.ipa.netsoc.co
+          metadata: ""
           userdata: |
             #cloud-config
             users:
@@ -81,6 +82,9 @@
                 sudo: ALL=(ALL) NOPASSWD:ALL
                 ssh_authorized_keys:
                   - {{ ssh_key_sig }}
+            preserve_hostname: false
+            manage_etc_hosts: true
+            fqdn: worker{{ ansible_play_hosts_all.index(inventory_hostname) }}.docker.vm.netsoc.co
           networkconfig: |
             version: 2
             ethernets:
@@ -91,11 +95,11 @@
                   - {{ ip_allocation.docker_worker_base | ipmath(ansible_play_hosts_all.index(inventory_hostname)) }}/24
                 gateway4: 10.0.30.1
                 nameservers:
-                  search: ["ipa.netsoc.co"]
-                  addresses: [1.1.1.1, 8.8.8.8]
+                  search: {{ ip_allocation.search }}
+                  addresses: {{ ip_allocation.nameservers }}
         wait_for_ssh: "{{ ip_allocation.docker_worker_base | ipmath(ansible_play_hosts_all.index(inventory_hostname)) }}"
   vars:
-    ssh_key_sig: "{{ lookup('file', './keys/docker_nodes/id_rsa.pub') }}"
+    ssh_key_sig: "{{ lookup('file', './keys/docker/id_rsa.pub') }}"
   vars_files:
     - vars/ip_allocation.yml
     - vars/proxmox.yml

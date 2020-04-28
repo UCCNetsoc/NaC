@@ -1,18 +1,55 @@
----
+# - name: "Enroll in IPA server"
+#   hosts: docker
+#   roles:
+#     - role: freeipa-client
+#       vars:
+#         realm: VM.NETSOC.CO
+#         domain: vm.netsoc.co
+#         server_hostname: ipa.vm.netsoc.co
+#         client_hostname: "{{ inventory_hostname }}"
+#         client_ip_address: "{{ ansible_ens18.ipv4.address }}"
+#         ds_password: "{{ freeipa_ds_password }}"
+#         admin_password: "{{ freeipa_admin_password }}"
+#   vars_files:
+#     - "vars/freeipa.yml"
+#     - "vars/secrets.yml"
 
-- name: "Ensure Docker Swarm created" 
-  hosts: docker_managers
-  roles:
-    - role: docker-swarm-create
-      when: "ansible_play_hosts_all.index(inventory_hostname) == 0"
-    - role: docker-swarm-enroll-manager
-      when: "ansible_play_hosts_all.index(inventory_hostname) > 0"
-      vars:
-        swarm_creator: "{{ groups['docker_managers'][0] }}"
+- name: "Setup NFS keytab"
+  become: yes
+  hosts: docker
+  tasks:
+    - shell: |
+        echo '{{ freeipa_admin_password }}' | kinit admin -l 0h1m
+        ipa service-del nfs/{{ inventory_hostname }} || True
+        ipa service-add nfs/{{ inventory_hostname }}
+        ipa-getkeytab -s ipa.vm.netsoc.co -p nfs/{{ inventory_hostname }} -k /tmp/nfs.keytab
+        chmod 700 /tmp/nfs.keytab
+        (echo rkt /tmp/nfs.keytab; echo wkt /etc/krb5.keytab) | ktutil
+      register: result
+    - debug:
+        msg: "{{result.stdout}}"
+    - debug:
+        msg: "{{result.stderr}}"
+  vars_files:
+    - "vars/freeipa.yml"
+    - "vars/secrets.yml"
 
-- name: "Ensure Docker Swarm workers enrolled"
-  hosts: docker_workers
-  roles:
-    - docker-swarm-enroll-worker
-  vars:
-    swarm_creator: "{{ groups['docker_managers'][0] }}"
+
+# - name: "Ensure Docker Swarm created" 
+#   hosts: docker_managers
+#   roles:
+#     - role: docker-swarm-create
+#       when: "ansible_play_hosts_all.index(inventory_hostname) == 0"
+#     - role: docker-swarm-enroll-manager
+#       when: "ansible_play_hosts_all.index(inventory_hostname) > 0"
+#       vars:
+#         swarm_creator: "{{ groups['docker_managers'][0] }}"
+
+# - name: "Ensure Docker Swarm workers enrolled"
+#   hosts: docker_workers
+#   roles:
+#     - docker-swarm-enroll-worker
+#   vars:
+#     swarm_creator: "{{ groups['docker_managers'][0] }}"
+
+# - import_playbook: provision-docker-nodes-swarm-services.yml

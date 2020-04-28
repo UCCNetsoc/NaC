@@ -6,7 +6,7 @@
     - role: proxmox-infra-cloudinit-vm
       vars:
         vm:
-          name: "nfs"
+          name: "nfs.vm.netsoc.co"
           protection: yes
           clone: "netsoc-ubuntu-server-{{ inventory_hostname }}"
           timeout: 300
@@ -15,9 +15,7 @@
               - vm
               - nfs
             vars:
-              ansible_user: netsoc
               ansible_ssh_private_key_file: "/root/NaC-repo/keys/nfs/id_rsa"
-              ansible_python_interpreter: "/usr/bin/python3"
           net:
             net0: "virtio,bridge=vmbr0,tag=30"
           additional_disks:
@@ -25,8 +23,7 @@
           cores: 4
           memory: 4096
         cloudinit:
-          metadata: |
-            local-hostname: nfs.ipa.netsoc.co
+          metadata: ""
           userdata: |
             #cloud-config
             users:
@@ -36,22 +33,26 @@
                 sudo: ALL=(ALL) NOPASSWD:ALL
                 ssh_authorized_keys:
                   - {{ ssh_key_sig }}
+            preserve_hostname: false
+            manage_etc_hosts: true
+            fqdn: nfs.vm.netsoc.co
           networkconfig: |
             version: 2
             ethernets:
-              30:
+              30a:
                 match:
-                  name: "en*"
+                  name: ens18
                 addresses:
-                  - {{ ip_allocation.nfs }}/24  
+                  - {{ ip_allocation.nfs }}
                 gateway4: 10.0.30.1
                 nameservers:
-                  search: ["ipa.netsoc.co"]
-                  addresses: [1.1.1.1, 8.8.8.8]
-        wait_for_ssh: {{ ip_allocation.nfs }}
+                  search: {{ ip_allocation.search }}
+                  addresses: {{ ip_allocation.nameservers }}
+        wait_for_ssh: "{{ ip_allocation.nfs }}"
   vars:
     ssh_key_sig: "{{ lookup('file', './keys/nfs/id_rsa.pub') }}"
   vars_files:
+    - vars/ip_allocation.yml
     - vars/proxmox.yml
     - vars/secrets.yml
 
@@ -60,3 +61,5 @@
   connection: local
   tasks:
     - meta: refresh_inventory
+
+- import_playbook: provision-nfs.yml
