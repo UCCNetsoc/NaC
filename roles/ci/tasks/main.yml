@@ -54,7 +54,7 @@
             external: true
         services:
           server: 
-            image: drone/drone:1.6.4
+            image: drone/drone:1.7.0
             container_name: drone_server
             environment:
               DRONE_GITHUB_SERVER: https://github.com
