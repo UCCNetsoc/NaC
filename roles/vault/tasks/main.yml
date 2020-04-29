@@ -3,7 +3,26 @@
   become: yes
   docker_secret:
     name: vault_config.hcl
-    data: "{{ lookup('template', './files/config.hcl') }}"
+    data: "{{ lookup('template', 'config.hcl') }}"
+  ignore_errors: yes
+  register: result
+
+- name: Remove Vault Server Service to update Secret
+  become: yes
+  docker_swarm_service:
+    name: vault_server
+    state: absent
+  when: result is failed
+
+- name: Retry setting Vault Config in Docker Swarm Secrets
+  run_once: true
+  become: yes
+  when: result is failed
+  docker_secret:
+    name: vault_config.hcl
+    data: "{{ lookup('template', 'config.hcl') }}"
+  ignore_errors:
+  register: result
 
 - name: Ensure Hashicorp Vault network
   run_once: true

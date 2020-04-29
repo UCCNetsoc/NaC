@@ -11,9 +11,10 @@
       policies: ci
       id: "{{ hashivault_docker_registry_token }}"
       no_default_policy: true
-      ttl: "0"
   register: resp
   failed_when: "resp.status != 200 and resp.json != {\"errors\": [\"cannot create a token with a duplicate ID\"]}"
+  tags:
+    - policies  
 
 - name: Configure CI group policy
   run_once: true
@@ -26,3 +27,5 @@
     status_code: [204]
     body:
       policy: "{{ lookup('file', '../files/ci_policy.hcl') }}"
+  tags:
+    - policies
