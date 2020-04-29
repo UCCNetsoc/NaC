@@ -17,6 +17,11 @@ import json
 from optparse import OptionParser
 
 from proxmoxer import ProxmoxAPI, ResourceException
+
+if not 'PM_HOST' in os.environ:
+    print("You need to run source ./proxmox_secrets.sh first")
+    quit(-1)
+
 proxmox = ProxmoxAPI(os.environ['PM_HOST'], user=os.environ['PM_USER'], password=os.environ['PM_PASS'], verify_ssl=False)
 
 # If you're maintaining this script for future use
