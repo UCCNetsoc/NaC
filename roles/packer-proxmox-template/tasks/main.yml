@@ -123,7 +123,7 @@
     state: absent
   ignore_errors: true
 
-- name: Provisioning & Cluster Hosts - Stop a previous template if it exists
+- name: Provisioning & Cluster Hosts - Stop a previous building template if it exists
   proxmox_kvm:
     api_user: "{{ proxmox_username }}"
     api_password: "{{ proxmox_password }}"
@@ -133,12 +133,12 @@
     force: yes
   ignore_errors: true
 
-- name: Provisioning & Cluster Hosts - Remove a previous template if it exists
+- name: Provisioning & Cluster Hosts - Remove a previous building template if it exists
   proxmox_kvm:
     api_user: "{{ proxmox_username }}"
     api_password: "{{ proxmox_password }}"
     api_host: "{{ proxmox_node }}"
-    name: "{{ template_name }}-{{ inventory_hostname }}"
+    name: "packer-{{ template_name }}-{{ inventory_hostname }}"
     state: absent
   ignore_errors: true
 
@@ -178,6 +178,12 @@
   command:
     cmd: qm set {{ vm_id }} --ide2 local-lvm:cloudinit
   when: "cloudinit and inventory_hostname == provisioning_host"
+
+- name: Provisioning Host - Add serial console to created VM (not handled by packer yet)
+  become: yes
+  command:
+    cmd: qm set {{ vm_id }} -serial0 socket
+  when: "inventory_hostname == provisioning_host"
 
 - name: All Hosts - Make template vzdump location
   become: yes

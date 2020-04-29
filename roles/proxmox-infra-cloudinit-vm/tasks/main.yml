@@ -115,9 +115,6 @@
   shell: qm resize {{ vmid }} {{ item.key }} {{ item.value }}
   with_dict: "{{ vm.resize_disks | default('{}') }}"
 
-- name: Ensure serial console
-  shell: qm set {{ vmid }} -serial0 socket
-
 # it doesn't set description either fml
 - name: Set Description
   raw: qm set {{ vmid }} --description "{{ vm.description }}"
