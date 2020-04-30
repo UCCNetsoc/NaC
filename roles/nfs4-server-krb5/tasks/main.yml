@@ -1,0 +1,75 @@
+- name: "Install packages"
+  become: yes
+  apt:
+    name:
+      - nfs-kernel-server
+      - nfs-common
+    state: latest
+
+- name: "Create exports file"
+  become: yes
+  copy:
+    content: |
+      {{ exports }}
+    dest: "/etc/exports"
+
+- become: yes
+  name: "Create idmap.conf file"
+  copy:
+    content: |
+      {{ idmap }}
+    dest: "/etc/idmap.conf"
+
+- become: yes
+  lineinfile:
+    path: /etc/default/nfs-kernel-server
+    state: present
+    regexp: "^{{ item }}"
+    line: "{{ item }}=yes"
+  with_items:
+    - NEED_IDMAPD
+    - NEED_GSSD
+    - NEED_SVCGSSD
+
+- become: yes
+  lineinfile:
+    path: /etc/default/nfs-common
+    state: present
+    regexp: "^{{ item }}"
+    line: "{{ item }}=yes"
+  with_items:
+    - NEED_IDMAPD
+    - NEED_GSSD
+    - NEED_SVCGSSD
+
+- become: yes
+  modprobe:
+    name: "{{ item }}"
+    state: present
+  with_items:
+    - rpcsec_gss_krb5
+    - nfs
+    - nfsd
+
+- become: yes
+  lineinfile:
+    path: /etc/modules
+    state: present
+    regexp: "^{{ item }}"
+    line: "{{ item }}"
+  with_items:
+    - rpcsec_gss_krb5
+    - nfs
+    - nfsd
+
+- become: yes
+  shell: exportfs -va
+
+- name: Enable service
+  service:
+    name: "{{ item }}"
+    enabled: yes
+    state: restarted
+  with_items:
+    - nfs-kernel-server
+    - rpc-gssd
