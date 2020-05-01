@@ -11,49 +11,24 @@
     src: "files/proxmox.conf.j2"
     dest: "/etc/dnsmasq.d/proxmox.conf"
 
-- name: Insert bridge into interfaces file
-  blockinfile:
-    path: /etc/network/interfaces
-    insertafter: EOF
-    block: |
+- name: Insert bridge into /etc/network/interfaces.d
+  copy:
+    path: /etc/network/interface.d/01-packer-provisioning-dhcp-bridge
+    content: |
       # Packer provisioning subnetwork
       auto {{ bridge_interface }}
       iface {{ bridge_interface }} inet static
-      
-- interfaces_file:
-    dest: /etc/network/interfaces
-    iface: "{{ bridge_interface }}"
-    option: "{{ item.option }}"
-    backup: yes
-    state: absent
-  with_items:
-    - { option: "post-up" }
-    - { option: "post-up" }
-    - { option: "post-up" }
-    - { option: "post-up" }
-    - { option: "post-down" }
-    - { option: "post-down" }
-    - { option: "post-down" }
-    - { option: "post-down" }
 
-- interfaces_file:
-    dest: /etc/network/interfaces
-    iface: "{{ bridge_interface }}"
-    option: "{{ item.option }}"
-    value: "{{ item.value }}"
-    backup: yes
-    state: present
-  with_items:
-    - { option: "address", value: "{{ bridge_address }}" }
-    - { option: "netmask", value: "{{ bridge_netmask }}" }
-    - { option: "bridge_ports", value: "none" }
-    - { option: "bridge_stp", value: "off" }
-    - { option: "bridge_fd", value: "0" }
-    - { option: "post-up", value: "echo 1 > /proc/sys/net/ipv4/ip_forward" }
-    - { option: "post-up", value: "iptables -t nat -A POSTROUTING -s '{{ bridge_address }}/{{ bridge_netmask }}' -o {{ nat_interface }} -j MASQUERADE" }
-    - { option: "post-up", value: "iptables -t raw -I PREROUTING -i fwbr+ -j CT --zone 1" }
-    - { option: "post-down", value: "iptables -t nat -D POSTROUTING -s '{{ bridge_address }}/{{ bridge_netmask }}' -o {{ nat_interface }} -j MASQUERADE && iptables -t raw -D PREROUTING -i fwbr+ -j CT --zone 1" }
-
+      address {{ bridge_address }}
+      netmask {{ bridge_netmask }}
+      bridge_ports none"
+      bridge_stp off
+      bridge_fd 0
+      post-up echo 1 > /proc/sys/net/ipv4/ip_forward
+      post-up iptables -t nat -A POSTROUTING -s '{{ bridge_address }}/{{ bridge_netmask }}' -o {{ nat_interface }} -j MASQUERADE
+      post-up iptables -t raw -I PREROUTING -i fwbr+ -j CT --zone 1
+      post-down iptables -t nat -D POSTROUTING -s '{{ bridge_address }}/{{ bridge_netmask }}' -o {{ nat_interface }} -j MASQUERADE && iptables -t raw -D PREROUTING -i fwbr+ -j CT --zone 1
+   
 - name: Reload networking
   command: ifreload -a
 
