@@ -1,0 +1,78 @@
+---
+
+- name: Ensure nfs-common
+  apt:
+    name: nfs-common
+    state: latest
+
+- name: Ensure autofs
+  apt:
+    name: autofs
+    state: latest
+
+- name: "Setup client as using NFS service and keytab"
+  become: yes
+  shell: |
+    #!/bin/bash
+    echo '{{ freeipa_admin_password }}' | kinit admin -l 0h1m
+
+    if [ $? -eq 1 ]; then
+      echo "Invalid IPA password"
+      exit 1;
+    fi
+
+    (echo 'nfs/{{ inventory_hostname }}' | ipa service-show) 
+
+    if [ $? -ne 0 ]; then
+      echo "Could not find service nfs/{{ inventory_hostname }}, adding as a service"
+      ipa service-add 'nfs/{{ inventory_hostname }}'
+    fi 
+
+    ipa-getkeytab -s {{ freeipa_server }} -p nfs/{{ inventory_hostname }} -k /etc/krb5.keytab
+  args:
+    executable: /bin/bash
+  register: result
+
+- debug:
+    msg: "{{result.stdout}}"
+- debug:
+    msg: "{{result.stderr}}"
+
+- name: "Setup IPA automount config"
+  become: yes
+  shell: echo 'yes' | ipa-client-automount
+  ignore_errors: yes
+  register: result
+
+- name: "Setup idmap.conf"
+  become: yes
+  copy:
+    content: "{{ idmap }}"
+    dest: /etc/idmapd.conf
+
+- debug:
+    msg: "{{result.stdout}}"
+- debug:
+    msg: "{{result.stderr}}"
+
+- name: Enable service rpcbind
+  become: yes
+  service:
+    name: rpcbind
+    enabled: yes
+    state: started
+
+- name: Enable service rpc-gssd
+  become: yes
+  service:
+    name: rpc-gssd
+    enabled: yes
+    state: started
+  ignore_errors: yes
+
+- name: Enable service rpc-gssd
+  become: yes
+  service:
+    name: nfs-client.target
+    enabled: yes
+    state: started
