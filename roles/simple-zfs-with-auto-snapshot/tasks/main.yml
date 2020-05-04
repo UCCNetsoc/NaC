@@ -1,0 +1,57 @@
+- name: "Check if zpool {{ pool }} exists / create it if it doesn't"
+  become: yes
+  block:
+    - zpool_facts:
+        pool: "{{ pool }}"
+      register: zpool_result 
+  rescue:
+    - command:
+        cmd: "zpool create -o autoexpand=on {{ pool }} {{ device }} -m {{ mount_path }}"
+
+- name: "Create zfs {{ item }} in {{ pool }}"
+  become: yes
+  zfs:
+    name: "{{ pool }}/{{ item }}"
+    state: present
+  with_items: "{{ fs }}"
+
+- name: "Install auto-snapshot requirements"
+  become: yes
+  apt:
+    name:
+      - zfs-auto-snapshot
+
+- become: yes
+  copy:
+    content: |
+      opt_backup_full=''
+      opt_backup_incremental=''
+      opt_default_exclude='1'
+      opt_dry_run=''
+      opt_event='-'
+      opt_fast_zfs_list='1'
+      opt_keep=''
+      opt_label=''
+      opt_prefix='snap'
+      opt_recursive=''
+      opt_sep='_'
+      opt_setauto=''
+      opt_syslog=''
+      opt_skip_scrub=''
+      opt_verbose=''
+      opt_pre_snapshot=''
+      opt_post_snapshot=''
+      opt_do_snapshots='1'
+    dest: /sbin/zfs-auto-snapshot
+
+- name: "Configure intervals"
+  become: yes
+  shell: |
+    #!/bin/bash
+    zfs set com.sun:auto-snapshot=true {{ pool }}/{{ item }}
+    zfs set com.sun:auto-snapshot:monthly={{ snapshot.monthly | default('true') | bool | lower }} {{ pool }}/{{ item }}
+    zfs set com.sun:auto-snapshot:weekly={{ snapshot.weekly | default('true') | bool | lower }}   {{ pool }}/{{ item }}
+    zfs set com.sun:auto-snapshot:daily={{ snapshot.daily | default('true') | bool | lower }}     {{ pool }}/{{ item }}
+    zfs set com.sun:auto-snapshot:hourly={{ snapshot.hourly | default('false') | bool | lower }}    {{ pool }}/{{ item }}
+    zfs set com.sun:auto-snapshot:frequent={{ snapshot.frequent | default('true') | bool | lower }} {{ pool }}/{{ item }}
+  with_items: "{{ fs }}"
