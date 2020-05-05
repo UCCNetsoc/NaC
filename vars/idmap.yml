@@ -1,0 +1,27 @@
+idmap: |
+  [General]
+
+  Verbosity = 0
+  Pipefs-Directory = /run/rpc_pipefs
+  # set your own domain here, if it differs from FQDN minus hostname
+  # Domain = localdomain
+
+  Domain = vm.netsoc.co
+
+  [Mapping]
+  Nobody-User = nobody
+  Nobody-Group = nogroup
+
+  [Translation]
+  GSS-Methods = static,nsswitch
+
+  [Static]
+  nfs/manager0.docker.vm.netsoc.co@VM.NETSOC.CO = root
+  nfs/manager1.docker.vm.netsoc.co@VM.NETSOC.CO = root
+  nfs/manager2.docker.vm.netsoc.co@VM.NETSOC.CO = root
+  nfs/manager3.docker.vm.netsoc.co@VM.NETSOC.CO = root
+  nfs/manager4.docker.vm.netsoc.co@VM.NETSOC.CO = root
+  nfs/worker0.docker.vm.netsoc.co@VM.NETSOC.CO  = root
+  nfs/worker1.docker.vm.netsoc.co@VM.NETSOC.CO  = root
+  nfs/worker2.docker.vm.netsoc.co@VM.NETSOC.CO  = root
+  nfs/worker3.docker.vm.netsoc.co@VM.NETSOC.CO  = root
