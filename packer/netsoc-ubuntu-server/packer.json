@@ -8,11 +8,11 @@
       "proxmox_password": "",
       "proxmox_node": "",
       "http_base_url": "",
-      "vm_root_password": ""
+      "provisioning_root_password": ""
     },
     "sensitive-variables": [
       "proxmox_password",
-      "vm_root_password"
+      "provisioning_root_password"
     ],
     "provisioners": [
       {

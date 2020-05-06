@@ -7,7 +7,6 @@
     - apt-upgrade
     - utf8-locale
     - essential-utils
-    - netsoc-dir
     - docker
     - shells
     - apt-autoremove
