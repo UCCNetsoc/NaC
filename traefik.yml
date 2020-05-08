@@ -5,4 +5,5 @@
     - traefik
   vars_files:
     - vars/cloudflare.yml  # traefik certs
+    - vars/traefik.yml
     - vars/secrets.yml
