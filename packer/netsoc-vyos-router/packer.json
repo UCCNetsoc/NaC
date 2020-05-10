@@ -12,7 +12,7 @@
         {
             "type": "shell",
             "scripts": ["./install.expect"],
-            "environment_vars": ["VYOS_PASSWORD={{ user `vyos_password`}}"]
+            "environment_vars": ["VYOS_PASSWORD={{ user `provisioning_vyos_password`}}"]
         }
     ],
     "builders": [
@@ -32,8 +32,8 @@
         "boot_wait": "10s",
         "boot_command": [
           "<enter><wait10><wait10><wait10><wait10><wait10><wait10><wait10>",
-          "vyos<enter><wait>",
-          "vyos<enter><wait>",
+          "vyos<enter><wait5>",
+          "vyos<enter><wait5>",
           "configure<enter><wait>",
           "set interfaces ethernet eth0 address dhcp<enter><wait>",
           "set service ssh port 22<enter><wait>",
