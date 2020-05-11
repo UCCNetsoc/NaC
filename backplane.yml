@@ -6,3 +6,29 @@
     - nac-dir
     - ifupdown2
     - packer
+
+
+# TODO: revisit this
+# - name: Ensure packer provisioning bridge (vmbr1)
+#   hosts: proxmox_hosts
+#   roles:
+#     - role: packer-provisioning-dhcp-bridge
+#       vars:
+#         bridge_inteface: "vmbr1"
+#         bridge_address: "10.0.100.1"
+#         bridge_netmask: "24"
+#         nat_interface: "vmbr0.20"
+#         dhcp_range_begin: "10.0.100.2"
+#         dhcp_range_end: "10.0.100.254"
+#         dhcp_netmask: "255.255.255.0"
+#         dhcp_lease_length: "24h"
+#         dhcp_dns_servers: "8.8.8.8,8.8.4.4"
+
+# - name: Ensure vlan bridge setup (feynman)
+#   hosts: feynman
+#   roles:
+#     - role: vlans-10-to-90-bridge
+#       vars:
+#         bridge_device: "enp6s0"
+#         octet: "53"
+#         mgmt_octet: "3"
