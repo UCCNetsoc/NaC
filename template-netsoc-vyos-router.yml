@@ -4,11 +4,12 @@
     - role: packer-proxmox-template
       vars: 
         template_name: "netsoc-vyos-router"
-        provision_directory: ./packer/netsoc-vyos-router
+        provisioning_directory: ./packer/netsoc-vyos-router
+        provisioning_host: lovelace
         cloudinit: yes
         packer_vars:
-          iso_file: vyos-1.3-rolling-amd64.iso
-          vyos_password: "{{ vyos_password }}"
+          iso_file: vyos-amd64.iso
+          provisioning_vyos_password: "{{ provisioning_vyos_password }}"
   vars_files:
     - vars/packer.yml
     - vars/proxmox.yml
