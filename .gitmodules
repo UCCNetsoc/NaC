@@ -1,0 +1,3 @@
+[submodule "vyos-vm-images"]
+	path = vyos-vm-images
+	url = https://github.com/vyos/vyos-vm-images.git
