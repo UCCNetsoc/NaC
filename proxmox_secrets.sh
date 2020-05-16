@@ -19,14 +19,13 @@ parse_yaml() {
     }'
 }
 
+editor=$EDITOR
 export EDITOR=cat
 ansible-vault edit vars/secrets.yml > ./_secrets.yml 
-eval $(parse_yaml _secrets.yml "vault_")
+eval $(parse_yaml _secrets.yml "yaml_")
 rm _secrets.yml
-export EDITOR=vi
+export EDITOR=$editor
 
-export PM_API_URL="https://$vault_proxmox_host:8006/api2/json"
-export PM_HOST=$vault_proxmox_host
-export PM_USER=root@pam
-export PM_PASS=$vault_proxmox_password
+export PM_USER=$yaml_vault_proxmox_username
+export PM_PASS=$yaml_vault_proxmox_password
 
