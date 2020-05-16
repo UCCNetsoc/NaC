@@ -84,7 +84,7 @@
   register: result
   ignore_errors: true
 
-- name: Remove Consul Config Secret from Swarm Service to update the Secret
+- name: Remove Docker Secret from Swarm Service to update the Secret
   become: yes
   docker_stack:
     state: absent

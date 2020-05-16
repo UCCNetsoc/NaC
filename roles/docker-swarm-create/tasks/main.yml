@@ -17,7 +17,6 @@
   shell: "docker swarm join-token --quiet manager"
   register: swarm_manager_token_result
 
-
 - name: "Ensure known manager token fact"
   set_fact:
     swarm_manager_token: "{{ swarm_manager_token_result.stdout }}"

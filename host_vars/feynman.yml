@@ -1,6 +1,9 @@
 ---
-ansible_host: 84.39.234.53
-ansible_ssh_port: 22
-ansible_ssh_user: netsoc
-ansible_ssh_private_key_file: "./keys/feynman/id_rsa"
+# Do not use ansible_connection: local
+# We use nohup in our playbooks and this breaks as there is no ssh connection
+
+ansible_host: localhost
+ansible_ssh_user: root
+ansible_ssh_private_key_file: "/root/.ssh/id_rsa"
+#ansible_connection: local
 ansible_python_interpreter: "/usr/bin/python3"

@@ -1,7 +1,0 @@
----
-
-# Skipped if swarm exists
-- name: "Ensure this host enrolled as worker"
-  become: yes
-  shell: "docker swarm join --token {{ hostvars[swarm_creator]['swarm_worker_token'] }}  {{ hostvars[swarm_creator].ansible_host }}:2377"
-  ignore_errors: true

@@ -1,7 +1,7 @@
 - name: "Ensure Docker Swarm services"
   hosts: docker_managers
   roles:
-    - role: traefik
+    - role: traefik-new
       vars:
         dashboard_domain: traefik.netsoc.dev
         dynamic_config_mount: 
