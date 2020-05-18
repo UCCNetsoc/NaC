@@ -9,11 +9,26 @@
       "iso_file": ""
     },
     "provisioners": [
-        {
-            "type": "shell",
-            "scripts": ["./install.expect"],
-            "environment_vars": ["VYOS_PASSWORD={{ user `provisioning_vyos_password`}}"]
-        }
+      {
+        "type": "shell",
+        "scripts": ["./install.expect"]
+      },
+      {
+        "type": "shell",
+        "inline": ["sudo reboot now"],
+        "expect_disconnect": true
+      },
+      {
+        "pause_before": "20s",
+        "timeout": "40s",
+        "type": "file",
+        "source": "vyos-userdata-patched-cloud-init_20.1-365-gb987224b-1~bddeb_all.deb",
+        "destination": "/tmp/vyos-userdata-patched-cloud-init_20.1-365-gb987224b-1~bddeb_all.deb"
+      },
+      {
+        "type": "shell",
+        "inline": ["sudo dpkg -i /tmp/vyos-userdata-patched-cloud-init_20.1-365-gb987224b-1~bddeb_all.deb"]
+      }
     ],
     "builders": [
       {
@@ -37,7 +52,8 @@
           "configure<enter><wait>",
           "set interfaces ethernet eth0 address dhcp<enter><wait>",
           "set service ssh port 22<enter><wait>",
-          "commit<enter><wait>"
+          "commit<enter><wait>",
+          "save<enter><wait>"
         ],
 
         "ssh_username": "vyos",
@@ -45,7 +61,7 @@
         "ssh_timeout": "25m",
         
         "unmount_iso": "true",
-        "iso_file": "local:iso/{{ user `iso_file`}}",
+        "iso_file": "local:iso/vyos-amd64-cloudinit.iso",
 
         "cores": "2",
         "os": "l26",
