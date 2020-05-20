@@ -1,0 +1,10 @@
+---
+- name: Ensure Portainer
+  hosts: boole
+  roles:
+  - portainer
+
+- name: Ensure Portainer Agents
+  hosts: non_sudo
+  roles:
+  - portainer-agent

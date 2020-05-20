@@ -1,5 +1,4 @@
 ---
-
 - name: "Check if host enrolled as manager"
   become: yes
   shell: "docker node ls"      # Will return an non-zero error code if the swarm does not exist

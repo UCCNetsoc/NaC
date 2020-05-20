@@ -1,0 +1,110 @@
+---
+- name: "Create /netsoc-neo/docker-data/prometheus directory"
+  become: yes
+  file:
+    path: /netsoc-neo/docker-data/prometheus
+    mode: 0770 
+    owner: root
+    group: root
+    state: directory
+
+- name: "Create /netsoc-neo/docker-data/prometheus/config directory"
+  become: yes
+  file:
+    path: /netsoc-neo/docker-data/prometheus/config
+    mode: 0770 
+    owner: root
+    group: root
+    state: directory
+
+- name: "Create /netsoc-neo/docker-data/blackbox_exporter directory"
+  become: yes
+  file:
+    path: /netsoc-neo/docker-data/blackbox_exporter
+    mode: 0770 
+    owner: root
+    group: root
+    state: directory
+
+- name: "Generate Prometheus config"
+  become: yes
+  template:
+    src: "templates/prometheus.yml.j2"
+    dest: "/netsoc-neo/docker-data/prometheus/config/prometheus.yml"
+
+- name: "Copy Blackbox Config"
+  become: yes
+  copy:
+    src: "files/blackbox_exporter.yaml"
+    dest: "/netsoc-neo/docker-data/blackbox_exporter/blackbox_exporter.yaml"
+
+- name: "Ensure Docker monitoring network" 
+  become: yes
+  docker_network:
+    name: monitoring
+    driver: overlay
+    attachable: yes
+    appends: yes
+
+- name: "Prometheus server"
+  become: yes
+  docker_stack:
+      state: present
+      name: prometheus
+      compose:
+        - version: "3.7"
+          services:
+            server:
+              image: "prom/prometheus:v2.11.2"
+              command:
+                - "--config.file=/etc/prometheus/prometheus.yml"
+                - "--storage.tsdb.path=/prometheus"
+                - "--web.console.libraries=/usr/share/prometheus/console_libraries"
+                - "--web.console.templates=/usr/share/prometheus/consoles"
+                - "--web.enable-admin-api"
+              networks:
+                traefik:
+                monitoring:
+              deploy:
+                mode: global
+                placement:
+                  constraints:
+                    - node.hostname == {{ inventory_hostname }}
+                  preferences:
+                    - spread: node.id
+                labels:
+                  - "traefik.enable=true"
+                  - "traefik.http.routers.prom.rule=Host(`prometheus.{{ dev_site }}`)"
+                  - "traefik.http.routers.prom.entrypoints=web-secure"
+                  - "traefik.http.routers.prom.tls.certResolver=letsencrypt"
+                  - "traefik.http.services.prom-service.loadbalancer.server.port=9090"
+                  - "traefik.http.routers.prom.service=prom-service"
+                  - "traefik.docker.network=traefik"
+                restart_policy:
+                  condition: any
+                  delay: 5s
+                  max_attempts: 5
+              volumes:
+                - "/netsoc-neo/docker-data/prometheus/config:/etc/prometheus"
+                - "/netsoc-neo/docker-data/prometheus/data:/prometheus"
+            blackbox:
+              image: "prom/blackbox-exporter:v0.14.0"
+              command: "--config.file=/config/blackbox_exporter.yaml"
+              deploy:
+                mode: global
+                placement:
+                  constraints:
+                    - node.hostname == {{ inventory_hostname }}
+                  preferences:
+                    - spread: node.id
+                restart_policy:
+                  condition: on-failure
+                  delay: 5s
+                  max_attempts: 5
+              volumes:
+                - "/netsoc-neo/docker-data/blackbox_exporter/blackbox_exporter.yaml:/config/blackbox_exporter.yaml"
+          networks:
+            traefik:
+              external: true
+            monitoring:
+              external: true
