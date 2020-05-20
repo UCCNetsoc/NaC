@@ -1,0 +1,8 @@
+---
+- name: Ensure wiki.netsoc.co
+  hosts: bigbertha
+  roles:
+  - wiki.netsoc.co
+  vars_files:
+    - vars/mysql_server.yml
+    - vars/secrets.yml

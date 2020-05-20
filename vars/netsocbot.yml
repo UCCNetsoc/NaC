@@ -1,0 +1,1 @@
+netsocbot_discord_token:  "{{ vault_netsocbot_discord_token }}"

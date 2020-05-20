@@ -1,0 +1,31 @@
+---
+
+- name: "Ensure iotop, iftop, htop, git, nodejs, ipython, npm, JDK, ruby, etc.. installed"
+  become: yes
+  apt:
+    name:
+      - iotop
+      - iftop
+      - htop
+      - git
+      - mysql-client
+      # - nodejs
+      # - ipython
+      # - npm
+      # # - default-jdk
+      # - ruby
+      # - ranger
+      # - sshfs
+      # - wget
+      # - vim
+      # - nano
+      # - nmap
+      # - tmux
+      # - less
+      # - mosh
+      # - ncdu
+      # # - ldnsutils # drill
+      # - fortune-mod
+      # - cowsay
+    state: latest
+    update_cache: yes

@@ -1,0 +1,38 @@
+---
+- name: Ensure Hashicorp Vault
+  hosts: swarm_managers
+  vars_files:
+    - vars/consul.yml
+    - vars/vault.yml
+    - vars/ldap.yml
+    - vars/secrets.yml
+  roles:
+    - vault
+  tags:
+    - server
+
+- name: Set Docker Registry secrets in Hashicorp Vault
+  hosts: swarm_creators
+  vars_files:
+    - vars/vault.yml
+    - vars/secrets.yml
+  tasks:
+    - include: roles/vault/tasks/secrets_docker_registry.yml
+    - include: roles/vault/tasks/policy_ci.yml
+  tags:
+    - push_secrets
+    - docker_registry
+
+- name: Set Discord Webhook secrets in Hashicorp Vault
+  hosts: swarm_creators
+  vars_files:
+    - vars/vault.yml
+    - vars/discord.yml
+    - vars/secrets.yml
+  tasks:
+    # Making sure the policy exists
+    - include: roles/vault/tasks/policy_ci.yml 
+    - include: roles/vault/tasks/secrets_discord_webhook.yml
+  tags:
+    - push_secrets
+    - discord_webhook

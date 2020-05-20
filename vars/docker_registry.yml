@@ -1,0 +1,7 @@
+docker_registry: "{{ vault_docker_registry }}"
+docker_registry_username: "{{ vault_docker_registry_username }}"
+docker_registry_password: "{{ vault_docker_registry_password }}"
+harbor_priv_bot_user: "{{ vault_harbor_priv_bot_user }}"
+harbor_priv_bot_token: "{{ vault_harbor_priv_bot_token }}"
+harbor_pub_bot_user: "{{ vault_harbor_pub_bot_user }}"
+harbor_pub_bot_token: "{{ vault_harbor_pub_bot_token }}"

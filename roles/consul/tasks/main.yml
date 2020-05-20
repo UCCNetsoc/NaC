@@ -1,0 +1,189 @@
+---
+- name: Ensure Python Consul libs
+  become: yes
+  pip:
+    name: 
+      - python-consul
+      - pyhcl
+    state: present
+  tags:
+    - server
+
+- name: Ensure Consul server directories for data
+  become: yes
+  file:
+    path: '/netsoc-neo/docker-data/consul'
+    owner: 1000
+    group: 1000
+    mode: 0770
+    state: directory
+  tags:
+    - server    
+
+- name: Ensure Hashicorp Consul network
+  when: inventory_hostname in groups.swarm_creators
+  become: yes
+  docker_network:
+    name: consul
+    driver: overlay
+    attachable: yes
+    state: present
+    appends: yes
+  tags:
+    - server    
+
+- name: Ensure Consul Config in Docker Swarm Secrets
+  run_once: true
+  become: yes
+  docker_secret:
+    name: "{{ item.name }}.hcl"
+    data: "{{ lookup('template', '{{ item.file }}.hcl') }}"
+  register: result
+  ignore_errors: true
+  with_items:
+    - { name: consul_config, file: config }
+    - { name: consul_bootstrap_config, file: bootstrap_config }
+  tags:
+    - server    
+
+- name: Remove Consul Config Secret from Swarm Service to update the Secret
+  become: yes
+  docker_stack:
+    state: absent
+    absent_retries: 5
+    name: consul
+  when: result is failed
+  tags:
+    - server    
+
+- name: Retry setting Consul Config in Docker Swarm Secrets if necessary
+  run_once: true
+  when: result is failed
+  become: yes
+  docker_secret:
+    name: "{{ item.name }}.hcl"
+    data: "{{ lookup('template', '{{ item.file }}.hcl') }}"
+  with_items:
+    - { name: consul_config, file: config }
+    - { name: consul_bootstrap_config, file: bootstrap_config }
+  tags:
+    - server    
+  
+- name: Ensure Hashicorp Consul cluster
+  run_once: true
+  become: yes
+  docker_stack:
+    state: present
+    name: consul
+    compose: 
+      - version: '3.7'
+        secrets:
+          consul_config.hcl:
+            external: true
+          consul_bootstrap_config.hcl:
+            external: true
+        networks:
+          consul:
+            external: true
+          traefik:
+            external: true
+        services:
+          bootstrap:
+            image: consul:1.7.1
+            networks:
+              consul:
+                aliases:
+                  - consul_bootstrap
+            command: 'agent -config-file=/run/secrets/consul_bootstrap_config.hcl'
+            hostname: bootstrap.consul.netsoc.dev
+            environment:
+              - CONSUL_BIND_INTERFACE=eth0
+            secrets:
+              - consul_bootstrap_config.hcl
+            deploy:
+              endpoint_mode: dnsrr # Needed to get cluster to not rely on pre-known IPs
+              mode: replicated
+              replicas: 1
+              restart_policy:
+                condition: any
+                delay: 5s
+                max_attempts: 5
+                window: 60s
+              update_config:
+                parallelism: 1
+                delay: 20s
+                order: start-first
+          server:
+            image: consul:1.7.1
+            networks:
+              traefik:
+              consul:
+                aliases:
+                  - consul
+            command: 'agent -config-file=/run/secrets/consul_config.hcl -rejoin'
+            hostname: '{% raw %}{{ .Node.Hostname }}.consul.netsoc.dev{% endraw %}'
+            volumes:
+              - /netsoc-neo/docker-data/consul:/consul/data
+            environment:
+              - CONSUL_BIND_INTERFACE=eth0
+            secrets:
+              - consul_config.hcl
+            deploy:
+              endpoint_mode: dnsrr # Needed to get cluster to not rely on pre-known IPs
+              mode: global
+              placement:
+                constraints:
+                  - node.role == manager
+              restart_policy:
+                condition: any
+                delay: 5s
+                max_attempts: 5
+                window: 60s
+              update_config:
+                parallelism: 1 # operate on one instance at a time to maintain stable quorum (in theory)
+                delay: 20s
+                order: start-first # want to bring up new instance to always maintain quorum
+              labels:
+                - "traefik.enable=true"
+                - "traefik.http.routers.consul.entrypoints=web-secure"
+                - "traefik.http.routers.consul.rule=Host(`consul.{{ dev_site }}`)"
+                - "traefik.http.routers.consul.tls.certResolver=letsencrypt"
+                - "traefik.http.routers.consul.service=consul-service"
+                - "traefik.http.services.consul-service.loadbalancer.server.port=8500"
+                - "traefik.http.services.consul-service.loadBalancer.healthCheck.path=/v1/status/leader"
+                - "traefik.http.services.consul-service.loadBalancer.healthCheck.timeout=5s"
+                - "traefik.http.services.consul-service.loadBalancer.healthCheck.interval=20s"
+                - "traefik.http.middlewares.consul-circuitbreaker.circuitbreaker.expression=LatencyAtQuantileMS(50.0) > 500"
+                - "traefik.http.routers.consul.middlewares=consul-circuitbreaker@docker"
+                - "traefik.docker.network=traefik"
+  tags:
+    - server    
+              
+- name: Wait for Leader elected
+  run_once: true
+  uri:
+    url: https://consul.{{ dev_site }}/v1/status/leader
+    return_content: yes
+  register: response
+  until: response.content_length != "2" and response.status == 200
+  retries: 10
+  tags:
+    - server
+
+- name: Push Consul Agent token
+  run_once: true
+  consul_acl_prefix:
+    scheme: https
+    host: consul.{{ dev_site }}
+    port: 443
+    name: Agent Token - inter-agent comms # why doesnt this get set? idk
+    token_type: management
+    token: "{{ consul_agent_token }}"
+    mgmt_token: "{{ consul_master_token }}"
+    rules:
+      - node: ""
+        policy: write
+      - service: ""
+        policy: read
+  tags:
+    - server          

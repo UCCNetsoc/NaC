@@ -1,0 +1,5 @@
+---
+- name: Ensure blog.netsoc.co
+  hosts: bigbertha
+  roles:
+  - blog.netsoc.co

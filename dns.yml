@@ -7,6 +7,30 @@
     - vars/cloudflare.yml
     - vars/secrets.yml
   tasks:
+    - name: "Add DNS records for each server name (.dev)"
+      cloudflare_dns:
+        zone: "netsoc.dev"
+        type: A
+        record: "{{ item }}.netsoc.dev"
+        value: "{{ hostvars[item].ansible_host }}" # ansible_host in hosts.yml
+        state: present
+        account_email: "{{ cloudflare_api_email }}"
+        account_api_token: "{{ cloudflare_api_key }}"
+      with_inventory_hostnames:
+        - all
+
+    - name: "Add DNS records for each server name (.co)"
+      cloudflare_dns:
+        zone: "netsoc.co"
+        type: A
+        record: "{{ item }}.netsoc.co"
+        value: "{{ hostvars[item].ansible_host }}" # ansible_host in hosts.yml
+        state: present
+        account_email: "{{ cloudflare_api_email }}"
+        account_api_token: "{{ cloudflare_api_key }}"
+      with_inventory_hostnames:
+        - all
+
     - name: "Add DNS records"
       cloudflare_dns:
         zone: "{{ item.zone }}"
@@ -14,9 +38,79 @@
         record: "{{ item.record }}"
         value: "{{ item.value }}"
         state: present
-        account_email:    "{{ cloudflare_api_email }}"
+        account_email: "{{ cloudflare_api_email }}"
         account_api_token: "{{ cloudflare_api_key }}"
       with_items:
         # A record for use before the DNS is first setup on auth
         - { zone: "netsoc.co", type: A, record: "ipa.vm", value: "{{ ip_allocation.freeipa_base }}" }
         
+        # NS for clients
+        - { zone: "netsoc.co", type: A,      record: "ns1",              value: "84.39.234.50" }
+        - { zone: "netsoc.co", type: A,      record: "ns2",              value: "84.39.234.52" }
+
+        # elon
+        - { zone: "netsoc.co", type: A,      record: "elon",             value: "143.239.87.40" }
+        - { zone: "netsoc.co", type: CNAME,  record: "ldap",             value: "elon.netsoc.co" }
+        
+        # tesla
+        - { zone: "netsoc.co",  type: A,     record: "tesla",            value: "143.239.87.41" }
+        
+        # boole
+        - { zone: "netsoc.co",  type: CNAME, record: "docker",           value: "boole.netsoc.co" }
+        - { zone: "netsoc.co",  type: CNAME, record: "portainer",        value: "boole.netsoc.co" }
+        - { zone: "netsoc.co",  type: CNAME, record: "sentry",           value: "boole.netsoc.co" }
+        
+        # bigbertha
+        - { zone: "netsoc.dev", type: CNAME, record: "*.netsoc.dev",     value: "bigbertha.netsoc.dev" } 
+        - { zone: "netsoc.dev", type: CNAME, record: "www.*.netsoc.dev", value: "bigbertha.netsoc.dev" } 
+        - { zone: "netsoc.co",  type: CNAME, record: "*.netsoc.co",      value: "bigbertha.netsoc.co" } 
+        - { zone: "netsoc.co",  type: CNAME, record: "www.*.netsoc.co",  value: "bigbertha.netsoc.co" } 
+        - { zone: "netsoc.dev", type: CNAME, record: "netsoc.dev",       value: "bigbertha.netsoc.dev" } 
+        - { zone: "netsoc.co",  type: A,     record: "ipa",              value: "84.39.234.50" } 
+        
+        - { zone: "netsoc.co",  type: CNAME, record: "ci",               value: "bigbertha.netsoc.co" }
+        - { zone: "netsoc.co",  type: CNAME, record: "mysql",            value: "bigbertha.netsoc.co" }
+        - { zone: "netsoc.co",  type: CNAME, record: "lxd",              value: "bigbertha.netsoc.co" }
+        - { zone: "netsoc.co",  type: CNAME, record: "tutorials",        value: "blog.netsoc.co" }
+        - { zone: "netsoc.co",  type: CNAME, record: "vault",            value: "bigbertha.netsoc.co" } 
+        - { zone: "netsoc.co",  type: CNAME, record: "wiki",             value: "bigbertha.netsoc.co" } 
+        - { zone: "netsoc.co",  type: CNAME, record: "impressive",       value: "bigbertha.netsoc.co" }
+        - { zone: "netsoc.co",  type: CNAME, record: "hlm",              value: "bigbertha.netsoc.co" }
+
+        # constitution
+        - { zone: "netsoc.co",  type: CNAME, record: "constitution",     value: "uccnetworkingsociety.github.io" }
+        
+        - { zone: "netsoc.co",  type: CNAME, record: "*.evan.netsoc.co",      value: "leela.netsoc.co" } 
+        - { zone: "netsoc.co",  type: CNAME, record: "www.*.evan.netsoc.co",  value: "leela.netsoc.co" } 
+        - { zone: "netsoc.co",  type: CNAME, record: "unf2b",                 value: "leela.netsoc.co" }
+
+        # lovelace
+        - { zone: "netsoc.dev", type: CNAME, record: "pterodactyl-daemon", value: "lovelace.netsoc.dev" }
+        - { zone: "netsoc.co",  type: CNAME, record: "pterodactyl-daemon", value: "lovelace.netsoc.co" }
+        - { zone: "netsoc.co",  type: CNAME, record: "minecraft",          value: "feynman.netsoc.co" }
+
+
+        - { zone: "netsoc.co", type: TXT, record: "_dmarc", value: "v=DMARC1; p=none" }
+        - { zone: "netsoc.co", type: TXT, record: "netsoc.co", value: "v=spf1 mx include:zoho.com include:u1980078.wl.sendgrid.net -all" }
+        - { zone: "netsoc.co", type: TXT, record: "zoho._domainkey.netsoc.co", value: "k=rsa; t=y; p=MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQCB3sWPAMJHYvSCWEueINNaIsPy4OeAQgFsm3y+IcOSUcXJUhHr+LrYGuD9SZzIEh0ekm0Usm73gRz4LgGYfeZ9SXbR3H1LupOETGym0FRRQnAjnXI9L/wfaOzYwbpKm04lhpbobhAwrtsUcgMyo+wmEByM3AR25+YDmlUuijmNTwIDAQAB" }
+
+        # "floating" CNAMEs
+        - { zone: "netsoc.co",  type: CNAME, record: "userdomains", value: "leela.netsoc.co" }
+
+        # MX
+        - { zone: "netsoc.co", type: MX, record: "netsoc.co", value: "mx.zoho.com" }
+        - { zone: "netsoc.co", type: MX, record: "netsoc.co", value: "mx2.zoho.com" }
+
+    - name: "Add Minecraft SRV record"
+      cloudflare_dns:
+        zone: "netsoc.co"
+        type: "SRV"
+        proto: "tcp"
+        service: "minecraft"
+        port: 1194
+        priority: 0
+        weight: 5
+        value: "minecraft.netsoc.co"
+        state: present
+        account_email: "{{ cloudflare_api_email }}"
+        account_api_token: "{{ cloudflare_api_key }}"

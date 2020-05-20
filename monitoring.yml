@@ -1,0 +1,15 @@
+---
+- name: Ensure Prometheus Server
+  hosts: prometheus_hosts
+  vars_files:
+    - vars/monitoring.yml
+    - vars/secrets.yml
+  roles:
+    - grafana
+    #- prometheus-server
+
+#- name: Ensure Prometheus nodes
+#  hosts: prometheus_nodes
+#  roles:
+#    - prometheus-exporters
+

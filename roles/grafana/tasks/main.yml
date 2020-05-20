@@ -1,0 +1,85 @@
+---
+- name: "Create /netsoc-neo/docker-data/grafana directory"
+  become: yes
+  file:
+    path: /netsoc-neo/docker-data/grafana
+    mode: 0770
+    owner: root
+    group: root
+    state: directory
+
+- name: "Create /netsoc-neo/docker-data/grafana/config directory"
+  become: yes
+  file:
+    path: /netsoc-neo/docker-data/grafana/config
+    mode: 0774
+    owner: 472
+    group: 472
+    state: directory
+
+- name: "Create /netsoc-neo/docker-data/grafana/data directory"
+  become: yes
+  file:
+    path: /netsoc-neo/docker-data/grafana/data
+    mode: 0774
+    owner: 472
+    group: 472
+    state: directory
+
+
+- name: "Ensure Docker monitoring network" 
+  become: yes
+  docker_network:
+    name: monitoring
+    driver: overlay
+    attachable: yes
+    appends: yes
+
+- name: Ensure Grafana Docker Container
+  become: yes
+  docker_stack:
+    state: present
+    name: grafana
+    compose:
+      - version: "3.5"
+        services:
+          server:
+            image: "grafana/grafana:6.6.2"
+            restart: always
+            networks:
+              traefik:
+              monitoring:
+                aliases: 
+                  - grafana
+            deploy:
+              mode: global
+              placement:
+                constraints:
+                  - node.hostname == {{ inventory_hostname }}
+                preferences:
+                  - spread: node.id
+              labels:
+                - "traefik.enable=true"
+                - "traefik.http.routers.grafana.rule=Host(`grafana.{{ dev_site }}`)"
+                - "traefik.http.routers.grafana.entrypoints=web-secure"
+                - "traefik.http.routers.grafana.tls.certResolver=letsencrypt"
+                - "traefik.http.services.grafana-service.loadbalancer.server.port=3000"
+                - "traefik.http.routers.grafana.service=grafana-service"
+                - "traefik.docker.network=traefik"
+              restart_policy:
+                condition: any
+                delay: 5s
+                max_attempts: 5
+            volumes:
+              - "/netsoc-neo/docker-data/grafana/config:/etc/grafana"
+              - "/netsoc-neo/docker-data/grafana/data:/var/lib/grafana"
+            environment:
+              GF_SECURITY_ADMIN_PASSWORD: "{{ grafana_admin_pass }}"
+              GF_SERVER_ROOT_URL: "https://grafana.{{ dev_site }}"
+        networks:
+          traefik:
+            name: traefik
+            external: true
+          monitoring:
+            external: true
+            name: monitoring
