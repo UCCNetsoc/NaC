@@ -1,0 +1,26 @@
+---
+
+- name: Ensure mysql dir
+  become: yes
+  file:
+    path: "{{ mount }}/"
+    owner: root
+    group: root
+    # needs to 775 as this folder is accessed internally by a dirsrv user
+    # https://github.com/freeipa/freeipa-container/issues/281
+    mode: 0777
+    state: directory
+
+- name: Ensure MySQL server container
+  become: yes
+  docker_container:
+    name: "{{ container_name }}"
+    state: started
+    recreate: yes
+    image: mysql:8.0.20
+    env:
+      MYSQL_ROOT_PASSWORD: "{{ root_password }}"
+    volumes:
+      - "{{ mount }}/:/var/lib/mysql"
+    ports:
+      - "{{ ip }}:{{ port | default(3306) }}:3306"
