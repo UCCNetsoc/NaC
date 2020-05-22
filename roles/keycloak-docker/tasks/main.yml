@@ -1,0 +1,35 @@
+---
+
+- name: Ensure keycloak dir
+  become: yes
+  file:
+    path: "{{ mount }}"
+    owner: root
+    group: root
+    mode: 0777
+    state: directory
+
+- become: yes
+  copy:
+    content: "{{ realm }}"
+    dest: "{{ mount }}/realm.json"
+    mode: 0777
+
+- docker_container:
+    name: keycloak
+    image: jboss/keycloak:9.0.3
+    recreate: yes
+    env:
+      DB_VENDOR: h2
+      KEYCLOAK_USER: "{{ keycloak.username }}"
+      KEYCLOAK_PASSWORD: "{{ keycloak.password }}"
+      KEYCLOAK_IMPORT: "/tmp/keycloak/realm.json"
+      KEYCLOAK_FRONTEND_URL: "{{ keycloak.hostname }}"
+    hostname: "{{ keycloak.hostname }}"
+    ports:
+      - "8080:8080"
+    volumes:
+      - "{{ mount }}/:/tmp/keycloak/"
+      - "/etc/localtime:/etc/localtime:ro"
+      # - "./backing-services/keycloak/krb5.keytab:/krb5.keytab"
+      # - "./backing-services/keycloak/themes/admin:/opt/jboss/keycloak/themes/admin"
