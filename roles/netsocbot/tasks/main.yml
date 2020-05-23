@@ -2,18 +2,29 @@
 - name: "Ensure Netsoc Discord Bot deployed"
   become: yes
   docker_swarm_service:
-    image: docker.netsoc.co/public/netsocbot:latest
-    force_update: yes
-    resolve_image: yes
+    image: docker.netsoc.co/public/discord-bot:latest
     name: netsocbot
     state: present
+    resolve_image: yes
     restart_config:
       condition: any
-    limits:
-      memory: 120M
+      max_attempts: 10
+    networks:
+      - consul
+      - traefik
+
     env:
-      JAVA_OPTIONS: -Xmx80M -Xms50M
-      NETSOCBOT_TOKEN: "{{ netsocbot_discord_token }}"
-      NETSOCBOT_ROLEIDS: "631196785913888768,621141587434405919"
-      NETSOCBOT_PREFIX: "!"
-      NETSOCBOT_SENDGRID_TOKEN: "{{ sendgrid_apikey }}"
+      CONSUL_ADDRESS: consul_server:8500
+      DISCORD_TOKEN: "{{ netsocbot_discord_token }}"
+      DISCORD_ROLES: "631196785913888768,621141587434405919"
+      BOT_PREFIX: "!"
+      SENDGRID_TOKEN: "{{ sendgrid_apikey }}"
+      CONSUL_TOKEN: "{{ consul_bot_token }}"
+    labels:
+      traefik.enable: "true"
+      traefik.http.routers.netsocbot.rule: Host(`events.{{ dev_site }}`)
+      traefik.http.routers.netsocbot.entrypoints: web-secure
+      traefik.http.routers.netsocbot.tls.certResolver: letsencrypt
+      traefik.http.services.netsocbot-service.loadbalancer.server.port: "80"
+      traefik.http.routers.netsocbot.service: netsocbot-service
+      traefik.docker.network: traefik
