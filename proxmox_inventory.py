@@ -6,7 +6,7 @@
 #
 #   groups:
 #       - user
-#   vars:
+#   host_vars:
 #       description: "feynman-user"
 
 
@@ -18,11 +18,11 @@ from optparse import OptionParser
 
 from proxmoxer import ProxmoxAPI, ResourceException
 
-if not 'PM_HOST' in os.environ:
+if not 'PM_PASS' in os.environ:
     print("You need to run source ./proxmox_secrets.sh first")
     quit(-1)
 
-proxmox = ProxmoxAPI(os.environ['PM_HOST'], user=os.environ['PM_USER'], password=os.environ['PM_PASS'], verify_ssl=False)
+proxmox = ProxmoxAPI("localhost", user=os.environ['PM_USER'], password=os.environ['PM_PASS'], verify_ssl=False)
 
 # If you're maintaining this script for future use
 # Here is a good tutorial on Ansible custom inventories
@@ -51,8 +51,10 @@ for node in proxmox.nodes.get():
                 for iface in ifaces['result']:
                     if 'ip-addresses' in iface:
                         for ipinfo in iface['ip-addresses']:
+                            # prefer ips with private subnets
                             if ipinfo['ip-address'].split('.')[0] == '10':
                                 ssh_ip = ipinfo['ip-address']
+                                break
 
             except ResourceException:
                 # If the agent isn't running on the machine, ignore that machine
@@ -70,10 +72,10 @@ for node in proxmox.nodes.get():
 
                 if type(desc_config) == dict:
                     # Host-specific vars
-                    if 'vars'in desc_config:
+                    if 'host_vars'in desc_config:
                         inventory['_meta']['hostvars'][vm['name']] = {
                             **inventory['_meta']['hostvars'][vm['name']],
-                            **desc_config['vars']
+                            **desc_config['host_vars']
                         }
 
                     # Groups
@@ -82,7 +84,7 @@ for node in proxmox.nodes.get():
                             if group not in inventory:
                                 inventory[group] = {
                                     'hosts': [ ],
-                                    'vars': {
+                                    'host_vars': {
                                         # group specific vars would be in here if specific
                                      }
                                 }
