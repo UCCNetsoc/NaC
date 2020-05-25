@@ -1,15 +1,38 @@
+
+# - name: "Build Vyos ISO"
+#   hosts: control
+#   tasks:
+#     - name: Clone Vyos repo
+#       git:
+#         repo: https://github.com/vyos/vyos-build.git
+#         dest: /tmp/vyos-build
+#         version: "49ca3d22e874497d05c46eb54a0380c90411419e"
+#     - name: Build Vyos Docker build environment (may take a long time)
+#       shell: docker build -t vyos-builder docker
+#       args:
+#         chdir: /tmp/vyos-build
+#     - name: Build ISO
+#       shell: 
+#         docker run --rm -t --privileged -v $(pwd):/vyos -w /vyos vyos-builder bash -c "./configure --custom-package python-pip --custom-package qemu-guest-agent --custom-package expect --custom-package python3-jsonschema --custom-package python3-oauthlib --custom-package python3-jsonpatch && sudo make iso"
+#       args:
+#         chdir: /tmp/vyos-build
+
+# - name: "Copy ISO to build host"
+#   hosts: lovelace
+#   become: yes
+#   tasks:
+#     - copy:
+#         src: /tmp/vyos-build/build/live-image-amd64.hybrid.iso
+#         dest: /var/lib/vz/template/iso/vyos-amd64-cloudinit.iso
+
 - name: "Ensure Vyos Template"
   hosts: proxmox_hosts
   roles:
     - role: packer-proxmox-template
       vars: 
+        build_host: lovelace
         template_name: "netsoc-vyos-router"
-        provisioning_directory: ./packer/netsoc-vyos-router
-        provisioning_host: lovelace
-        cloudinit: yes
-        packer_vars:
-          iso_file: vyos-amd64.iso
-          provisioning_vyos_password: "{{ provisioning_vyos_password }}"
+        build_directory: ./packer/netsoc-vyos-router
   vars_files:
     - vars/packer.yml
     - vars/proxmox.yml
