@@ -1,0 +1,60 @@
+---
+
+# This playbook needs to be ran manually on the Proxmox host before it has any networking setup
+# It sets up the bridges for VLANs
+
+- name: "Setup bridges & Packer DHCP bridge"
+  hosts: localhost
+  connection: local
+  roles:
+    - packer-provisioning-dhcp-bridge
+  # TODO(ocanty) - automate me
+  # tasks:
+  #   - name: Setup /etc/network/interfaces
+  #     copy:
+  #       content: |
+  #         source /etc/network/interfaces.d/*
+
+  #         auto lo
+  #         iface lo inet loopback
+
+  #         iface enp6s0 inet manual
+
+  #         iface enp4s0 inet manual
+
+  #         iface ens3f0 inet manual
+
+  #         iface ens3f1 inet manual
+
+  #         auto vmbr0
+  #         iface vmbr0 inet manual
+  #                 bridge-ports enp6s0
+  #                 bridge-stp off
+  #                 bridge-fd 0
+  #                 bridge-vlan-aware yes
+  #                 bridge-vids 2-4094
+
+  #         auto vmbr0.10
+  #         iface vmbr0.10 inet static
+  #                 address 10.0.10.53/24
+
+  #         auto vmbr0.20
+  #         iface vmbr0.20 inet static
+  #                 address 10.0.20.53/24
+  #                 gateway 10.0.20.1
+
+  #         auto vmbr0.30
+  #         iface vmbr0.30 inet static
+  #                 address 10.0.30.53/24
+
+  #         auto vmbr0.80
+  #         iface vmbr0.80 inet static
+  #                 address 10.0.80.53/24
+
+  #         auto vmbr0.90
+  #         iface vmbr0.90 inet static
+  #                 address 10.0.90.3/24
+
+  #         auto vmbr0.40
+  #         iface vmbr0.40 inet static
+  #                 address 10.0.40.53/24
