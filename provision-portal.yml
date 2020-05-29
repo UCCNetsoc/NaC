@@ -1,0 +1,66 @@
+- name: "Enroll in IPA server"
+  hosts: portal 
+  roles:
+    - role: freeipa-client
+      vars:
+        client:
+          addresses:
+            - "{{ ansible_default_ipv4.address }}"
+  vars_files:
+    - "vars/freeipa.yml"
+    - "vars/network.yml"
+    - "vars/secrets.yml"
+
+- name: Setup NFS client and NFS mount requirements
+  hosts: portal
+  roles:
+    - role: nfs-client-requirements
+    - role: autofs-automount
+      vars:
+        src: nfs.vm.netsoc.co:/home/users
+        mount: /home/users
+        opts: fstype=nfs4,rw,vers=4.2,sec=krb5p,hard,bg
+  vars_files:
+    - "vars/idmap.yml"
+    - "vars/freeipa.yml"
+    - "vars/secrets.yml"
+
+- name: Setup server MOTD
+  hosts: portal
+  tasks:
+    - become: yes
+      copy:
+        content: "{{ lookup('file', './portal-banner.txt') }}"
+        dest: /etc/netsoc-banner
+    - become: yes
+      copy:
+        content: "{{ lookup('file', './portal-motd.txt') }}"
+        dest: /etc/netsoc-motd
+    - become: yes
+      shell: /bin/rm -rf /etc/update-motd.d/*
+    - become: yes
+      copy:
+        content: |
+          #!/bin/sh
+          cat /etc/netsoc-motd
+        mode: "0755"
+        dest: /etc/update-motd.d/00-netsoc-motd
+    - become: yes
+      copy:
+        content: ""
+        dest: /etc/legal
+    - become: yes
+      lineinfile:
+        regex: "^#PrintLastLog"
+        line: "PrintLastLog no"
+        path: /etc/ssh/sshd_config
+    - become: yes
+      lineinfile:
+        regex: "^#Banner none"
+        line: "Banner /etc/netsoc-banner"
+        path: /etc/ssh/sshd_config
+    - become: yes
+      service:
+        name: sshd
+        state: restarted
+

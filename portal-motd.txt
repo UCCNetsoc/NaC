@@ -1,0 +1,26 @@
+
+  |--------------------------------------------------------------------------|
+
+                              -[ INFORMATION ]- 
+                Most of our members hang out on our community Discord,
+    if you're new to college, have questions or are simply looking for craic:           
+                          https://discord.netsoc.co                             
+
+                   First time using Linux? Try out our tutorial:               
+                         https://tutorial.netsoc.co                       
+                                                                                
+                    Want to know more about us / our services?                  
+                          https://wiki.netsoc.co                              
+                                                                                
+                Want to help out with our backend infrastructure?             
+                         https://github.com/UCCNetsoc                          
+                    or chat with the SysAdmins on our Discord!                  
+                                                                                
+    Your use of our services is in agreement to the Acceptable Usage Policy   
+    (available by running the "aup" command). If you do not agree with the    
+      Acceptable Usage Policy please cease use of our services immediately     
+    
+                                                                - UCC Netsoc
+
+  |--------------------------------------------------------------------------|
+
