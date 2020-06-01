@@ -1,0 +1,54 @@
+- name: "Enroll in IPA server"
+  hosts: docker_swarm
+  roles:
+    - role: freeipa-client
+      vars:
+        client:
+          addresses:
+            - "{{ ansible_default_ipv4.address }}"
+  vars_files:
+    - "vars/freeipa.yml"
+    - "vars/network.yml"
+    - "vars/secrets.yml"
+
+- name: Setup NFS client and NFS mount requirements
+  hosts: docker_swarm
+  roles:
+    - role: nfs-client-requirements
+    - role: autofs-automount
+      vars:
+        src: nfs.vm.netsoc.co:/
+        mount: /nfs
+        opts: fstype=nfs4,rw,vers=4.2,sec=krb5p,hard,bg
+  vars_files:
+    - "vars/idmap.yml"
+    - "vars/freeipa.yml"
+    - "vars/secrets.yml"
+
+- name: "Ensure nfs directories"
+  hosts: nfs
+  become: yes
+  tasks:
+    - file:
+        path: "/nfs/{{ item }}"
+        state: directory
+        recurse: yes
+      with_items:
+        - "docker/"
+
+- name: "Ensure Docker Swarm created" 
+  hosts: docker_swarm_managers
+  roles:
+    - role: docker-swarm-create
+      when: "ansible_play_hosts_all.index(inventory_hostname) == 0"
+    - role: docker-swarm-enroll-manager
+      when: "ansible_play_hosts_all.index(inventory_hostname) > 0"
+      vars:
+        swarm_creator: "{{ groups['docker_swarm_managers'][0] }}"
+
+- name: "Ensure Docker Swarm workers enrolled"
+  hosts: docker_swarm_workers
+  roles:
+    - docker-swarm-enroll-worker
+  vars:
+    swarm_creator: "{{ groups['docker_swarm_managers'][0] }}"
