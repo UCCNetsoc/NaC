@@ -1,0 +1,118 @@
+# Setup Traefik
+- name: "Ensure Traefik directory and file config"
+  hosts: docker_swarm_managers
+  tasks:
+    - name: Ensure Traefik file config dir on NFS
+      become: yes
+      file:
+        path: "{{ item }}"
+        mode: '0770'
+        state: directory
+      with_items: # do not use recurse: yes because the /nfs mount could have failed
+        - /nfs/docker/traefik
+        - /nfs/docker/traefik/file_config
+
+    - set_fact:
+        file_config:
+          http:
+            routers:
+              ipa:
+                entrypoints:
+                  - web-secure
+                rule: Host(`ipa.netsoc.co`)
+                middlewares:
+                  - ipa-rewrite
+                service: ipa
+                tls:
+                  certResolver: letsencrypt
+
+              discord-router:
+                entrypoints:
+                  - web-secure
+                rule: Host(`discord.netsoc.co`)
+                middlewares:
+                  - discord-redirect
+                service: unused
+                tls:
+                  certResolver: letsencrypt
+              esports-router:
+                entrypoints:
+                  - web-secure
+                rule: Host(`esports.netsoc.co`)
+                middlewares:
+                  - esports-redirect
+                service: unused
+                tls:
+                  certResolver: letsencrypt
+
+            middlewares:
+              discord-redirect:
+                redirectRegex:
+                  regex: ^(.*)
+                  replacement: 'https://discordapp.com/invite/qPUmuYw'
+              esports-redirect:
+                redirectRegex:
+                  regex: ^(.*)
+                  replacement: 'https://discordapp.com/invite/pDUv6Uj'
+              ipa-rewrite:
+                headers:
+                  customRequestHeaders:
+                    Host: ipa.vm.netsoc.co
+                    Referer: https://ipa.vm.netsoc.co/ipa
+            services:
+              ipa:
+                loadBalancer:
+                  servers:
+                    - url: "https://ipa.vm.netsoc.co"
+              unused:
+                loadBalancer:
+                  servers:
+                    - url: 'https://google.com'
+
+    - name: Write Traefik config
+      become: yes
+      copy:
+        content: "{{ file_config | from_yaml }}"
+        dest: /nfs/docker/traefik/file_config/config.yml
+        
+- name: "Ensure Traefik loadbalancer running"
+  hosts: docker_swarm_managers
+  roles:
+    - role: traefik
+      vars:
+        mount: "/nfs/docker/traefik"
+        dashboard_domain: traefik.netsoc.co
+        dashboard_basicauth: netsoc:$$2y$$05$$1Rro44k9JKujdml4I.JAe.tx2iQEnKj4ykoD3Q50Adk5Q.lOu1CsG
+        config:
+          log:
+            level: DEBUG
+          accessLog: {}
+          entrypoints:
+            web:
+              address: ':80'
+            web-secure:
+              address: ':443'
+          serversTransport:
+            insecureSkipVerify: true
+          certificatesResolvers:
+            letsencrypt:
+              acme:
+                email: netsoc@uccsocieties.ie
+                storage: /traefik/acme.json
+                dnsChallenge:
+                  provider: cloudflare
+                  delayBeforeCheck: 0
+          providers:
+            file:
+              directory: /traefik/file_config/
+              watch: true
+            docker:
+              swarmMode: true
+              exposedByDefault: false
+          api:
+            dashboard: true
+            insecure: true
+  vars_files:
+    - vars/network.yml
+    - vars/cloudflare.yml
+    - vars/secrets.yml
