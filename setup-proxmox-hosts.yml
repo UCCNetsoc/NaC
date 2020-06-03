@@ -1,0 +1,8 @@
+- name: Ensure ansible and provisioning requirements on every proxmox host
+  hosts: proxmox_hosts
+  gather_facts: no
+  roles:
+    - ansible
+    - ifupdown2
+    - packer
+    - jq  # for manipulating the proxmox api pvesh when it was --output-format=json 
