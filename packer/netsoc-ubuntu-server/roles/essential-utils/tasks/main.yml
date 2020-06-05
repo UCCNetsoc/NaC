@@ -31,3 +31,11 @@
       - autofs
       - zfsutils-linux
     state: latest
+
+- name: Ensure upgraded pip and ansible pip requirements
+  become: yes
+  pip:
+    name:
+      - pip
+    state: latest
+    extra_args: --upgrade

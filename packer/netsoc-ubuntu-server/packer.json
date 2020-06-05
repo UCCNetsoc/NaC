@@ -8,11 +8,11 @@
       "proxmox_password": "",
       "proxmox_node": "",
       "http_base_url": "",
-      "provisioning_root_password": ""
+      "root_password": ""
     },
     "sensitive-variables": [
       "proxmox_password",
-      "provisioning_root_password"
+      "root_password"
     ],
     "provisioners": [
       {
@@ -52,16 +52,16 @@
           " priority=critical",
           " passwd/root-login=true",
           " passwd/make-user=false",
-          " passwd/root-password={{ user `provisioning_root_password`}}",
-          " passwd/root-password-again={{ user `provisioning_root_password`}}",
+          " passwd/root-password={{ user `root_password`}}",
+          " passwd/root-password-again={{ user `root_password`}}",
           " url={{ user `http_base_url`}}/preseed.cfg",
           " --<wait><enter><wait>"
         ],
         
         "ssh_username": "root",
-        "ssh_password": "{{ user `provisioning_root_password`}}",
+        "ssh_password": "{{ user `root_password`}}",
         "ssh_timeout": "25m",
-  
+        "cloud_init": true,
         "cpu_type": "host",
         "cores": "2",
         "memory": "1024",
