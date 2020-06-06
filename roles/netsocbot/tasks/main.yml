@@ -20,6 +20,10 @@
       BOT_PREFIX: "!"
       SENDGRID_TOKEN: "{{ sendgrid_apikey }}"
       CONSUL_TOKEN: "{{ consul_bot_token }}"
+      TWITTER_KEY: "{{ netsocbot_twitter_key }}"
+      TWITTER_SECRET: "{{ netsocbot_twitter_secret }}"
+      TWITTER_ACCESS_KEY: "{{ netsocbot_twitter_access_key }}"
+      TWITTER_ACCESS_SECRET: "{{ netsocbot_twitter_access_secret }}"
     labels:
       traefik.enable: "true"
       traefik.http.routers.netsocbot.rule: Host(`events.{{ dev_site }}`)
