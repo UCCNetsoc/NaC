@@ -1,1 +1,5 @@
-netsocbot_discord_token:  "{{ vault_netsocbot_discord_token }}"
+netsocbot_discord_token: "{{ vault_netsocbot_discord_token }}"
+netsocbot_twitter_key: "{{ vault_netsocbot_twitter_key }}"
+netsocbot_twitter_secret: "{{ vault_netsocbot_twitter_secret }}"
+netsocbot_twitter_access_key: "{{ vault_netsocbot_twitter_access_key }}"
+netsocbot_twitter_access_secret: "{{ vault_netsocbot_twitter_access_secret }}"
