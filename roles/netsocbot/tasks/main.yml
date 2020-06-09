@@ -16,7 +16,7 @@
     env:
       CONSUL_ADDRESS: consul_server:8500
       DISCORD_TOKEN: "{{ netsocbot_discord_token }}"
-      DISCORD_ROLES: "631196785913888768,621141587434405919"
+      DISCORD_ROLES: "631196785913888768,720021252676518079"
       BOT_PREFIX: "!"
       SENDGRID_TOKEN: "{{ sendgrid_apikey }}"
       CONSUL_TOKEN: "{{ consul_bot_token }}"
