@@ -1,0 +1,15 @@
+[http.routers]
+  [http.routers.harbor-router]
+    entrypoints = ["web-secure]
+    rule = "Host(`docker.netsoc.co`)"
+    service = "harbor-service"
+    {% if 'lxc' not in ansible_virtualization_type %}
+        [http.routers.harbor-router.tls]
+            certResolver = "letsencrypt"
+    {% endif %}
+
+[http.services]
+  [http.services.harbor-service.loadBalancer]
+    [[http.services.harbor-service.loadBalancer.servers]]
+      url = "http://10.0.0.6:8081"
+
