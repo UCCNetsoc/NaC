@@ -27,7 +27,7 @@
       },
       {
         "type": "shell",
-        "inline": ["sudo dpkg -i /tmp/vyos-userdata-patched-cloud-init_20.1-365-gb987224b-1~bddeb_all.deb"]
+        "inline": ["sudo dpkg -i /tmp/vyos-userdata-patched-cloud-init_20.1-365-gb987224b-1~bddeb_all.deb", "sudo pip install paramiko"]
       }
     ],
     "builders": [
