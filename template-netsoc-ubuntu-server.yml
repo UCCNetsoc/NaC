@@ -1,15 +1,11 @@
-- name: "Ensure Ubuntu Template created on the cluster"
+- name: "Ensure Ubuntu Template"
   hosts: proxmox_hosts
   roles:
     - role: packer-proxmox-template
       vars: 
-        # The role postfixes this to netsoc-ubuntu-server-lovelace
         template_name: "netsoc-ubuntu-server"
-        provisioning_directory: ./packer/netsoc-ubuntu-server
-        provisioning_host: lovelace
-        cloudinit: yes
-        packer_vars:
-          provisioning_root_password: "{{ provisioning_root_password }}"
+        build_host: lovelace
+        build_directory: ./packer/netsoc-ubuntu-server
   vars_files:
     - vars/packer.yml
     - vars/proxmox.yml
