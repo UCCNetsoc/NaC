@@ -1,0 +1,111 @@
+# ---
+
+# # Can't run this until the next CIX trip :(
+# - name: "Ensure Router"
+#   hosts: localhost
+#   roles:
+#     - role: proxmox-infra-cloudinit-vm
+#       vars:
+#         vm:
+#           clone: "netsoc-vyos-router-{{ inventory_hostname }}"
+#           name: "router.vm.netsoc.co"
+#           recreate: yes
+#           protection: no
+#           timeout: 300
+#           description: |
+#             groups:
+#               - vm
+#               - router
+#             host_vars:
+#               ansible_user: vyos
+#               ansible_connection: network_cli
+#               ansible_network_os: vyos
+#               ansible_become: yes
+#               ansible_become_method: enable
+#               ansible_ssh_private_key_file: "./keys/router/id_rsa"
+#           net:
+#             net0: "virtio,bridge=vmbr0"
+#           cores: 2
+#           memory: 2048
+#         cloudinit:
+#           drive_device: ide2
+#           userdata: |
+#             system {
+#               host-name router.vm.netsoc.co
+#               login {
+#                 user vyos {
+#                   authentication {
+#                     plaintext-password "fuck"
+#                     public-keys {
+#                       default {
+#                         type {{ lookup('file', './keys/router/id_rsa.pub').split(' ')[0] }} 
+#                         key {{ lookup('file', './keys/router/id_rsa.pub').split(' ')[1] }} 
+#                       }
+#                     }
+#                   }
+
+#                   level admin
+#                 }
+#               }
+#               syslog {
+#                 global {
+#                   facility all {
+#                     level info
+#                   }
+#                   facility protocols {
+#                     level debug
+#                   }
+#                 }
+#               }
+#               ntp {
+#                 server "0.pool.ntp.org"
+#                 server "1.pool.ntp.org"
+#                 server "2.pool.ntp.org"
+#               }
+#               console {
+#                 device ttyS0 {
+#                   speed 9600
+#                 }
+#               }
+#               config-management {
+#                 commit-revisions 100
+#               }
+#             }
+
+#             interfaces {
+#               ethernet eth0 {
+#                 vif 30 {
+#                   address 10.0.30.2/24
+#                 }
+#               }
+#             }
+
+#             protocols {
+#               static {
+#                 route 0.0.0.0/0 {
+#                   next-hop 10.0.30.1/24
+#                 }
+#               }
+#             }
+
+#             service {
+#               ssh { 
+#                 port 22
+#               }
+#             }
+
+#             interfaces {
+#                 loopback lo {
+#                 }
+#             }
+#           networkconfig: 
+#             ethernets:
+#   vars_files:
+#     - vars/proxmox.yml
+#     - vars/secrets.yml
+
+# - name: "Reload inventory to pull new VMs"
+#   hosts: 127.0.0.1
+#   connection: local
+#   tasks:
+#     - meta: refresh_inventory
