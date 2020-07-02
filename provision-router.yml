@@ -1,0 +1,39 @@
+# ---
+
+- hosts: router
+  tasks:
+    - set_fact:
+        dnat_base: 9000
+        dnat:
+          - destination:
+              address: "84.39.234.53"
+              port: "80,443"
+            translation:
+              address: "{{ network.managerN.docker.net0.addresses[0] | ipmath(0) }}"
+              port: "80"
+        dnat_lines: []
+    
+    # Build list of rules to apply from NAT table
+    - set_fact: 
+        dnat_lines: |
+          {{ dnat_lines }} + [
+            'set nat destination rule {{ dnat_base + 1 + item }} destination address {{ dnat[item].destination.address }}',
+            'set nat destination rule {{ dnat_base + 1 + item }} destination port {{ dnat[item].destination.port }}',
+            'set nat destination rule {{ dnat_base + 1 + item }} translation address {{ dnat[item].translation.port }}',
+            'set nat destination rule {{ dnat_base + 1 + item }} inbound-interface eth0.10'
+          ]
+      loop: "{{ range(0, len(dnat)) | list }}"
+    - debug:
+        msg: "{{ dnat_lines }}"
+
+    # - name: "Provision router"
+    #   vyos_config:
+    #     - lines: 
+    #   loop: "{{ range(nat_rule_base+1, nat_rule_base+1+nat_rule_count)|list }}"
+  vars_files:
+    - vars/network.yml
+
+# - name: "Provision router"
+#   hosts: router
+#   tasks:
+# 
