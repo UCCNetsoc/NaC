@@ -16,12 +16,12 @@ idmap: |
   GSS-Methods = static,nsswitch
 
   [Static]
-  nfs/manager0.docker.vm.netsoc.co@VM.NETSOC.CO = root
-  nfs/manager1.docker.vm.netsoc.co@VM.NETSOC.CO = root
-  nfs/manager2.docker.vm.netsoc.co@VM.NETSOC.CO = root
-  nfs/manager3.docker.vm.netsoc.co@VM.NETSOC.CO = root
-  nfs/manager4.docker.vm.netsoc.co@VM.NETSOC.CO = root
-  nfs/worker0.docker.vm.netsoc.co@VM.NETSOC.CO  = root
-  nfs/worker1.docker.vm.netsoc.co@VM.NETSOC.CO  = root
-  nfs/worker2.docker.vm.netsoc.co@VM.NETSOC.CO  = root
-  nfs/worker3.docker.vm.netsoc.co@VM.NETSOC.CO  = root
+  nfs/manager0.vm.netsoc.co@VM.NETSOC.CO = root
+  nfs/manager1.vm.netsoc.co@VM.NETSOC.CO = root
+  nfs/manager2.vm.netsoc.co@VM.NETSOC.CO = root
+  nfs/manager3.vm.netsoc.co@VM.NETSOC.CO = root
+  nfs/manager4.vm.netsoc.co@VM.NETSOC.CO = root
+  nfs/worker0.vm.netsoc.co@VM.NETSOC.CO  = root
+  nfs/worker1.vm.netsoc.co@VM.NETSOC.CO  = root
+  nfs/worker2.vm.netsoc.co@VM.NETSOC.CO  = root
+  nfs/worker3.vm.netsoc.co@VM.NETSOC.CO  = root
