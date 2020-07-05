@@ -1,3 +1,2 @@
-cloudflare_api_email: "{{ vault_cloudflare_api_email }}"
-cloudflare_api_key: "{{ vault_cloudflare_api_key }}"
-cloudflare_dns_api_token: "{{ vault_cloudflare_dns_api_token }}"
+
+cloudflare: "{{ vault_cloudflare }}"
