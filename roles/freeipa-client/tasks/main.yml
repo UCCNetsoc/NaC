@@ -9,29 +9,41 @@
     state: latest
     update_cache: yes
 
-- name: "Unenroll if possible"
+- name: "Check enrollment status"
   become: yes
-  raw: echo "no" | ipa-client-install --uninstall
-  ignore_errors: yes
+  shell: |
+    cat /etc/ipa/default.conf | grep "^server = {{ freeipa.server }}$" && echo false
+  register: result
+  ignore_errors: true
+
+- name: "Unenroll from enrolled server"
+  become: yes
+  shell: ipa-client-install --uninstall
+  when: "'rc' in result and result.rc != 0"
+  ignore_errors: true
 
 - name: "Enroll server as a FreeIPA client"
   become: yes
   command: >
     ipa-client-install
     --unattended
-    --server {{ server_hostname }}
-    --domain {{ domain }}
-    --realm {{ realm }}
-    --hostname {{ client_hostname }}
+    --server {{ freeipa.server }}
+    --domain {{ freeipa.domain }}
+    --realm {{ freeipa.realm }}
+    --hostname {{ ansible_fqdn }}
     --principal admin
-    --password {{ admin_password }}
-    --ip-address {{ client_ip_address }}
+    --password {{ freeipa.admin_password }}
+    --ip-address {{ client.addresses | join('--ip-address ') }}
     --force-join
     --ssh-trust-dns
-  register: result
+  register: result2
+  when: "'rc' in result and result.rc != 0"
 
-- debug: msg="{{ result.stdout }}"
-- debug: msg="{{ result.stderr }}"
+- debug: msg="{{ result2.stdout }}"
+  when: "'rc' in result and result.rc != 0"
+
+- debug: msg="{{ result2.stderr }}"
+  when: "'rc' in result and result.rc != 0"
 
 - name: "Update nsswitch.conf to use Files, SSSD for auth"
   become: yes
@@ -52,4 +64,5 @@
 
       netgroup:       nis   sss
       sudoers:        files sss
+      automount:      files
     dest: "/etc/nsswitch.conf"
