@@ -1,6 +1,0 @@
-
-- import_playbook: backplane.yml
-- import_playbook: template-netsoc-ubuntu-server.yml
-- import_playbook: create-auth.yml
-- import_playbook: create-nfs.yml
-- import_playbook: create-docker-nodes.yml
