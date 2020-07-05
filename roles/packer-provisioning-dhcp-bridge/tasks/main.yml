@@ -13,7 +13,7 @@
 
 - name: Insert bridge into /etc/network/interfaces.d
   copy:
-    path: /etc/network/interface.d/01-packer-provisioning-dhcp-bridge
+    path: /etc/network/interfaces.d/01-packer-provisioning-dhcp-bridge
     content: |
       # Packer provisioning subnetwork
       auto {{ bridge_interface }}
@@ -21,7 +21,7 @@
 
       address {{ bridge_address }}
       netmask {{ bridge_netmask }}
-      bridge_ports none"
+      bridge_ports none
       bridge_stp off
       bridge_fd 0
       post-up echo 1 > /proc/sys/net/ipv4/ip_forward
