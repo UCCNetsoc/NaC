@@ -1,6 +1,4 @@
-proxmox_api_url: "https://localhost:8006/api2/json"
-proxmox_username: "root@pam"
-proxmox_node: "{{ inventory_hostname }}"
+proxmox_api_url: "https://{{ build_host }}:8006/api2/json"
+proxmox_node: "{{ build_host }}"
 http_bind_address: "10.0.100.1"
-cloudinit: no
-packer_vars:
+cloudinit: yes

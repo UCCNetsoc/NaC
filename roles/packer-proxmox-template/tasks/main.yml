@@ -1,34 +1,34 @@
 
-- name: Provisioning Host - Ensure dnsmasq/dhcp running
+- name: Build Host - Ensure dnsmasq/dhcp running
   become: yes
   service:
     name: dnsmasq
     state: started
-  when: "inventory_hostname == provisioning_host"
+  when: "inventory_hostname == build_host"
 
-- name: Provisioning Host - Ensure provisioning directory on server
+- name: Build Host - Ensure pacer directory on server
   become: yes
   file:
-    path: /root/NaC/packer
+    path: /tmp/NaC/packer
     state: directory
     mode: '0700'
-  when: "inventory_hostname == provisioning_host"
+  when: "inventory_hostname == build_host"
 
-- name: Provisioning Host - Ensure provision directory files copied to server
+- name: Build Host - Ensure packer directory files copied to server
   become: yes
   synchronize:
-    src: "./{{ provisioning_directory }}"
-    dest: "/root/NaC/packer/."
-  when: "inventory_hostname == provisioning_host"
+    src: "./{{ build_directory }}"
+    dest: "/tmp/NaC/packer/."
+  when: "inventory_hostname == build_host"
 
-- name: Provisioning Host - Ensure any templates in the root of the provisioning directory are templated
+- name: Build Host - Ensure any templates in the root of the packer directory are templated
   become: yes
   template:
     src: "{{ item }}"
-    dest: "/root/NaC/{{ provisioning_directory }}/{{ item | basename | regex_replace('\\.j2', '') }}"
+    dest: "/tmp/NaC/{{ build_directory }}/{{ item | basename | regex_replace('\\.j2', '') }}"
   with_fileglob:
-    - "./{{ provisioning_directory }}/*.j2"
-  when: "inventory_hostname == provisioning_host"
+    - "./{{ build_directory }}/*.j2"
+  when: "inventory_hostname == build_host"
 
 # We need to start a HTTP server that serves any provisoning files
 # The reason we do this rather than rely on Packer's HTTP server
@@ -36,16 +36,16 @@
 # Packer's HTTP server picks the first IP to bind from and this would typically be on 
 # the main network. We want to use an internal network isntead
 # Generate port
-- name: Provisioning Host - Generate HTTP server port
+- name: Build Host - Generate HTTP server port
   set_fact:
     http_port: "{{ range(35000, 65355) | random }}"
-  when: "inventory_hostname == provisioning_host"
+  when: "inventory_hostname == build_host"
 
-- name: Provisioning Host - Fork Python HTTP server in local directory"
+- name: Build Host - Fork Python HTTP server in local directory"
   become: yes
-  raw:  nohup bash -c 'python3 -m http.server {{ http_port }} --bind {{ http_bind_address }} -d /root/NaC/{{ provisioning_directory }} >/dev/null 2>&1 &'
+  raw:  nohup bash -c 'python3 -m http.server {{ http_port }} --bind {{ http_bind_address }} -d /tmp/NaC/{{ build_directory }} >/dev/null 2>&1 &'
   register: http_pid_result
-  when: "inventory_hostname == provisioning_host"
+  when: "inventory_hostname == build_host"
 
 # Because packer doesn't yet support ceph/rbd we need to generate a template on every Proxmox host
 # If two packers execute at the exact same time, they will both retrieve the same id to create the disk
@@ -62,62 +62,62 @@
 # We pass in template name (for the respective proxmox host),
 # HTTP server and port
 # Proxmox creds
-- name: Provisioning Host - Build Packer arguments
+- name: Build Host - Build Packer arguments
   set_fact:
-    packer_vars_argument: " "
-  when: "inventory_hostname == provisioning_host"
+    packer_arguments: " "
+  when: "inventory_hostname == build_host"
 
-- name: Provisioning Host - Build Packer arguments
+- name: Build Host - Build Packer arguments
   set_fact:
-    packer_vars_argument: "{{ packer_vars_argument }} -var 'vm_id={{ vm_id_generated }}' "
-  when: "inventory_hostname == provisioning_host"
+    packer_arguments: "{{ packer_arguments }} -var 'vm_id={{ vm_id_generated }}' "
+  when: "inventory_hostname == build_host"
 
-- name: Provisioning Host - Build Packer arguments
+- name: Build Host - Build Packer arguments
   set_fact:
-    packer_vars_argument: "{{ packer_vars_argument }} -var 'vm_name=packer-{{ template_name }}-{{ inventory_hostname }}' "
-  when: "inventory_hostname == provisioning_host"
+    packer_arguments: "{{ packer_arguments }} -var 'vm_name=packer-{{ template_name }}-{{ inventory_hostname }}' "
+  when: "inventory_hostname == build_host"
 
-- name: Provisioning Host - Build Packer arguments
+- name: Build Host - Build Packer arguments
   set_fact:
-    packer_vars_argument: "{{ packer_vars_argument }} -var 'template_name={{ template_name }}-{{ inventory_hostname }}' "
-  when: "inventory_hostname == provisioning_host"
+    packer_arguments: "{{ packer_arguments }} -var 'template_name={{ template_name }}-{{ inventory_hostname }}' "
+  when: "inventory_hostname == build_host"
     
-- name: Provisioning Host - Build Packer arguments
+- name: Build Host - Build Packer arguments
   set_fact:
-    packer_vars_argument: "{{ packer_vars_argument }} -var 'http_base_url=http://{{ http_bind_address }}:{{ http_port }}' "
-  when: "inventory_hostname == provisioning_host"
+    packer_arguments: "{{ packer_arguments }} -var 'http_base_url=http://{{ http_bind_address }}:{{ http_port }}' "
+  when: "inventory_hostname == build_host"
   
-- name: Provisioning Host - Build Packer arguments
+- name: Build Host - Build Packer arguments
   set_fact:
-    packer_vars_argument: "{{ packer_vars_argument}}  -var 'proxmox_api_url={{ proxmox_api_url }}' "
-  when: "inventory_hostname == provisioning_host"
+    packer_arguments: "{{ packer_arguments }}  -var 'proxmox_api_url={{ proxmox_api_url }}' "
+  when: "inventory_hostname == build_host"
 
-- name: Provisioning Host - Build Packer arguments
+- name: Build Host - Build Packer arguments
   set_fact:
-    packer_vars_argument: "{{ packer_vars_argument}}  -var 'proxmox_username={{ proxmox_username }}' "
-  when: "inventory_hostname == provisioning_host"
+    packer_arguments: "{{ packer_arguments }}  -var 'proxmox_username={{ proxmox.username }}' "
+  when: "inventory_hostname == build_host"
 
-- name: Provisioning Host - Build Packer arguments
+- name: Build Host - Build Packer arguments
   set_fact:
-    packer_vars_argument: "{{ packer_vars_argument}}  -var 'proxmox_password={{ proxmox_password }}' "
-  when: "inventory_hostname == provisioning_host"
+    packer_arguments: "{{ packer_arguments }}  -var 'proxmox_password={{ proxmox.password }}' "
+  when: "inventory_hostname == build_host"
 
-- name: Provisioning Host - Build Packer arguments
+- name: Build Host - Build Packer arguments
   set_fact:
-    packer_vars_argument: "{{ packer_vars_argument}}  -var 'proxmox_node={{ proxmox_node }}' "
-  when: "inventory_hostname == provisioning_host"
+    packer_arguments: "{{ packer_arguments }}  -var 'proxmox_node={{ proxmox_node }}' "
+  when: "inventory_hostname == build_host"
 
-# Then add any vars they passed in packer_vars
-- name: Provisioning Host - Build Packer arguments
+# Then add any vars they passed in packer
+- name: Build Host - Build Packer arguments
   set_fact:
-    packer_vars_argument: "{{ packer_vars_argument }} -var '{{ item.key }}={{ item.value }}' "
-  loop: "{{ packer_vars | dict2items }}"
-  when: "packer_vars is defined and inventory_hostname == provisioning_host"
+    packer_arguments: "{{ packer_arguments }} -var '{{ item.key }}={{ item.value }}' "
+  loop: "{{ packer | dict2items }}"
+  when: "packer is defined and inventory_hostname == build_host"
 
 - name: Provisioning & Cluster Hosts - Remove a previous template if it exists
   proxmox_kvm:
-    api_user: "{{ proxmox_username }}"
-    api_password: "{{ proxmox_password }}"
+    api_user: "{{ proxmox.username }}"
+    api_password: "{{ proxmox.password }}"
     api_host: "{{ proxmox_node }}"
     name: "{{ template_name }}-{{ inventory_hostname }}"
     state: absent
@@ -125,8 +125,8 @@
 
 - name: Provisioning & Cluster Hosts - Stop a previous building template if it exists
   proxmox_kvm:
-    api_user: "{{ proxmox_username }}"
-    api_password: "{{ proxmox_password }}"
+    api_user: "{{ proxmox.username }}"
+    api_password: "{{ proxmox.password }}"
     api_host: "{{ proxmox_node }}"
     name: "packer-{{ template_name }}-{{ inventory_hostname }}"
     state: stopped
@@ -135,62 +135,56 @@
 
 - name: Provisioning & Cluster Hosts - Remove a previous building template if it exists
   proxmox_kvm:
-    api_user: "{{ proxmox_username }}"
-    api_password: "{{ proxmox_password }}"
+    api_user: "{{ proxmox.username }}"
+    api_password: "{{ proxmox.password }}"
     api_host: "{{ proxmox_node }}"
     name: "packer-{{ template_name }}-{{ inventory_hostname }}"
     state: absent
   ignore_errors: true
 
 
-- name: Provisioning Host - Call packer
+- name: Build Host - Call packer
   become: yes
   command:
-    chdir: "/root/NaC/{{ provisioning_directory }}"
-    cmd: "packer build {{ packer_vars_argument }} packer.json"
+    chdir: "/tmp/NaC/{{ build_directory }}"
+    cmd: "packer build {{ packer_arguments }} packer.json"
   register: io
-  when: "inventory_hostname == provisioning_host"
+  when: "inventory_hostname == build_host"
 
-- name: Provisioning Host - Kill HTTP server
+- name: Build Host - Kill HTTP server
   shell: kill -9 `lsof -wni tcp:{{ http_port }} | tail -n +2 | cut -d' ' -f 2`
-  when: "inventory_hostname == provisioning_host"
+  when: "inventory_hostname == build_host"
 
 - debug:
     msg: "{{ io.stdout.split('\n') }}"
-  when: "inventory_hostname == provisioning_host"
+  when: "inventory_hostname == build_host"
 
 - debug:
     msg: "{{ io.stderr.split('\n') }}"
-  when: "inventory_hostname == provisioning_host"
+  when: "inventory_hostname == build_host"
 
 # We need to get the VM id from the list, if there was a collision with the ID we generated it uses the next free one
-- name: Provisioning Host - Get created Packer VM ID
+- name: Build Host - Get created Packer VM ID
   raw: qm list | tail -n +2 | awk '{ if($2=="{{ template_name }}-{{ inventory_hostname }}") print $1 }'
   register: vm_id_result
-  when: "inventory_hostname == provisioning_host"
+  when: "inventory_hostname == build_host"
 
 - set_fact:
     vm_id: "{{ vm_id_result.stdout | trim }}" 
-  when: "inventory_hostname == provisioning_host"
+  when: "inventory_hostname == build_host"
 
-- name: Provisioning Host - Add Cloud-Init drive to the template (not handled by packer yet)
-  become: yes
-  command:
-    cmd: qm set {{ vm_id }} --ide2 local-lvm:cloudinit
-  when: "cloudinit and inventory_hostname == provisioning_host"
-
-- name: Provisioning Host - Add serial console to created VM (not handled by packer yet)
+- name: Build Host - Add serial console to created VM (not handled by packer yet)
   become: yes
   command:
     cmd: qm set {{ vm_id }} -serial0 socket
-  when: "inventory_hostname == provisioning_host"
+  when: "inventory_hostname == build_host"
 
 - name: All Hosts - Make template vzdump location
   become: yes
   file:
     path: "/tmp/packer-proxmox-template-{{ vm_id }}"
     state: absent
-  when: "inventory_hostname == provisioning_host"
+  when: "inventory_hostname == build_host"
    
 - name: All Hosts - Make template vzdump location
   become: yes
@@ -200,53 +194,53 @@
     owner: root
     group: root
     mode: '0755'
-  when: "inventory_hostname == provisioning_host"
+  when: "inventory_hostname == build_host"
    
-- name: Provisioning Host - VZDump the created template
+- name: Build Host - VZDump the created template
   shell: "vzdump {{ vm_id }} --dumpdir /tmp/packer-proxmox-template-{{ vm_id }}"
-  when: "inventory_hostname == provisioning_host"
+  when: "inventory_hostname == build_host"
 
-- name: Provisioning Host - Rename dump file from timestamp generated to known file 
+- name: Build Host - Rename dump file from timestamp generated to known file 
   shell: "mv /tmp/packer-proxmox-template-{{ vm_id }}/*.vma /tmp/packer-proxmox-template-{{ vm_id }}/vm.vma"
-  when: "inventory_hostname == provisioning_host"
+  when: "inventory_hostname == build_host"
 
-- name: Cluster Hosts - Pull the VZDump from the Provisioning Host - Create Dir
+- name: Cluster Hosts - Pull the VZDump from the Build Host - Create Dir
   file: 
     path: "/tmp/packer-proxmox-template-{{ hostvars[item]['vm_id_generated'] }}/"
     state: directory
   delegate_to: "{{ item }}"
   with_items: "{{ ansible_play_hosts | select('ne', inventory_hostname) | list }}"
-  when: "inventory_hostname == provisioning_host"
+  when: "inventory_hostname == build_host"
 
 # Copy the VZDump from the provisioning host into a directory on each of the cluster hosts with the id changed to it's generated one
-- name: Cluster Hosts - Pull the VZDump from the Provisioning Host 
+- name: Cluster Hosts - Pull the VZDump from the Build Host 
   synchronize: 
-    src: "/tmp/packer-proxmox-template-{{ hostvars[provisioning_host]['vm_id'] }}/vm.vma"
+    src: "/tmp/packer-proxmox-template-{{ hostvars[build_host]['vm_id'] }}/vm.vma"
     dest: "/tmp/packer-proxmox-template-{{ hostvars[item]['vm_id_generated'] }}/vm.vma"
     mode: pull
   delegate_to: "{{ item }}"
   with_items: "{{ ansible_play_hosts | select('ne', inventory_hostname) | list }}"
-  when: "inventory_hostname == provisioning_host"
+  when: "inventory_hostname == build_host"
 
 - name: Cluster Hosts - Restore VZDump on the server, creating the template
   shell: >
     qmrestore
     /tmp/packer-proxmox-template-{{ vm_id_generated }}/vm.vma
     {{ vm_id_generated }}
-  when: "inventory_hostname != provisioning_host"
+  when: "inventory_hostname != build_host"
   
 # The VM we restore will have the template name + the hostname of the provisioning host
 # We need to rename this to the template name + the hostname of the cluster host or conflicts will occur
 
 # Get ID of VM we stored
 - name: Cluster Hosts - Get restored VZDump VM ID
-  raw: qm list | tail -n +2 | awk '{ if($2=="{{ template_name }}-{{ provisioning_host }}") print $1 }'
+  raw: qm list | tail -n +2 | awk '{ if($2=="{{ template_name }}-{{ build_host }}") print $1 }'
   register: restored_vm_id_result
-  when: "inventory_hostname != provisioning_host"
+  when: "inventory_hostname != build_host"
 
 - set_fact:
     restored_vm_id: "{{ restored_vm_id_result.stdout | trim }}" 
-  when: "inventory_hostname != provisioning_host"
+  when: "inventory_hostname != build_host"
 
 # Rename VM
 
@@ -254,17 +248,17 @@
   shell: >
     qm set {{ restored_vm_id }} 
     --name "{{ template_name }}-{{ inventory_hostname }}"
-  when: "inventory_hostname != provisioning_host"
+  when: "inventory_hostname != build_host"
 
-- name: Provisioning Hosts - Delete template vzdump location
+- name: Build Hosts - Delete template vzdump location
   become: yes
   file:
-    path: "/tmp/packer-proxmox-template-{{ hostvars[provisioning_host]['vm_id'] }}"
+    path: "/tmp/packer-proxmox-template-{{ hostvars[build_host]['vm_id'] }}"
     state: absent
 
 - name: Cluster Hosts - Delete template vzdump location
   become: yes
   file:
-    path: "/tmp/packer-proxmox-template-{{ hostvars[provisioning_host]['vm_id_generated'] }}"
+    path: "/tmp/packer-proxmox-template-{{ hostvars[build_host]['vm_id_generated'] }}"
     state: absent
-  when: "inventory_hostname != provisioning_host"
+  when: "inventory_hostname != build_host"
