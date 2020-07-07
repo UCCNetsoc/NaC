@@ -1,29 +1,30 @@
----
-
-- name: "Ensure NFS"
+- name: "Ensure NFS server"
   hosts: lovelace
   roles:
     - role: proxmox-infra-cloudinit-vm
       vars:
         vm:
           name: "nfs.vm.netsoc.co"
-          protection: yes
           clone: "netsoc-ubuntu-server-{{ inventory_hostname }}"
-          timeout: 300
-          description: |
+          net:
+            net0: "virtio,bridge=vmbr0,tag=30"
+          disks:
+            virtio0:
+              resize: "20G"
+            virtio1:
+              pool: local-lvm
+              definition: "50,format=raw"
+          cores: 4
+          memory: 2048
+          description:
             groups:
               - vm
               - nfs
-            vars:
-              ansible_ssh_private_key_file: "/root/NaC-repo/keys/nfs/id_rsa"
-          net:
-            net0: "virtio,bridge=vmbr0,tag=30"
-          additional_disks:
-            virtio1: "local-lvm:25,format=raw"
-          cores: 4
-          memory: 4096
+              - ipaclients
+            host_vars:
+              ansible_ssh_private_key_file: "./keys/nfs/id_rsa"
         cloudinit:
-          metadata: ""
+          drive_device: ide2
           userdata: |
             #cloud-config
             users:
@@ -32,27 +33,17 @@
                 primary_group: netsoc
                 sudo: ALL=(ALL) NOPASSWD:ALL
                 ssh_authorized_keys:
-                  - {{ ssh_key_sig }}
+                  - {{ lookup('file', './keys/nfs/id_rsa.pub') }}
             preserve_hostname: false
             manage_etc_hosts: true
             fqdn: nfs.vm.netsoc.co
-          networkconfig: |
+          networkconfig: 
             version: 2
             ethernets:
-              30a:
-                match:
-                  name: ens18
-                addresses:
-                  - {{ ip_allocation.nfs }}
-                gateway4: 10.0.30.1
-                nameservers:
-                  search: {{ ip_allocation.search }}
-                  addresses: {{ ip_allocation.nameservers }}
-        wait_for_ssh: "{{ ip_allocation.nfs }}"
-  vars:
-    ssh_key_sig: "{{ lookup('file', './keys/nfs/id_rsa.pub') }}"
+              ens18: "{{ interfaces.nfs.net0 }}"
+        wait_for_ssh_ip: "{{ interfaces.nfs.net0.addresses[0] }}"
   vars_files:
-    - vars/ip_allocation.yml
+    - vars/network.yml
     - vars/proxmox.yml
     - vars/secrets.yml
 
@@ -61,5 +52,3 @@
   connection: local
   tasks:
     - meta: refresh_inventory
-
-- import_playbook: provision-nfs.yml
