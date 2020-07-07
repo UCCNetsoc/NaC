@@ -14,21 +14,21 @@
   become: yes
   shell: |
     #!/bin/bash
-    echo '{{ freeipa_admin_password }}' | kinit admin -l 0h1m
+    echo '{{ freeipa.admin_password }}' | kinit admin -l 0h1m
 
     if [ $? -eq 1 ]; then
       echo "Invalid IPA password"
       exit 1;
     fi
 
-    (echo 'nfs/{{ inventory_hostname }}' | ipa service-show) 
+    (echo 'nfs/{{ ansible_fqdn }}' | ipa service-show) 
 
     if [ $? -ne 0 ]; then
-      echo "Could not find service nfs/{{ inventory_hostname }}, adding as a service"
-      ipa service-add 'nfs/{{ inventory_hostname }}'
+      echo "Could not find service nfs/{{ ansible_fqdn }}, adding as a service"
+      ipa service-add 'nfs/{{ ansible_fqdn }}'
     fi 
 
-    ipa-getkeytab -s {{ freeipa_server }} -p nfs/{{ inventory_hostname }} -k /etc/krb5.keytab
+    ipa-getkeytab -s {{ freeipa.server }} -p nfs/{{ ansible_fqdn }} -k /etc/krb5.keytab
   args:
     executable: /bin/bash
   register: result
@@ -44,7 +44,7 @@
   ignore_errors: yes
   register: result
 
-- name: "Setup idmap.conf"
+- name: "Setup idmapd.conf"
   become: yes
   copy:
     content: "{{ idmap }}"
@@ -60,14 +60,14 @@
   service:
     name: rpcbind
     enabled: yes
-    state: started
+    state: restarted
 
 - name: Enable service rpc-gssd
   become: yes
   service:
     name: rpc-gssd
     enabled: yes
-    state: started
+    state: restarted
   ignore_errors: yes
 
 - name: Enable service rpc-gssd
@@ -75,4 +75,4 @@
   service:
     name: nfs-client.target
     enabled: yes
-    state: started
+    state: restarted
