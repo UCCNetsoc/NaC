@@ -6,13 +6,20 @@
       register: zpool_result 
   rescue:
     - command:
-        cmd: "zpool create -o autoexpand=on {{ pool }} {{ device }} -m {{ mount_path }}"
+        cmd: "zpool create -o autoexpand=on {{ pool }} {{ device }} -m {{ mount }}"
 
 - name: "Create zfs {{ item }} in {{ pool }}"
   become: yes
   zfs:
     name: "{{ pool }}/{{ item }}"
     state: present
+  with_items: "{{ fs }}"
+
+- name: "755 {{ item }} in {{ pool }}"
+  become: yes
+  file:
+    name: "/{{ pool }}/{{ item }}"
+    mode: 0755
   with_items: "{{ fs }}"
 
 - name: "Configure intervals for zfs-auto-snapshot"
