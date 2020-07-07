@@ -6,20 +6,20 @@
 - become: yes
   lineinfile:
     path: /etc/auto.master
-    regexp: "^{{ path }}"
-    line: "/-  /etc/auto.{{ range(0, 500000000) | random(seed=path) }} --timeout 60"
+    regexp: "^{{ mount }}"
+    line: "/-  /etc/auto.{{ range(0, 500000000) | random(seed=mount) }} --timeout 60"
 
 
 # https://andrewaadland.me/2017-06-18-autofs-nfs-and-archlinux-key-not-found-in-map-sources/
 - become: yes
   copy:
     content: |
-      {{ path }}  -{{ opts }} {{ src }}
-    dest: "/etc/auto.{{ range(0, 500000000) | random(seed=path) }}"
+      {{ mount }}  -{{ opts }} {{ src }}
+    dest: "/etc/auto.{{ range(0, 500000000) | random(seed=mount) }}"
 
 - name: Enable and restart service autofs
   become: yes
   service:
     name: autofs
     enabled: yes
-    state: started
+    state: restarted
