@@ -6,4 +6,4 @@
     - kibana
   vars_files:
     - vars/logging.yml
-    - vars/secrets.yml
+    - vars/secrets_legacy.yml

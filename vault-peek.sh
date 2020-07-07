@@ -1,5 +1,5 @@
 #!/bin/bash
 editor=$EDITOR
-export EDITOR=less
+export EDITOR=cat
 ansible-vault edit vars/secrets.yml
 export EDITOR=$editor

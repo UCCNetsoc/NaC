@@ -23,13 +23,13 @@ leela
 
 
 feynman-vm
-lovelace-vm
+lovelace_vm
 
 [non_sudo]
 boole
 bigbertha
 leela
-lovelace-vm
+lovelace_vm
 
 [swarm_creators]
 boole
@@ -37,7 +37,7 @@ boole
 [swarm_managers]
 boole
 bigbertha
-lovelace-vm
+lovelace_vm
 
 [swarm_workers]
 leela
@@ -49,14 +49,14 @@ bigbertha
 boole
 bigbertha
 leela
-lovelace-vm
+lovelace_vm
 
 [prometheus_docker]
 boole
 bigbertha
 leela
-lovelace-vm
+lovelace_vm
 
 [prometheus_apache]
 leela
-lovelace-vm
+lovelace_vm

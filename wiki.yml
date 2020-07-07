@@ -4,5 +4,5 @@
   roles:
   - wiki.netsoc.co
   vars_files:
-    - vars/mysql_server.yml
-    - vars/secrets.yml
+    - vars/mysql_server_legacy.yml
+    - vars/secrets_legacy.yml

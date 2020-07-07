@@ -1,6 +1,6 @@
 ---
 - name: Ensure Minecraft Servers
-  hosts: lovelace
+  hosts: lovelace_vm
   roles:
     - minecraft
   

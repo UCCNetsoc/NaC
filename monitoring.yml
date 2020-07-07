@@ -3,7 +3,7 @@
   hosts: prometheus_hosts
   vars_files:
     - vars/monitoring.yml
-    - vars/secrets.yml
+    - vars/secrets_legacy.yml
   roles:
     - grafana
     #- prometheus-server

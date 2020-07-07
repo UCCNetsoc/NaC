@@ -78,7 +78,7 @@
 - name: "Ensure Traefik loadbalancer running"
   hosts: docker_swarm_managers
   roles:
-    - role: traefik
+    - role: traefik-proxmox
       vars:
         mount: "/nfs/docker/traefik"
         dashboard_domain: traefik.netsoc.co

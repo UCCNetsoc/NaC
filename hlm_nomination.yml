@@ -5,4 +5,4 @@
     - hlm.netsoc.co
   vars_files:
     - vars/email.yml
-    - vars/secrets.yml
+    - vars/secrets_legacy.yml
