@@ -1,3 +1,6 @@
 keys/*
 bin/
 lib/
+*.retry
+keys/
+production

@@ -1,0 +1,8 @@
+---
+- name: Ensure Netsoc Admin
+  hosts: bigbertha
+  roles:
+    - netsocadmin2
+  vars_files:
+    - vars/docker_registry.yml  # traefik certs
+    - vars/secrets.yml

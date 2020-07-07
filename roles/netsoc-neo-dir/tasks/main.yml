@@ -1,0 +1,70 @@
+---
+- name: "Create netsoc-neo directory"
+  become: yes
+  file:
+    path: /netsoc-neo/
+    mode: 0770 
+    owner: root
+    group: root
+    state: directory
+
+- name: "Create /netsoc-neo/docker-data directory"
+  become: yes
+  file:
+    path: /netsoc-neo/docker-data
+    mode: 0770 
+    owner: root
+    group: root
+    state: directory
+
+- name: "Create /netsoc-neo/certs directory"
+  become: yes
+  file:
+    path: /netsoc-neo/certs
+    mode: 0770 
+    owner: root
+    group: root
+    state: directory
+
+
+- name: "Create directories for files/all/*/** to all hosts, files/<hostname>/**/* for each host"
+  become: yes
+  file:
+    state: directory
+    dest: /netsoc-neo/{{ item.path }}
+    mode: "{{ item.mode }}"
+    owner: root
+    group: root
+  with_filetree: 
+    - files/all
+    - files/{{ inventory_hostname }}
+  when: item.state == "directory"
+  # all folder + each hostname
+    
+- name: "Copy files for files/all/*/** to all hosts, files/<hostname>/**/* for each host"
+  become: yes
+  copy:
+    src: "{{ item.src }}"
+    dest: "/netsoc-neo/{{ item.path }}"
+    owner: root
+    group: root
+    mode: "{{ item.mode }}"
+    backup: yes
+  with_filetree:
+    - files/all
+    - files/{{ inventory_hostname }}/
+  when: item.state == "file"
+
+# Copies the symlinks
+# - name: "Copy symlinks for files/all/*/** to all hosts, files/<hostname>/**/* for each host (respects permissions)"
+#   file:
+#     src: /{{ item.src }}
+#     dest: /{{ item.path }}
+#     state: link
+#     mode: "{{ item.mode }}"
+#     force: yes
+#     follow: false
+#   with_filetree:
+#     - files/all
+#     - files/{{ inventory_hostname }}/
+#   when: item.state == "link"

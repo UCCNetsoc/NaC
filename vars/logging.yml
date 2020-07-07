@@ -1,0 +1,2 @@
+elasticsearch_basic_auth: "{{ vault_es_basic_auth }}"
+kibana_basic_auth: "{{ vault_kibana_basic_auth }}"

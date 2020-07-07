@@ -1,0 +1,11 @@
+netsocbot_discord_token: '{{ vault_netsocbot_discord_token }}'
+netsocbot_twitter_key: '{{ vault_netsocbot_twitter_key }}'
+netsocbot_twitter_secret: '{{ vault_netsocbot_twitter_secret }}'
+netsocbot_twitter_access_key: '{{ vault_netsocbot_twitter_access_key }}'
+netsocbot_twitter_access_secret: '{{ vault_netsocbot_twitter_access_secret }}'
+
+public_announcements: '494539080885993472'
+private_events: '702594452367212544'
+public_general: '248421213628530688'
+public_server: '248421213628530688'
+committee_server: '684741641944170514'

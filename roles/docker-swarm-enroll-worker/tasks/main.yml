@@ -1,5 +1,4 @@
 ---
-
 # Skipped if swarm exists
 - name: "Ensure this host enrolled as worker"
   become: yes

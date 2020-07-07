@@ -1,0 +1,22 @@
+---
+- name: Ensure Consul settings set
+  hosts: swarm_creators
+  vars_files:
+    - vars/netsocbot.yml
+    - vars/consul.yml
+    - vars/secrets.yml
+  tasks:
+    - include: roles/netsocbot/tasks/consul_conf.yml
+  tags:
+    - consul
+
+- name: Deploy Netsoc Discord Bot
+  hosts: swarm_creators
+  vars_files:
+    - vars/netsocbot.yml
+    - vars/email.yml
+    - vars/secrets.yml
+  roles: 
+    - netsocbot
+  tags:
+    - bot
