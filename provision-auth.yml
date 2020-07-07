@@ -2,10 +2,15 @@
   become: yes
   tasks:
     # Because the Auth server also hosts the FreeIPA DNS server
-    # We configured it in create-auth.yml with cloudinit to use itself as it's DNS server
+    # We configured it in create-auth.yml with cloudinit network config to use itself as it's DNS server
     # However we haven't created the FreeIPA installation yet so we need to use a temporary nameserver
     - shell: |
-        systemctl stop systemd-resolved && cat /etc/resolv.conf | sed -e "s/nameserver 127.0.0.53/nameserver 1.1.1.1/" | tee /etc/resolv.conf
+        systemctl stop systemd-resolved
+        systemctl disable systemd-resolved
+    - copy:
+        content: |
+          nameserver 1.1.1.1
+        dest: /etc/resolv.conf
 
 - name: "Ensure IPA server disk mounted and IPA server created"
   hosts: auth
@@ -16,42 +21,51 @@
         device: "/dev/vdb"
         partition_size: "100%"
         fstype: "ext4"
-        mount_path: "/mnt/auth-data-disk"
+        mount_path: "/mnt/data-disk"
         mount_opts: "rw"
     - role: freeipa-server-docker
       vars:
-        ip: "{{ ansible_ens18.ipv4.address }}"
-        mount: "/mnt/auth-data-disk"
-        realm: VM.NETSOC.CO
-        domain: vm.netsoc.co
-        server_hostname: ipa.vm.netsoc.co
-        ds_password: "{{ freeipa_ds_password }}"
-        admin_password: "{{ freeipa_admin_password }}"
+        mount:             "/mnt/data-disk/freeipa"
+        interface_address: "{{ interfaces.auth.net0.addresses[0] }}"
   vars_files:
-    - "vars/ip_allocation.yml"
     - "vars/freeipa.yml"
+    - "vars/network.yml"
     - "vars/secrets.yml"
 
 - hosts: auth
   become: yes
   tasks:
-    # Restore DNS
-    - shell: |
-        systemctl restart systemd-resolved
-
+    # Restore DNS to point at FreeIcaPA localhost DNS
+    # allows cloud-init to remain working 
+   - copy:
+        content: |
+          nameserver {{ interfaces.auth.net0.addresses[0] | ipmath(0) }}
+        dest: /etc/resolv.conf
+  vars_files:
+    - "vars/network.yml"
 
 - name: "Enroll in IPA server"
   hosts: auth 
   roles:
     - role: freeipa-client
       vars:
-        realm: VM.NETSOC.CO
-        domain: vm.netsoc.co
-        server_hostname: ipa.vm.netsoc.co
-        client_hostname: auth.vm.netsoc.co
-        client_ip_address: "{{ ansible_ens19.ipv4.address }}"
-        ds_password: "{{ freeipa_ds_password }}"
-        admin_password: "{{ freeipa_admin_password }}"
+        client:
+          addresses: 
+            - "{{ ansible_default_ipv4.address }}"
   vars_files:
+    - "vars/freeipa.yml"
+    - "vars/network.yml"
+    - "vars/secrets.yml"
+
+- name: "Setup Keycloak"
+  hosts: auth
+  roles:
+    - role: keycloak-docker
+      vars:
+        mount: "/mnt/data-disk/keycloak"
+        realm: "{{ keycloak_freeipa_realm }}"
+  vars_files:
+    - "vars/keycloak.yml"
+    - "vars/keycloak_freeipa_realm.yml"
     - "vars/freeipa.yml"
     - "vars/secrets.yml"
