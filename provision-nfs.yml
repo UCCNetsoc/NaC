@@ -1,76 +1,107 @@
-
 - name: "Enroll in IPA server"
-  hosts: nfs
+  hosts: nfs 
   roles:
     - role: freeipa-client
       vars:
-        realm: VM.NETSOC.CO
-        domain: vm.netsoc.co
-        server_hostname: ipa.vm.netsoc.co
-        client_hostname: "{{ inventory_hostname }}"
-        client_ip_address: "{{ ansible_ens18.ipv4.address }}"
-        ds_password: "{{ freeipa_ds_password }}"
-        admin_password: "{{ freeipa_admin_password }}"
+        client:
+          addresses:
+            - "{{ ansible_default_ipv4.address }}"
   vars_files:
     - "vars/freeipa.yml"
+    - "vars/network.yml"
     - "vars/secrets.yml"
 
-- name: "Setup NFS keytab"
-  become: yes
-  hosts: nfs
-  tasks:
-    - shell: |
-        echo '{{ freeipa_admin_password }}' | kinit admin -l 0h1m
-        ipa service-del nfs/{{ inventory_hostname }} || True
-        ipa service-add nfs/{{ inventory_hostname }}
-        ipa-getkeytab -s ipa.vm.netsoc.co -p nfs/{{ inventory_hostname }} -k /tmp/nfs.keytab
-        chmod 700 /tmp/nfs.keytab
-        (echo rkt /tmp/nfs.keytab; echo wkt /etc/krb5.keytab) | ktutil
-      register: result
-    - debug:
-        msg: "{{result.stdout}}"
-    - debug:
-        msg: "{{result.stderr}}"
-  vars_files:
-    - "vars/freeipa.yml"
-    - "vars/secrets.yml"
-
-- name: "Ensure data disk made"
+- name: "Ensure data disk made with snapshotting"
   hosts: nfs
   become: yes
   roles:
-    - role: simple-disk
+    - role: zfs-auto-snapshot
+    - role: simple-zfs
       vars:
-        device: "/dev/vdb"
-        partition_size: "100%"
-        fstype: "ext4"
-        mount_path: "/mnt/nfs-data-disk"
-        mount_opts: "rw"
-
-- name: "Ensure nfs directories"
-  hosts: nfs
-  become: yes
+        pool: nfs
+        mount: /nfs
+        device: /dev/vdb
+        fs:
+          - home/users
+          - docker
+        snapshot:
+          monthly: true
+          weekly: true
+          daily: true
+          hourly: false
+          frequent: false
   tasks:
-    - file:
-        path: "/mnt/nfs-data-disk/{{ item }}"
+    - become: yes
+      file:
+        path: /nfs
+        mode: 0777
         state: directory
-        recurse: yes
-      with_items:
-        - "docker/"
-        - "docker/traefik/dynamic_config/"
+
+# - name: "Setup ZFS dataset user home directory generator"
+#   hosts: nfs
+#   become: yes
+#   tasks:
+#     - copy:
+#         content |
+#           #!/bin/bash
+
+#           printf "[$(date -u)] Starting user home directory dataset creator\n"
+#           printf "[$(date -u)] Creating nfs/home dataset\n"
+#           zfs create nfs/home
+
+#           printf "[$(date -u)] Creating nfs/home/users dataset\n"
+#           zfs create nfs/home/users
+
+#           while true
+#           do
+#             echo "SomePass" | kinit admin
+
+#             all_users=$(ipa user-find --all | awk '/User login/{ print $3 }')
+
+#             printf "\n[$(date -u)] Scanning IPA users (with home dirs in /home/users/*) to find users missing home directories\n"
+
+#             for user in $all_users do 
+#               printf "[$(date -u)] Checking $user...\n"
+#               uid=$(getent passwd $user | cut -d ":" -f 3)
+#               gid=$(getent passwd $user | cut -d ":" -f 4)
+#               home=$(getent passwd $user | cut -d ":" -f 6)
+
+#               if [ ! -d "/nfs/home/users/$user" ] && [[ $home == "/home/users/$user" ]]; then
+#                 printf "[$(date -u)] $user ($uid:$gid) does not have a zfs home directory, setting them up now\n"
+#                 zfs create nfs/home/users/$user
+#                 chown root:$uid /nfs/home/users/$user
+#                 chmod 770 /nfs/home/users/$user
+#                 cp -a /etc/skel/. /nfs/home/users/$user/.
+#                 chown $uid:$uid -R /nfs/home/users/$user/*
+#               else
+#                 printf "[$(date -u)] $user does not have a home directory pointed to /home/users/$user, ignoring\n"
+#               fi
+#             done
+#               printf "[$(date -u)] Scanning complete\n"
+#               sleep 10
+#           done
+
+# This has the side effect of setting up an IPA service and keytab for the NFS server too
+# as the NFS server shares the same hostname, when we create it below,3 it will mount the same keytab file
+- name: Setup NFS client requirements
+  hosts: nfs
+  roles:
+    - role: nfs-client-requirements
+  vars_files:
+    - "vars/idmap.yml"
+    - "vars/freeipa.yml"
+    - "vars/secrets.yml"
 
 - name: "Ensure server"
   hosts: nfs
   become: yes
   roles:
-    - role: nfs-server-docker-krb5
+    - role: nfs4-server-krb5
       vars:
-        hostname: "nfs.vm.netsoc.co"
-        krb5_keytab: "/etc/krb5.keytab"
-        krb5_conf: "/etc/krb5.conf"
-        nfs_mount: "/mnt/nfs-data-disk"
-        # /nfs/ is the root of nfs_disk
         exports: |
-          /nfs      {{ ip_allocation.infra }}(rw,sync,no_root_squash,sec=krb5p:krb5i:krb5:sys)
+          /nfs 10.0.{{ subnets.infra }}.0/24(fsid=0,rw,sync,crossmnt,no_root_squash,sec=krb5p:krb5i:krb5)
   vars_files:
-    - vars/ip_allocation.yml
+    - vars/idmap.yml
+    - vars/network.yml
+
+  
