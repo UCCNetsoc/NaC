@@ -1,0 +1,5 @@
+---
+- name: Ensure netsoc.co
+  hosts: bigbertha
+  roles:
+  - netsoc.co

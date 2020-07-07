@@ -1,22 +1,86 @@
 ---
 
-- name: Ensure mount dir
+- name: Ensure /netsoc-neo/docker-data/traefik created with 0775
   become: yes
   file:
-    path: "{{ mount }}/"
+    path: /netsoc-neo/docker-data/traefik
     owner: root
     group: root
-    # needs to 775 as this folder is accessed internally by a dirsrv user
-    # https://github.com/freeipa/freeipa-container/issues/281
-    mode: 0777
+    mode: 0770
     state: directory
+
+- name: Ensure /netsoc-neo/docker-data/traefik/dynamic_config created with 0775
+  become: yes
+  file:
+    path: /netsoc-neo/docker-data/traefik/dynamic_config
+    owner: root
+    group: root
+    mode: 0770
+    state: directory
+
+####################################################
+## START FOR LOCALHOST ANSIBLE TESTING PURPOSES ####
+####################################################
+
+- name: Ensure python OpenSSL dependencies are installed.
+  become: yes
+  when: "'lxc' in ansible_virtualization_type"
+  pip:
+    name: pyOpenSSL
+    state: present
+
+- name: Generate localhost key
+  become: yes
+  when: "'lxc' in ansible_virtualization_type"
+  openssl_privatekey:
+    path: /netsoc-neo/docker-data/traefik/localhost.key
+
+- name: Generate localhost CSR
+  become: yes
+  when: "'lxc' in ansible_virtualization_type"
+  openssl_csr:
+    path: /netsoc-neo/docker-data/traefik/localhost.csr
+    privatekey_path: /netsoc-neo/docker-data/traefik/localhost.key
+    common_name: '*.netsoc.*.localhost'
+
+- name: Generate localhost certs if in development
+  become: yes
+  when: "'lxc' in ansible_virtualization_type"
+  openssl_certificate:
+    provider: selfsigned
+    path: /netsoc-neo/docker-data/traefik/localhost.cert
+    privatekey_path: /netsoc-neo/docker-data/traefik/localhost.key
+    csr_path: /netsoc-neo/docker-data/traefik/localhost.csr
+
+####################################################
+### END FOR LOCALHOST ANSIBLE TESTING PURPOSES #####
+####################################################
+
+- name: Sync template files for /netsoc-neo/docker-data/traefik/dynamic_config/* to /traefik/dynamic_config/"
+  become: yes
+  template:
+    src: "{{ item.src }}"
+    dest: "/netsoc-neo/docker-data/traefik/dynamic_config/{{ item.path | replace('.j2', '') }}"
+    owner: root
+    group: root
+    mode: "{{ item.mode }}"
+    backup: yes
+  with_filetree:
+    - templates/dynamic_config/
+  when: item.state == "file"
+
+- name: Copy Traefik Static Config
+  become: yes
+  template:
+    src: static_config.toml.j2
+    dest: /netsoc-neo/docker-data/traefik/static_config.toml
 
 - name: Ensure Cloudflare DNS token in Docker Swarm Secrets
   run_once: true
   become: yes
   docker_secret:
     name: cloudflare_dns_api_token.txt
-    data: "{{ cloudflare.api.dns_api_token | default('') }}"
+    data: "{{ cloudflare_dns_api_token }}"
   register: result
   ignore_errors: true
 
@@ -28,13 +92,14 @@
     name: cloudflare_dns_api_token.txt
   when: result is failed
 
-- name: Retry setting Docker Secret in Docker Swarm Secrets if necessary
+- name: Retry setting Consul Config in Docker Swarm Secrets if necessary
   run_once: true
   when: result is failed
   become: yes
   docker_secret:
     name: cloudflare_dns_api_token.txt
-    data: "{{ cloudflare.api.dns_api_token | default('') }}"
+    data: "{{ cloudflare_dns_api_token }}"
+
 
 - name: Ensure Traefik Docker network
   become: yes
@@ -43,25 +108,13 @@
     driver: overlay
     attachable: yes
 
-- become: yes
-  docker_stack:
-    name: traefik
-    state: absent
-
-- name: Ensure Traefik Docker Config
-  docker_config:
-    name: traefik_static_config.yml
-    data: "{{ config | from_yaml  }}"
-    force: yes
-    state: present
-
 - name: Ensure Traefik Docker container
   become: yes
   docker_stack:
     state: present
     name: traefik
     compose:
-      - version: "3.8"
+      - version: "3.5"
         services:
           server:
             image: traefik:2.2.0
@@ -74,6 +127,10 @@
                 published: 443
                 protocol: tcp
                 mode: host
+              #- target: 8080
+              #  published: 8080
+              #  protocol: tcp
+              #  mode: host
             networks:
               traefik:
             deploy:
@@ -81,6 +138,7 @@
               placement:
                 constraints:
                   - node.role == manager
+                  - node.hostname == {{ inventory_hostname }}
                 preferences:
                   - spread: node.id
               restart_policy:
@@ -103,28 +161,22 @@
 
                 # passworded dashboard
                 - "traefik.http.routers.dashboard.entrypoints=web-secure"
-                - "traefik.http.routers.dashboard.rule=Host(`{{ dashboard_domain }}`)"
+                - "traefik.http.routers.dashboard.rule=Host(`traefik.{{ dev_site }}`)"
                 - "traefik.http.routers.dashboard.tls"
                 - "traefik.http.routers.dashboard.service=dashboard-service"
                 - "traefik.http.services.dashboard-service.loadbalancer.server.port=8080"
-                - "traefik.http.middlewares.dashboard-auth.basicauth.users={{ dashboard_basicauth }}"
+                - "traefik.http.middlewares.dashboard-auth.basicauth.users={{ traefik_basic_auth }}"
                 - "traefik.http.routers.dashboard.middlewares=dashboard-auth@docker"
             volumes:
-              - "/var/run/docker.sock:/var/run/docker.sock"
-              - "{{ mount }}:/traefik/:shared"
-            command: traefik --configFile=/static_config.yml
+              - /var/run/docker.sock:/var/run/docker.sock
+              - /netsoc-neo/docker-data/traefik/:/traefik/
+            command: traefik --configFile=/traefik/static_config.toml
             secrets:
               - "cloudflare_dns_api_token.txt"
             environment:
               CLOUDFLARE_DNS_API_TOKEN_FILE: "/run/secrets/cloudflare_dns_api_token.txt"
-            configs:
-              - source: traefik_static_config.yml
-                target: /static_config.yml
         secrets:
           cloudflare_dns_api_token.txt:
-            external: true
-        configs:
-          traefik_static_config.yml:
             external: true
         networks:
           traefik:

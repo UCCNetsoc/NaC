@@ -1,0 +1,32 @@
+-
+  name: "Install exporter proxy"
+  become: yes
+  apt:
+    deb: "https://github.com/QubitProducts/exporter_exporter/releases/download/v0.2.9/expexp_0.2.9-3_amd64.deb"
+-
+  name: "Copy systemd unit file"
+  become: yes
+  copy:
+    src: "files/prometheus_exporter_exporter.service"
+    dest: "/etc/systemd/system/prometheus_exporter_exporter.service"
+  notify: "restart proxy"
+-
+  name: "Enable systemd service"
+  become: yes
+  systemd:
+    name: "prometheus_exporter_exporter"
+    enabled: yes
+-
+  name: "Generate config"
+  become: yes
+  template:
+    src: "templates/exporter_exporter.yaml.j2"
+    dest: "/etc/exporter_exporter.yaml"
+  notify: "restart proxy"
+
+-
+  name: "Restart systemd service"
+  become: yes
+  systemd:
+    name: "prometheus_exporter_exporter"
+    state: "restarted"

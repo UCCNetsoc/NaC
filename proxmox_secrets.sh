@@ -28,4 +28,3 @@ export EDITOR=$editor
 
 export PM_USER=$yaml_vault_proxmox_username
 export PM_PASS=$yaml_vault_proxmox_password
-

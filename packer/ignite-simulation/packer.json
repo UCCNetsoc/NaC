@@ -1,0 +1,22 @@
+{
+  "builders": [
+    {
+      "type": "docker",
+      "image": "weaveworks/ignite-ubuntu:18.04",
+      "commit": true
+    }
+  ],
+  "provisioners": [
+    {
+      "type": "shell",
+      "script": "./packer/ignite-simulation/setup.sh"
+    }
+  ],
+  "post-processors": [
+    {
+      "type": "docker-tag",
+      "repository": "docker.netsoc.co/public/infra-sim",
+      "tag": "ignite"
+    }
+  ]
+}

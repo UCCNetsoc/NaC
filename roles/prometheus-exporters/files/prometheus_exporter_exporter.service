@@ -1,0 +1,15 @@
+[Unit]
+Description=Prometheus Node Exporter
+After=network.target
+
+[Service]
+EnvironmentFile=/etc/default/exporter_exporter
+Type=simple
+User=prometheus
+Group=prometheus
+ExecStart=/usr/local/bin/exporter_exporter -config.file /etc/exporter_exporter.yaml ${EXPEXP_FLAGS}
+SyslogIdentifier=prometheus_exporter_exporter
+Restart=always
+
+[Install]
+WantedBy=multi-user.target

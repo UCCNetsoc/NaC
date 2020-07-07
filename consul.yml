@@ -1,0 +1,8 @@
+---
+- name: Ensure Consul
+  hosts: swarm_managers
+  vars_files:
+      - vars/consul.yml
+      - vars/secrets.yml
+  roles:
+  - consul

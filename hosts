@@ -1,3 +1,11 @@
+# Please use IP addresses for each server
+# This is done because DNS may not be configured when the playbook is ran
+#
+# Keep the ansible hostname as strictly the server name
+# These are used to setup DNS records and related
+# i.e only use "feynman", not "feynman.netsoc.co"
+
+# NEW NETSOC
 control
 
 [proxmox_master]
@@ -6,3 +14,49 @@ feynman
 [proxmox_hosts]
 feynman
 lovelace
+
+
+# "OLD" NETSOC
+boole
+bigbertha
+leela
+
+
+feynman-vm
+lovelace-vm
+
+[non_sudo]
+boole
+bigbertha
+leela
+lovelace-vm
+
+[swarm_creators]
+boole
+
+[swarm_managers]
+boole
+bigbertha
+lovelace-vm
+
+[swarm_workers]
+leela
+
+[prometheus_hosts]
+bigbertha
+
+[prometheus_nodes]
+boole
+bigbertha
+leela
+lovelace-vm
+
+[prometheus_docker]
+boole
+bigbertha
+leela
+lovelace-vm
+
+[prometheus_apache]
+leela
+lovelace-vm

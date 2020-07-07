@@ -1,0 +1,12 @@
+---
+
+- name: "Ensure shells installed"
+  become: yes
+  apt:
+    name:
+      - fish
+      - zsh
+      - ksh
+      - csh
+    state: latest
+    update_cache: yes

@@ -1,0 +1,46 @@
+---
+- name: Ensure config.py in Docker Swarm Secrets
+  become: yes
+  docker_secret:
+    name: hlm_config.py
+    data: "{{ lookup('template', 'config.py') }}"
+  #register: result
+  ignore_errors: true
+
+- name: Ensure HLM Container running
+  become: yes
+  docker_stack:
+    state: present
+    name: hlm_netsoc_co
+    compose:
+      - version: '3.7'
+        services:
+          server:
+            image: docker.netsoc.co/public/hlm.netsoc.co
+            networks:
+              traefik:
+            secrets:
+              - source: hlm_config.py
+                target: config.py
+            deploy:
+              mode: replicated
+              replicas: 1
+              restart_policy:
+                condition: any
+                delay: 5s
+                max_attempts: 5
+              labels:
+                - "traefik.enable=true"
+                - "traefik.http.routers.hlm_netsoc_co.rule=Host(`hlm.{{ co_site }}`)"
+                - "traefik.http.routers.hlm_netsoc_co.entrypoints=web-secure"
+                - "traefik.http.routers.hlm_netsoc_co.tls.certResolver=letsencrypt"
+                - "traefik.http.services.hlm_netsoc_co-service.loadbalancer.server.port=5000"
+                - "traefik.http.routers.hlm_netsoc_co.service=hlm_netsoc_co-service"
+                - "traefik.docker.network=traefik"
+        networks:
+          traefik:
+              external: true
+              name: traefik
+        secrets:
+          hlm_config.py:
+            external: true

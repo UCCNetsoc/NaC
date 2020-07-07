@@ -1,0 +1,61 @@
+{
+    "web": {
+        "host": "0.0.0.0",
+        "listen": 443,
+        "ssl": {
+            "enabled": true,
+            "certificate": "/etc/certs/fullchain.pem",
+            "key": "/etc/certs/privkey.pem"
+        }
+    },
+    "docker": {
+        "container": {
+            "user": null
+        },
+        "network": {
+            "name": "pterodactyl"
+        },
+        "socket": "/var/run/docker.sock",
+        "autoupdate_images": true
+    },
+    "filesystem": {
+        "server_logs": "/tmp/pterodactyl"
+    },
+    "internals": {
+        "disk_use_seconds": 30,
+        "set_permissions_on_boot": true,
+        "throttle": {
+            "enabled": true,
+            "kill_at_count": 5,
+            "decay": 10,
+            "lines": 1000,
+            "check_interval_ms": 100
+        }
+    },
+    "sftp": {
+        "path": "/srv/daemon-data",
+        "ip": "0.0.0.0",
+        "port": 2022,
+        "keypair": {
+            "bits": 2048,
+            "e": 65537
+        }
+        
+    },
+    "logger": {
+        "path": "logs/",
+        "src": false,
+        "level": "info",
+        "period": "1d",
+        "count": 3
+    },
+    "remote": {
+        "base": "https://pterodactyl.netsoc.dev:443"
+    },
+    "uploads": {
+        "size_limit": 100
+    },
+    "keys": [
+        "Jo8SqUaNEXxxqXppm8QW3cNZRaZcUMv7d0dt"
+    ]
+}

@@ -1,6 +1,5 @@
 ---
 
-
 - name: "Ensure auth server"
   hosts: lovelace
   roles:
