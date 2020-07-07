@@ -1,6 +1,6 @@
 # Setup Traefik
 - name: "Ensure Traefik directory and file config"
-  hosts: docker_swarm_managers
+  hosts: docker_swarm_managers[0]
   tasks:
     - name: Ensure Traefik file config dir on NFS
       become: yes
@@ -76,7 +76,7 @@
         dest: /nfs/docker/traefik/file_config/config.yml
         
 - name: "Ensure Traefik loadbalancer running"
-  hosts: docker_swarm_managers
+  hosts: docker_swarm_managers[0]
   roles:
     - role: traefik-proxmox
       vars:
@@ -116,3 +116,9 @@
     - vars/network.yml
     - vars/cloudflare.yml
     - vars/secrets.yml
+
+- name: "Ensure Netsoc Static Services"
+  hosts: docker_swarm_managers[0]
+  roles:
+    - netsoc.co
+    - blog.netsoc.co
