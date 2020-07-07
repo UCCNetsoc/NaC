@@ -48,7 +48,7 @@
                 gateway4: "{{ interfaces.managerN.net0.gateway4 }}"
                 nameservers: "{{ interfaces.managerN.net0.nameservers }}"
                 optional: true
-        wait_for_ssh_ip: "{{ interfaces.managerN.net0.addresses[0]  }}"
+        wait_for_ssh_ip: "{{ interfaces.managerN.net0.addresses[0] | ipmath(ansible_play_hosts_all.index(inventory_hostname))  }}"
     # Worker VM
     - role: proxmox-infra-cloudinit-vm
       when: "ansible_play_hosts_all.index(inventory_hostname) > 3"
@@ -92,7 +92,7 @@
                 gateway4: "{{ interfaces.workerN.net0.gateway4 }}"
                 nameservers: "{{ interfaces.workerN.net0.nameservers }}"
                 optional: true
-        wait_for_ssh_ip: "{{ interfaces.workerN.net0.addresses[0] }}"
+        wait_for_ssh_ip: "{{ interfaces.workerN.net0.addresses[0] | ipmath(ansible_play_hosts_all.index(inventory_hostname)) }}"
   vars_files:
     - vars/network.yml
     - vars/proxmox.yml
