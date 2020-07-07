@@ -23,6 +23,18 @@
     - push_secrets
     - docker_registry
 
+- name: Set Github secrets in Hashicorp Vault
+  hosts: swarm_creators
+  vars_files:
+    - vars/vault.yml
+    - vars/secrets.yml
+  tasks:
+    - include: roles/vault/tasks/secrets_github.yml
+    - include: roles/vault/tasks/policy_ci.yml
+  tags:
+    - push_secrets
+    - github
+
 - name: Set Discord Webhook secrets in Hashicorp Vault
   hosts: swarm_creators
   vars_files:

@@ -4,3 +4,5 @@ hashivault_root_token: "{{ vault_hashivault_root_token }}"
 hashivault_url: https://vault.{{ dev_site }}
 
 hashivault_docker_registry_token: "{{ vault_hashivault_docker_registry_token }}"
+
+github_public_repo_pac: "{{ vault_github_public_repo_pac }}"

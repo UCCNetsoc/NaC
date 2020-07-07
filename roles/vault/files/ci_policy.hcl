@@ -5,3 +5,7 @@ path "docker_registry/*" {
 path "discord/*" {
     capabilities = ["read", "list"]
 }
+
+path "github/*" {
+    capabilities = ["read", "list"]
+}
