@@ -1,0 +1,30 @@
+- name: "Enroll in IPA server"
+  hosts: web
+  roles:
+    - role: freeipa-client
+      vars:
+        client:
+          addresses:
+            - "{{ ansible_default_ipv4.address }}"
+  vars_files:
+    - "vars/freeipa.yml"
+    - "vars/network.yml"
+    - "vars/secrets.yml"
+
+- name: Setup NFS client and NFS mount requirements
+  hosts: web
+  roles:
+    - role: nfs-client-requirements
+    - role: autofs-automount
+      vars:
+        src: nfs.vm.netsoc.co:/home/users
+        mount: /home/users
+        opts: fstype=nfs4,rw,vers=4.2,sec=krb5p,hard,bg
+  vars_files:
+    - "vars/idmap.yml"
+    - "vars/freeipa.yml"
+    - "vars/secrets.yml"
+
+# - name: "Ensure Nginx Unit"
+#   roles:
+
