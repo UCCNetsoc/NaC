@@ -1,11 +1,22 @@
 ---
 
+- name: Ensure mount dir
+  become: yes
+  file:
+    path: "{{ mount }}/"
+    owner: root
+    group: root
+    # needs to 775 as this folder is accessed internally by a dirsrv user
+    # https://github.com/freeipa/freeipa-container/issues/281
+    mode: 0777
+    state: directory
+
 - name: Ensure Cloudflare DNS token in Docker Swarm Secrets
   run_once: true
   become: yes
   docker_secret:
     name: cloudflare_dns_api_token.txt
-    data: "{{ cloudflare_dns_api_token | default('') }}"
+    data: "{{ cloudflare.api.dns_api_token | default('') }}"
   register: result
   ignore_errors: true
 
@@ -23,7 +34,7 @@
   become: yes
   docker_secret:
     name: cloudflare_dns_api_token.txt
-    data: "{{ cloudflare_dns_api_token | default('') }}"
+    data: "{{ cloudflare.api.dns_api_token | default('') }}"
 
 - name: Ensure Traefik Docker network
   become: yes
@@ -96,28 +107,25 @@
                 - "traefik.http.routers.dashboard.tls"
                 - "traefik.http.routers.dashboard.service=dashboard-service"
                 - "traefik.http.services.dashboard-service.loadbalancer.server.port=8080"
-                - "traefik.http.middlewares.dashboard-auth.basicauth.users=netsoc:$$2y$$05$$1Rro44k9JKujdml4I.JAe.tx2iQEnKj4ykoD3Q50Adk5Q.lOu1CsG"
+                - "traefik.http.middlewares.dashboard-auth.basicauth.users={{ dashboard_basicauth }}"
                 - "traefik.http.routers.dashboard.middlewares=dashboard-auth@docker"
             volumes:
               - "/var/run/docker.sock:/var/run/docker.sock"
-              - "dynamic_config_mount:/traefik/"
+              - "{{ mount }}:/traefik/:shared"
             command: traefik --configFile=/static_config.yml
-            # secrets:
-            #   - "cloudflare_dns_api_token.txt"
-            # environment:
-            #   CLOUDFLARE_DNS_API_TOKEN_FILE: "/run/secrets/cloudflare_dns_api_token.txt"
-            # configs:
-            #   - source: static_config
-            #     target: /static_config.yml
-        # secrets:
-        #   cloudflare_dns_api_token.txt:
-        #     external: true
-        # configs:
-        #   static_config:
-        #     external:
-        #       name: traefik_static_config.yml
+            secrets:
+              - "cloudflare_dns_api_token.txt"
+            environment:
+              CLOUDFLARE_DNS_API_TOKEN_FILE: "/run/secrets/cloudflare_dns_api_token.txt"
+            configs:
+              - source: traefik_static_config.yml
+                target: /static_config.yml
+        secrets:
+          cloudflare_dns_api_token.txt:
+            external: true
+        configs:
+          traefik_static_config.yml:
+            external: true
         networks:
           traefik:
             external: true
-        volumes:
-          dynamic_config_mount: "{{ dynamic_config_mount }}"
