@@ -4,7 +4,7 @@
   vars_files:
     - vars/netsocbot.yml
     - vars/consul.yml
-    - vars/secrets.yml
+    - vars/secrets_legacy.yml
   tasks:
     - include: roles/netsocbot/tasks/consul_conf.yml
   tags:
@@ -15,7 +15,7 @@
   vars_files:
     - vars/netsocbot.yml
     - vars/email.yml
-    - vars/secrets.yml
+    - vars/secrets_legacy.yml
   roles: 
     - netsocbot
   tags:

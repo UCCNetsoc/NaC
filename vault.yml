@@ -5,7 +5,7 @@
     - vars/consul.yml
     - vars/vault.yml
     - vars/ldap.yml
-    - vars/secrets.yml
+    - vars/secrets_legacy.yml
   roles:
     - vault
   tags:
@@ -15,7 +15,7 @@
   hosts: swarm_creators
   vars_files:
     - vars/vault.yml
-    - vars/secrets.yml
+    - vars/secrets_legacy.yml
   tasks:
     - include: roles/vault/tasks/secrets_docker_registry.yml
     - include: roles/vault/tasks/policy_ci.yml
@@ -28,7 +28,7 @@
   vars_files:
     - vars/vault.yml
     - vars/discord.yml
-    - vars/secrets.yml
+    - vars/secrets_legacy.yml
   tasks:
     # Making sure the policy exists
     - include: roles/vault/tasks/policy_ci.yml 

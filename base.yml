@@ -11,8 +11,6 @@
     # - ubuntu-universe     # Ubuntu community repos. Uncomment when every server is on 18.04
     - essential-utils       # pip, iotop, htop, git, node, etc...
     - netsoc-neo-dir        # Set's up /netsoc-neo/ for storing our central files
-    - paramiko-fix          # Fixes: # https://github.com/paramiko/paramiko/pull/1311
-                            # Remove and upgrade paramiko when this is merged
     - shells
     - fail2ban
     - docker                # Docker APT, Docker, etc...

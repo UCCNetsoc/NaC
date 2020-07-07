@@ -11,10 +11,10 @@
   vars_files:
     - vars/cloudflare.yml  # traefik certs
     - vars/docker_registry.yml # netsoc.co image
-    - vars/mysql_server.yml # mysql server root
+    - vars/mysql_server_legacy.yml # mysql server root
     - vars/wiki.yml
     - vars/ldap.yml
-    - vars/secrets.yml
+    - vars/secrets_legacy.yml
   tags:
     - install-base
     - install-swarm
@@ -27,10 +27,10 @@
   vars_files:
     - vars/cloudflare.yml  # traefik certs
     - vars/docker_registry.yml # netsoc.co image
-    - vars/mysql_server.yml # mysql server root
+    - vars/mysql_server_legacy.yml # mysql server root
     - vars/wiki.yml
     - vars/ldap.yml
-    - vars/secrets.yml
+    - vars/secrets_legacy.yml
   tags:
     - install-base
     - install-swarm

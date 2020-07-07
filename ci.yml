@@ -4,8 +4,8 @@
   vars_files:
     - vars/ci.yml
     - vars/discord.yml
-    - vars/mysql_server.yml
+    - vars/mysql_server_legacy.yml
     - vars/vault.yml
-    - vars/secrets.yml
+    - vars/secrets_legacy.yml
   roles:
   - ci

@@ -16,7 +16,7 @@ parse_yaml() {
             vn=""; for (i=0; i<indent; i++) {vn=(vn)(vname[i])("_")}
             printf("%s%s%s=\"%s\"\n", "'$prefix'",vn, $2, $3);
         }
-    }'
+    }'c
 }
 
 editor=$EDITOR

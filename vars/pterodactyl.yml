@@ -1,3 +1,0 @@
-pterodactyl_mysql_database: "{{ vault_pterodactyl_mysql_database }}"
-pterodactyl_mysql_username: "{{ vault_pterodactyl_mysql_username }}"
-pterodactyl_mysql_password: "{{ vault_pterodactyl_mysql_password }}"
