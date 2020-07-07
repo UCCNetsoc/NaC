@@ -2,16 +2,119 @@
 
 - name: Check if VM with this name already exists
   shell: qm list | tail -n +2 | awk '{ if($2=="{{ vm.name }}") print $1 }' | grep "."
-  register: cmd_result
-  ignore_errors: yes
+  register: vm_exists_result
+  ignore_errors: true
 
+- set_fact:
+    vm_existing_id: "{{ vm_exists_result.stdout | trim }}"
+  
 - name: Stop already existing VM
-  shell: qm stop {{ cmd_result.stdout | trim }}
-  when: "'rc' in cmd_result and cmd_result.rc == 0"
+  shell: qm stop {{ vm_existing_id }}
+  when: "'rc' in vm_exists_result and vm_exists_result.rc == 0"
 
-- name: Remove already existing VM
-  shell: qm destroy {{ cmd_result.stdout | trim }}
-  when: "'rc' in cmd_result and cmd_result.rc == 0"
+- name: Destroy already existing VM
+  shell: qm destroy {{ vm_existing_id }}
+  when: "'rc' in vm_exists_result and vm_exists_result.rc == 0 and (vm.recreate is defined and vm.recreate)"
+
+# Proxmox goes ape if 2 VMs get cloned simulateneously and both choose the same ID (due to the sequential numbering system)
+# Use a hash of the name and add the hostname to make it unique instead 
+- set_fact:
+    vm_hash_id: "{{ range(1000, 5000000) | random(seed=vm.name+'-'+inventory_hostname) }}"
+
+- name: Ensure Proxmox VM cloned (if it does not exist)
+  proxmox_kvm:
+    api_host:       "localhost"
+    api_user:       "{{ proxmox.username }}"
+    api_password:   "{{ proxmox.password }}"
+    clone:          "{{ vm.clone }}"
+    target:         "{{ inventory_hostname }}"
+    newid:          "{{ vm_hash_id }}"
+    timeout:        "{{ vm.timeout | default(300) }}"
+    node:           "{{ inventory_hostname }}"
+    name:           "{{ vm.name }}"
+    storage:        "local-lvm"
+    full:           yes
+    state:          present
+  when: "(not vm_exists_result.rc == 0 and vm.clone is defined and vm.clone) or (vm.recreate is defined and vm.recreate)"
+
+- name: Ensure Proxmox VM exists
+  proxmox_kvm:
+    api_host:       "localhost"
+    api_user:       "{{ proxmox.username }}"
+    api_password:   "{{ proxmox.password }}"
+    vmid:           "{{ vm_hash_id }}"
+    timeout:        "{{ vm.timeout | default(300) }}"
+    node:           "{{ inventory_hostname }}"
+    name:           "{{ vm.name }}"
+    storage:        "local-lvm"
+    state:          present
+  when: "vm.clone is not defined"
+
+# proxmox_kvm has a load of issues so here are a bunch of workarounds below
+
+# It does not provide a register to output the vmid of the new vm
+# We can't assume the vm hash id we chose was the next free one
+# we need to use shell commands to figure out the vmid by name
+# in: https://github.com/ansible/ansible/pull/42313 you can see he forced pushed
+# and overrode a load of previous commits ._.
+# you can use register: output & output.vmid instead
+- name: Get VMID
+  raw: qm list | tail -n +2 | awk '{ if($2=="{{ vm.name }}") print $1 }'
+  register: vmid_result
+
+- set_fact:
+    vmid: "{{ vmid_result.stdout | trim }}" 
+
+# Fixes: fatal: [lovelace]: FAILED! => {"changed": false, "msg": "VM worker1.docker does not exist in cluster."}
+- name: Wait to prevent a race condition where Proxmox doesn't think the VM exists yet
+  wait_for:
+    timeout: 5
+  delegate_to: localhost
+
+# Set some vm stats
+- name: Ensure specs set
+  proxmox_kvm:
+    api_host:       "localhost"
+    api_user:       "{{ proxmox.username }}"
+    api_password:   "{{ proxmox.password }}"
+    name:           "{{ vm.name }}"
+    node:           "{{ inventory_hostname }}"
+    description:    "{{ vm.description | from_yaml }}"
+    cores:          "{{ vm.cores | default(1) }}"
+    memory:         "{{ vm.memory | default(1024) }}"
+    protection:     "{{ vm.protection | default('yes') }}"
+    update:         yes
+    state:          present
+
+# proxmox_kvm doesn't give you a way of setting net, virtio, ide, sata, scsi with the update: yes flag
+# and maybe description
+# workaround below
+- name: Set net
+  shell: qm set {{ vmid }} --{{ item.key }} {{ item.value }}
+  with_dict: "{{ vm.net }}"
+
+- name: Add the new disks (if they don't exist already)
+  shell: |
+    # e.g. existing_disk=`qm config 1232366 | grep ^ide3 | cut -d' ' -f2 | cut -d',' -f1 | grep ^local-lvm`
+    existing_disk=`qm config {{ vmid }} | grep ^{{ item.key }} | cut -d' ' -f2 | cut -d',' -f1 | grep ^{{ item.value.pool }}`
+
+    if [[ $existing_disk == '' || {{ 'true' if 'override' in item.value and item.value.override else 'false' }} ]]; then
+      # no disk, add one
+      qm set {{ vmid }} --{{ item.key }} {{ item.value.pool }}:{{ item.value.definition }}
+    fi
+  args:
+    executable: /bin/bash
+  register: result
+  with_dict: "{{ vm.disks | default('{}') }}"
+  when: "'definition' in item.value"
+
+- name: Resize disks
+  shell: qm resize {{ vmid }} {{ item.key }} {{ item.value.resize }}
+  with_dict: "{{ vm.disks | default('{}') }}"
+  when: "'resize' in item.value"
+
+- name: Set description
+  raw: qm set {{ vmid }} --description "{{ vm.description | from_yaml | to_nice_yaml }}"
 
 - name: Ensure cloud-init metadata file
   copy:
@@ -28,115 +131,34 @@
 - name: Ensure cloud-init networking
   copy:
     content: |
-      {{ cloudinit.networkconfig | default('') }}
+      {{ cloudinit.networkconfig | default('---\n') | from_yaml }}
     dest: "/var/lib/vz/snippets/{{ vm.name }}.networkconfig.yml"
 
-# Proxmox goes ape if 2 VMs get cloned simulatenously and both choose the same ID (due to the sequential numbering system)
-# Use a hash of the ID instead 
-- set_fact:
-    vm_hash_id: "{{ range(1000, 5000000) | random(seed=vm.name+'-'+inventory_hostname) }}"
-
-- name: Ensure Proxmox VM cloned
-  proxmox_kvm:
-    api_host:       "localhost"
-    api_user:       "{{ proxmox_username }}"
-    api_password:   "{{ proxmox_password }}"
-    clone:          "{{ vm.clone }}"
-    target:         "{{ inventory_hostname }}"
-    newid:          "{{ vm_hash_id }}"
-    timeout:        "{{ vm.timeout | default(300) }}"
-    node:           "{{ inventory_hostname }}"
-    name:           "{{ vm.name }}"
-    storage:        "local-lvm"
-    full:           yes
-    state:          present
-  when: "vm.clone is defined"
-
-- name: Ensure Proxmox VM created
-  proxmox_kvm:
-    api_host:       "localhost"
-    api_user:       "{{ proxmox_username }}"
-    api_password:   "{{ proxmox_password }}"
-    vmid:          "{{ vm_hash_id }}"
-    timeout:        "{{ vm.timeout | default(300) }}"
-    node:           "{{ inventory_hostname }}"
-    name:           "{{ vm.name }}"
-    storage:        "local-lvm"
-    state:          present
-  when: "vm.clone is not defined"
-
-# proxmox_kvm has a load of issues so here are a bunch of workarounds below
-
-# It does not provide a register to output the vmid of the new vm
-# We can't assume the vm hash id we chose was the next free one
-# we need to use shell commands to figure out the vmid by name
-# if: https://github.com/ansible/ansible/pull/42313 is every reopened and resolved,
-# you can use register: output & output.vmid instead
-# It seems the author closed it without merging
-- name: Get VMID
-  raw: qm list | tail -n +2 | awk '{ if($2=="{{ vm.name }}") print $1 }'
-  register: vmid_result
-
-- set_fact:
-    vmid: "{{ vmid_result.stdout | trim }}" 
-
-# Fixes: fatal: [lovelace]: FAILED! => {"changed": false, "msg": "VM worker1.docker does not exist in cluster."}
-- name: Wait to prevent a race condition where Proxmox doesn't think the VM exists yet
-  wait_for:
-    timeout: 10
-  delegate_to: localhost
-
-# set some vm stats
-- name: Ensure specs set
-  proxmox_kvm:
-    api_host:       "localhost"
-    api_user:       "{{ proxmox_username }}"
-    api_password:   "{{ proxmox_password }}"
-    name:           "{{ vm.name }}"
-    node:           "{{ inventory_hostname }}"
-    description:    "{{ vm.description }}"
-    cores:          "{{ vm.cores | default(2) }}"
-    memory:         "{{ vm.memory | default(768) }}"
-    protection:     "{{ vm.protection | default('no') }}"
-    update:         yes
-    state:          present
-
-# proxmox_kvm doesn't give you a way of setting net, virtio, ide, sata, scsi with the update: yes flag
-# workaround below
-- name: Set net
-  shell: qm set {{ vmid }} --{{ item.key }} {{ item.value }}
-  with_dict: "{{ vm.net }}"
-
-- name: Add disks
-  shell: qm set {{ vmid }} --{{ item.key }} {{ item.value }}
-  with_dict: "{{ vm.additional_disks | default('{}') }}"
-
-- name: Resize any disks
-  shell: qm resize {{ vmid }} {{ item.key }} {{ item.value }}
-  with_dict: "{{ vm.resize_disks | default('{}') }}"
-
-# it doesn't set description either fml
-- name: Set Description
-  raw: qm set {{ vmid }} --description "{{ vm.description }}"
-
-# - name: Set CD rom
-#   raw: qm --cdrom {{ vmid }} {{ vm.cdrom }}
-#   when: "vm.cdrom is defined"
-
-- name: Ensure CloudInit drive added if we're not cloning an existing VM
-  command:
-    cmd: qm set {{ vmid }} --{{ cloudinit.nocloud_drive }} local-lvm:cloudinit 
-  when: "cloudinit.nocloud_drive is defined"
-
-- name: Ensure CloudInit options set
+- name: Ensure cloud-init file options set
   command:
     cmd: 'qm set {{ vmid }} --cicustom "user=local:snippets/{{ vm.name }}.userdata.yml,network=local:snippets/{{ vm.name }}.networkconfig.yml,meta=local:snippets/{{ vm.name }}.metadata.yml"'
+
+- name: Attach/regenerate cloud-init NoCloud drive (if it existed)
+  shell: |
+    cloudinit_drive=`qm config {{ vmid }} | grep "cloudinit,media=cdrom" | cut -d":" -f1`
+    protection=`qm config {{ vmid }} | grep ^protection | cut -d' ' -f2`
+
+    if [[ $cloudinit_drive != '' ]]; then
+      qm set {{ vmid }} --protection 0
+      #qm set {{ vmid }} --$cloudinit_drive none,media=cdrom
+      qm unlink {{ vmid }} --idlist $cloudinit_drive
+      qm set {{ vmid }} --protection $protection
+    fi
+
+    qm set {{ vmid }} --{{ cloudinit.drive_device }} local-lvm:cloudinit 
+  args:
+    executable: /bin/bash
 
 - name: Start VM if it was stopped
   proxmox_kvm:
     api_host:       "localhost"
-    api_user:       "{{ proxmox_username }}"
-    api_password:   "{{ proxmox_password }}"
+    api_user:       "{{ proxmox.username }}"
+    api_password:   "{{ proxmox.password }}"
     name:           "{{ vm.name }}"
     node:           "{{ inventory_hostname }}"
     state:          started
@@ -145,5 +167,5 @@
   wait_for:
     port: 22
     search_regex: OpenSSH
-    host: "{{ wait_for_ssh | ipmath(0) }}" # ipmath(0) will remove the subnet mask if they added it in
-  when: wait_for_ssh is defined
+    host: "{{ wait_for_ssh_ip | ipmath(0) }}" # ipmath(0) will remove the subnet mask if they added it in
+  when: wait_for_ssh_ip is defined
