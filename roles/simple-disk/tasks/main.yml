@@ -1,4 +1,5 @@
 - name: "Ensure data disk is partitioned"
+  become: yes
   parted:
     device: "{{ device }}"
     number: 1
@@ -6,6 +7,7 @@
     part_end: "{{ partition_size }}"
 
 - name: "Ensure data disk is ext4"
+  become: yes
   filesystem:
     fstype: "{{ fstype }}"
     dev: "{{ device }}1" # i.e /dev/sdb1
@@ -13,15 +15,18 @@
     resizefs: yes
 
 - name: "Get data disk uuid"
+  become: yes
   shell: "blkid -s UUID -o value {{ device }}1"
   register: uuid_result
 
 - name: "Ensure path for data disk mount"
+  become: yes
   file:
     path: "{{ mount_path }}"
     state: directory
 
 - name: "Ensure data disk mount"
+  become: yes
   mount:
     path: "{{ mount_path }}"
     fstype: "{{ fstype }}"
