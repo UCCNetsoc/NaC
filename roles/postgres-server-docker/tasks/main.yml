@@ -9,6 +9,12 @@
     mode: 0755
     state: directory
 
+- name: Install psycopg2 (needed for ansible pg driver)
+  become: yes
+  apt:
+    name: python3-psycopg2
+    state: present
+
 - name: Ensure Postgres server container
   become: yes
   docker_container:

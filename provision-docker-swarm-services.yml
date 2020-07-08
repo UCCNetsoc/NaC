@@ -132,3 +132,38 @@
   roles:
     - netsoc.co
     - blog.netsoc.co
+
+- name: "Create user and database for wikijs"
+  hosts: databases
+  become: yes
+  tasks:
+    - postgresql_db:
+        name: wikijs
+        state: present
+        login_host: "{{ interfaces.databases.net0.addresses[0] | ipmath(0) }}"
+        login_password: "{{ postgres.infra.root_password }}"
+    - postgresql_user:
+        name: wikijs
+        password: "{{ wikijs.db_password }}"
+        login_host: "{{ interfaces.databases.net0.addresses[0] | ipmath(0) }}"
+        login_password: "{{ postgres.infra.root_password }}"
+    - postgresql_privs:
+        db: wikijs
+        role: wikijs
+        objs: ALL_IN_SCHEMA
+        privs: SELECT,INSERT,UPDATE,DELETE
+        login_host: "{{ interfaces.databases.net0.addresses[0] | ipmath(0) }}"
+        login_password: "{{ postgres.infra.root_password }}"
+  vars_files:
+    - vars/network.yml
+    - vars/postgres.yml
+    - vars/wikijs.yml
+    - vars/secrets.yml
+      
+# - name: "Create wikijs"
+#   hosts: docker_swarm_managers[0]
+#   roles:
+#     - name: wikijs
+#       vars:
+
+

@@ -1,0 +1,44 @@
+- name: Ensure blog.netsoc.co Docker Container
+  become: yes
+  docker_stack:
+    state: present
+    name: wikijs
+    #with_registry_auth: true
+    compose:
+      - version: "3.7"
+        services:
+          server:
+            image: requarks/wiki:2
+            networks:
+              traefik:
+            environment:
+              HA_ACTIVE: "true"
+              DB_TYPE: "postgres"
+              DB_HOST: "wikijs"
+              DB_PORT: "5432"
+              DB_USER: "wikijs"
+              DB_PASS: "{{ wikijs.db_password }}"
+              DB_NAME: "wikijs" 
+            deploy:
+              mode: global
+              placement:
+                constraints:
+                  - node.hostname == {{ inventory_hostname }}
+                preferences:
+                  - spread: node.id
+              labels:
+                - "traefik.enable=true"
+                - "traefik.http.routers.wikijs.rule=Host(`blog.{{ co_site }}`)"
+                - "traefik.http.routers.wikijs.entrypoints=web-secure"
+                - "traefik.http.routers.wikijs.tls.certResolver=letsencrypt"
+                - "traefik.http.services.wikijs-service.loadbalancer.server.port=80"
+                - "traefik.http.routers.wikijs.service=wikijs-service"
+                - "traefik.docker.network=traefik"
+              restart_policy:
+                condition: any
+                delay: 5s
+                max_attempts: 5
+        networks:
+          traefik:
+              external: true
+              name: traefik
