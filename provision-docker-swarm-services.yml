@@ -19,13 +19,19 @@
               ipa:
                 entrypoints:
                   - web-secure
-                rule: Host(`ipa.netsoc.co`)
+                rule: Host(`ipa.netsoc.dev`)
                 middlewares:
                   - ipa-rewrite
                 service: ipa
                 tls:
                   certResolver: letsencrypt
-
+              keycloak:
+                entrypoints:
+                  - web-secure
+                rule: Host(`keycloak.netsoc.dev`)
+                service: keycloak
+                tls:
+                  certResolver: letsencrypt
               discord-router:
                 entrypoints:
                   - web-secure
@@ -58,12 +64,16 @@
                 headers:
                   customRequestHeaders:
                     Host: ipa.vm.netsoc.co
-                    Referer: https://ipa.vm.netsoc.co/ipa
+                    Referer: https://ipa.vm.netsoc.co/ipa/
             services:
               ipa:
                 loadBalancer:
                   servers:
-                    - url: "https://ipa.vm.netsoc.co"
+                    - url: "https://auth.vm.netsoc.co"
+              keycloak:
+                loadBalancer:
+                  servers:
+                    - url: "http://auth.vm.netsoc.co:8080"
               unused:
                 loadBalancer:
                   servers:
