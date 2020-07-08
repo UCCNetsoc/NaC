@@ -1,0 +1,1 @@
+wikijs: "{{ vault_wikijs }}"
