@@ -1,6 +1,6 @@
 ---
 
-- name: Ensure mysql dir
+- name: Ensure Postgres dir
   become: yes
   file:
     path: "{{ mount }}/"
@@ -9,16 +9,16 @@
     mode: 0755
     state: directory
 
-- name: Ensure MySQL server container
+- name: Ensure Postgres server container
   become: yes
   docker_container:
     name: "{{ container_name }}"
     state: started
     recreate: yes
-    image: mysql:8.0.20
+    image: postgres:12.3
     env:
-      MYSQL_ROOT_PASSWORD: "{{ root_password }}"
+      POSTGRES_PASSWORD: "{{ root_password }}"
     volumes:
-      - "{{ mount }}/:/var/lib/mysql"
+      - "{{ mount }}/:/var/lib/postgresql/data"
     ports:
-      - "{{ ip }}:{{ port | default(3306) }}:3306"
+      - "{{ ip }}:{{ port | default(5432) }}:5432"
