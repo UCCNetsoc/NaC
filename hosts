@@ -7,6 +7,15 @@
 
 # NEW NETSOC
 control
+feynman
+lovelace
+
+# "OLD" NETSOC
+boole
+bigbertha
+leela
+feynman_vm
+lovelace_vm
 
 [proxmox_master]
 feynman
@@ -15,15 +24,6 @@ feynman
 feynman
 lovelace
 
-
-# "OLD" NETSOC
-boole
-bigbertha
-leela
-
-
-feynman-vm
-lovelace_vm
 
 [non_sudo]
 boole
