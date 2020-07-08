@@ -1,11 +1,13 @@
 ---
 
 - name: Ensure nfs-common
+  become: yes
   apt:
     name: nfs-common
     state: latest
 
 - name: Ensure autofs
+  become: yes
   apt:
     name: autofs
     state: latest
