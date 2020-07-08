@@ -6,14 +6,14 @@
     path: "{{ mount }}"
     owner: root
     group: root
-    mode: 0777
+    mode: 0755
     state: directory
 
 - become: yes
   copy:
     content: "{{ realm }}"
     dest: "{{ mount }}/realm.json"
-    mode: 0777
+    mode: 0755
 
 - docker_container:
     name: keycloak
