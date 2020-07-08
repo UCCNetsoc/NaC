@@ -21,11 +21,16 @@
 
 * You can peek and edit the vault using `./vault-peek.sh` and `./vault-edit.sh`
 
-* You can ssh into *.vm.netsoc.co by running `./ssh.sh <hostname>`, i.e `./ssh.sh nfs` for `nfs.vm.netsoc.co`
+* You can list *.vm.netsoc.co by using `./vm-list.sh`
+* You can ssh into *.vm.netsoc.co by running `./vm-ssh.sh <hostname>`, i.e `./vm-ssh.sh nfs` for `nfs.vm.netsoc.co`
 
 * The Proxmox Web UI is available at [`feynman.netsoc.co:8006`](https://feynman.netsoc.co:8006). You may need to type `thisisunsafe` (if using Chrome) to get past the SSL warning 
 
 * Once you've gotten to grips with that, have a look at `docs/` especially `infra.md`
+
+* For your development, you can use `sshfs` / VSCode Remote / `vim` on the control server / a git branch.
+  * You _will_ need to run your playbooks on the control server
+
 
 ## I want to contribute but I'm not a SysAdmin?
 
