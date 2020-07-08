@@ -1,24 +1,12 @@
----
-
-# This playbook needs to be ran manually on the Proxmox host before it has any networking setup
-# It sets up the bridges for VLANs
-
-- name: "Setup bridges & Packer DHCP bridge"
+- name: Ensure ansible and provisioning requirements on proxmox host
   hosts: localhost
-  connection: local
+  connection: localhost
+  gather_facts: no
   roles:
-    - role: packer-provisioning-dhcp-bridge
-      vars:
-        bridge_inteface: "vmbr1"
-        bridge_address: "10.0.100.1"
-        bridge_netmask: "24"
-        nat_interface: "vmbr0.20"
-        dhcp_range_begin: "10.0.100.2"
-        dhcp_range_end: "10.0.100.254"
-        dhcp_netmask: "255.255.255.0"
-        dhcp_lease_length: "24h"
-        dhcp_dns_servers: "8.8.8.8,8.8.4.4"
-        
+    - ansible
+    - ifupdown2
+    - packer
+    - jq  # for manipulating the proxmox api pvesh when it was --output-format=json 
   # TODO(ocanty) - automate me
   # tasks:
   #   - name: Setup /etc/network/interfaces
@@ -69,3 +57,15 @@
   #         auto vmbr0.40
   #         iface vmbr0.40 inet static
   #                 address 10.0.40.53/24
+
+    - role: packer-provisioning-dhcp-bridge
+      vars:
+        bridge_inteface: "vmbr1"
+        bridge_address: "10.0.100.1"
+        bridge_netmask: "24"
+        nat_interface: "vmbr0.20"
+        dhcp_range_begin: "10.0.100.2"
+        dhcp_range_end: "10.0.100.254"
+        dhcp_netmask: "255.255.255.0"
+        dhcp_lease_length: "24h"
+        dhcp_dns_servers: "8.8.8.8,8.8.4.4"
