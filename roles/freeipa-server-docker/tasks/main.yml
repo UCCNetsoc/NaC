@@ -8,25 +8,8 @@
     group: root
     # needs to 775 as this folder is accessed internally by a dirsrv user
     # https://github.com/freeipa/freeipa-container/issues/281
-    mode: 0777
+    mode: 0755
     state: directory
-    recurse: yes
-
-- name: Ensure freeipa/mods dir
-  become: yes
-  file:
-    path: "{{ mount }}/mods"
-    owner: root
-    group: root
-    mode: 0777
-    state: directory
-    recurse: yes
-
-- name: Ensure HTTP redirect disabler
-  become: yes
-  copy:
-    src: "files/ipa-rewrite.conf"
-    dest: "{{ mount }}/mods/ipa-rewrite.conf"
 
 - set_fact:
     ip: "{{ interface_address | ipmath(0) }}" # removes subnet mask
@@ -69,7 +52,6 @@
       - "/sys/fs/cgroup:/sys/fs/cgroup:ro"
       - "/etc/machine-id:/etc/machine-id"
       - "{{ mount }}/data/:/data:Z"
-      - "{{ mount }}/mods/ipa-rewrite.conf:/etc/httpd/conf.d/ipa-rewrite.conf:Z"
     tmpfs:
       - "/run"
       - "/tmp"
@@ -86,6 +68,21 @@
     path: "{{ mount }}/data/var/log/ipaserver-install.log"
     search_regex: "The ipa-server-install command was successful"
     timeout: 1200 # 20 minutes
+
+# - name: Ensure freeipa/mods dir
+#   become: yes
+#   file:
+#     path: "{{ mount }}/"
+#     owner: root
+#     group: root
+#     mode: 0755
+#     state: directory
+
+- name: Ensure HTTP redirect disabler
+  become: yes
+  copy:
+    src: "files/ipa-rewrite.conf"
+    dest: "{{ mount }}/data/etc/httpd/conf.d/ipa-rewrite.conf"
 
 - name: Insert trusted network ACLs 
   blockinfile:
