@@ -1,38 +1,37 @@
-- name: Ensure blog.netsoc.co Docker Container
+
+- set_fact:
+    unique_name: "{{ wikijs.hostname | regex_replace('\\.','_') }}"
+
+- name: Ensure wiki in Docker Swarm
   become: yes
   docker_stack:
     state: present
-    name: wikijs
+    name: "{{ unique_name }}"
     #with_registry_auth: true
     compose:
       - version: "3.7"
         services:
           server:
-            image: requarks/wiki:2
+            image: requarks/wiki:2.4
             networks:
               traefik:
             environment:
-              HA_ACTIVE: "true"
+              HA_ACTIVE: "1"
               DB_TYPE: "postgres"
-              DB_HOST: "wikijs"
-              DB_PORT: "5432"
-              DB_USER: "wikijs"
-              DB_PASS: "{{ wikijs.db_password }}"
-              DB_NAME: "wikijs" 
+              DB_HOST: "{{ wikijs.postgres.host }}"
+              DB_PORT: "{{ wikijs.postgres.port | default(5432) }}"
+              DB_USER: "{{ wikijs.postgres.username }}"
+              DB_PASS: "{{ wikijs.postgres.password }}"
+              DB_NAME: "{{ wikijs.postgres.db }}" 
             deploy:
               mode: global
-              placement:
-                constraints:
-                  - node.hostname == {{ inventory_hostname }}
-                preferences:
-                  - spread: node.id
               labels:
                 - "traefik.enable=true"
-                - "traefik.http.routers.wikijs.rule=Host(`blog.{{ co_site }}`)"
-                - "traefik.http.routers.wikijs.entrypoints=web-secure"
-                - "traefik.http.routers.wikijs.tls.certResolver=letsencrypt"
-                - "traefik.http.services.wikijs-service.loadbalancer.server.port=80"
-                - "traefik.http.routers.wikijs.service=wikijs-service"
+                - "traefik.http.routers.{{ unique_name }}.rule=Host(`{{ wikijs.hostname }}`)"
+                - "traefik.http.routers.{{ unique_name }}.entrypoints=web-secure"
+                - "traefik.http.routers.{{ unique_name }}.tls.certResolver=letsencrypt"
+                - "traefik.http.services.{{ unique_name }}.loadbalancer.server.port=3000"
+                - "traefik.http.routers.{{ unique_name }}.service={{ unique_name }}"
                 - "traefik.docker.network=traefik"
               restart_policy:
                 condition: any
