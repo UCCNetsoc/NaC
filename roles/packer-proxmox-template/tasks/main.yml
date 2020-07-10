@@ -114,7 +114,7 @@
   loop: "{{ packer | dict2items }}"
   when: "packer is defined and inventory_hostname == build_host"
 
-- name: Provisioning & Cluster Hosts - Remove a previous template if it exists
+- name: Build & Cluster Hosts - Remove a previous template if it exists
   proxmox_kvm:
     api_user: "{{ proxmox.username }}"
     api_password: "{{ proxmox.password }}"
@@ -123,7 +123,7 @@
     state: absent
   ignore_errors: true
 
-- name: Provisioning & Cluster Hosts - Stop a previous building template if it exists
+- name: Build & Cluster Hosts - Stop a previous building template if it exists
   proxmox_kvm:
     api_user: "{{ proxmox.username }}"
     api_password: "{{ proxmox.password }}"
@@ -133,7 +133,7 @@
     force: yes
   ignore_errors: true
 
-- name: Provisioning & Cluster Hosts - Remove a previous building template if it exists
+- name: Build & Cluster Hosts - Remove a previous building template if it exists
   proxmox_kvm:
     api_user: "{{ proxmox.username }}"
     api_password: "{{ proxmox.password }}"
@@ -212,7 +212,7 @@
   with_items: "{{ ansible_play_hosts | select('ne', inventory_hostname) | list }}"
   when: "inventory_hostname == build_host"
 
-# Copy the VZDump from the provisioning host into a directory on each of the cluster hosts with the id changed to it's generated one
+# Copy the VZDump from the build host into a directory on each of the cluster hosts with the id changed to it's generated one
 - name: Cluster Hosts - Pull the VZDump from the Build Host 
   synchronize: 
     src: "/tmp/packer-proxmox-template-{{ hostvars[build_host]['vm_id'] }}/vm.vma"
@@ -229,7 +229,7 @@
     {{ vm_id_generated }}
   when: "inventory_hostname != build_host"
   
-# The VM we restore will have the template name + the hostname of the provisioning host
+# The VM we restore will have the template name + the hostname of the build host
 # We need to rename this to the template name + the hostname of the cluster host or conflicts will occur
 
 # Get ID of VM we stored
