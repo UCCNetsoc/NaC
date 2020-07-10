@@ -91,7 +91,7 @@
     - role: traefik-proxmox
       vars:
         mount: "/nfs/docker/traefik"
-        dashboard_domain: traefik.netsoc.co
+        dashboard_domain: traefik.netsoc.dev
         dashboard_basicauth: netsoc:$$2y$$05$$1Rro44k9JKujdml4I.JAe.tx2iQEnKj4ykoD3Q50Adk5Q.lOu1CsG
         config:
           log:
@@ -127,43 +127,72 @@
     - vars/cloudflare.yml
     - vars/secrets.yml
 
+- name: "Ensure Portainer config dir"
+  hosts: docker_swarm_managers[0]
+  tasks:
+    - name: Ensure Portainer config dir on NFS
+      become: yes
+      file:
+        path: "{{ item }}"
+        mode: '0755'
+        state: directory
+      with_items:
+        - /nfs/docker/portainer
+  
+- name: "Ensure Portainer"
+  hosts: docker_swarm_managers[0]
+  roles:
+    - name: portainer
+      vars:
+        mount: /nfs/docker/portainer
+  vars_files:
+    - vars/portainer.yml
+    - vars/secrets.yml
+
+
+
 - name: "Ensure Netsoc Static Services"
   hosts: docker_swarm_managers[0]
   roles:
     - netsoc.co
     - blog.netsoc.co
 
-- name: "Create user and database for wikijs"
+- name: "Create user and database for wiki.js"
   hosts: databases
   become: yes
   tasks:
     - postgresql_db:
-        name: wikijs
+        name: "{{ wikijs.postgres.db }}"
         state: present
-        login_host: "{{ interfaces.databases.net0.addresses[0] | ipmath(0) }}"
-        login_password: "{{ postgres.infra.root_password }}"
+        login_host: "{{ postgres.infra.host }}"
+        login_password: "{{ postgres.infra.postgres_password }}"
     - postgresql_user:
-        name: wikijs
-        password: "{{ wikijs.db_password }}"
-        login_host: "{{ interfaces.databases.net0.addresses[0] | ipmath(0) }}"
-        login_password: "{{ postgres.infra.root_password }}"
+        name: "{{ wikijs.postgres.username }}"
+        password: "{{ wikijs.postgres.password }}"
+        login_host: "{{ postgres.infra.host }}"
+        login_password: "{{ postgres.infra.postgres_password }}"
     - postgresql_privs:
-        db: wikijs
-        role: wikijs
+        db: "{{ wikijs.postgres.db }}"
+        role: "{{ wikijs.postgres.username }}"
         objs: ALL_IN_SCHEMA
         privs: SELECT,INSERT,UPDATE,DELETE
-        login_host: "{{ interfaces.databases.net0.addresses[0] | ipmath(0) }}"
-        login_password: "{{ postgres.infra.root_password }}"
+        login_host: "{{ postgres.infra.host }}"
+        login_password: "{{ postgres.infra.postgres_password }}"
   vars_files:
-    - vars/network.yml
     - vars/postgres.yml
     - vars/wikijs.yml
     - vars/secrets.yml
       
-# - name: "Create wikijs"
-#   hosts: docker_swarm_managers[0]
-#   roles:
-#     - name: wikijs
-#       vars:
+- name: "Create wiki.js"
+  hosts: docker_swarm_managers[0]
+  roles:
+    - role: wikijs
+      vars:
+        postgres:
+          host: "{{ postgres.infra.host }}"
+  vars_files:
+    - vars/postgres.yml
+    - vars/wikijs.yml
+    - vars/secrets.yml
 
 
