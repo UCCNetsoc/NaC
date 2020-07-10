@@ -1,12 +1,16 @@
 ---
 
-- name: Ensure /netsoc-neo/docker-data/portainer exists with 0755
+
+- set_fact:
+    unique_name: "{{ portainer.hostname | regex_replace('\\.','_') }}"
+
+- name: Ensure mount exists with 0755
   become: yes
   file:
-    path: /netsoc-neo/docker-data/portainer
+    path: "{{ mount }}/"
     owner: root
     group: root
-    mode: 0777
+    mode: 0755
     state: directory
 
 - name: Ensure Portainer Docker network
@@ -20,7 +24,7 @@
 - name: Ensure Portainer Web UI + Agents
   become: yes
   docker_stack:
-    name: portainer
+    name: "{{ unique_name }}"
     state: present
     compose:
       - version: "3.5"
@@ -28,7 +32,7 @@
           webui:
             image: portainer/portainer
             volumes:
-              - /netsoc-neo/docker-data/portainer:/data
+              - "{{mount}}/:/data"
               - /var/run/docker.sock:/var/run/docker.sock
             command: -H tcp://tasks.agent:9001 --tlsskipverify
             ports:
@@ -45,20 +49,13 @@
               traefik:
             deploy:
               mode: global
-              placement:
-                constraints:
-                  - node.hostname == {{ inventory_hostname }}
-              restart_policy:
-                condition: on-failure
-                delay: 5s
-                max_attempts: 5
               labels:
                 - "traefik.enable=true"
-                - "traefik.http.routers.portainer.rule=Host(`portainer.{{ dev_site }}`)"
-                - "traefik.http.routers.portainer.entrypoints=web-secure"
-                - "traefik.http.routers.portainer.tls.certResolver=letsencrypt"
-                - "traefik.http.routers.portainer.service=portainer-service"
-                - "traefik.http.services.portainer-service.loadbalancer.server.port=9000"
+                - "traefik.http.routers.{{ unique_name }}.rule=Host(`{{ portainer.hostname }}`)"
+                - "traefik.http.routers.{{ unique_name }}.entrypoints=web-secure"
+                - "traefik.http.routers.{{ unique_name }}.tls.certResolver=letsencrypt"
+                - "traefik.http.routers.{{ unique_name }}.service={{ unique_name }}"
+                - "traefik.http.services.{{ unique_name }}.loadbalancer.server.port=9000"
                 - "traefik.docker.network=traefik"
           agent:
             restart: always
