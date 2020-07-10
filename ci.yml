@@ -1,6 +1,6 @@
 ---
 - name: Ensure Drone Server, Agent and DB
-  hosts: boole
+  hosts: docker_swarm_managers[0]
   vars_files:
     - vars/ci.yml
     - vars/discord.yml
