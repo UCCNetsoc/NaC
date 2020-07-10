@@ -25,7 +25,7 @@
       vars:
         container_name: postgres-infra
         ip: "{{ interfaces.databases.net0.addresses[0] | ipaddr('address')  }}"
-        root_password: "{{ postgres.infra.root_password }}"
+        root_password: "{{ postgres.infra.postgres_password }}"
         mount: "/mnt/data-disk/postgres-infra"
     - role: mysql-server-docker
       vars:
