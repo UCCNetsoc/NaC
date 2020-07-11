@@ -1,0 +1,16 @@
+---
+
+- name: "Ensure Proxmox Beta repo"
+  apt_repository:
+    repo: deb http://download.proxmox.com/debian/pbs buster pbstest
+    state: present
+
+- name: "Install Proxmox Backup Server"
+  apt:
+    name: proxmox-backup-server
+    update_cache: yes
+
+- name: "Configure Proxmox Backup DataStore"
+  shell: |
+    proxmox-backup-manager datastore create backups /mnt/backups
+    proxmox-backup-manager datastore update backups --keep-last 20 --prune-schedule daily --gc-schedule 'Tue 04:27'

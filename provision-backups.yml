@@ -1,0 +1,25 @@
+- name: "Enroll in IPA server"
+  hosts: nfs 
+  roles:
+    - role: freeipa-client
+      vars:
+        client:
+          addresses:
+            - "{{ ansible_default_ipv4.address }}"
+  vars_files:
+    - "vars/freeipa.yml"
+    - "vars/network.yml"
+    - "vars/secrets.yml"
+
+- name: "Setup Data Disk & Proxmox Backup Server"
+  hosts: databases
+  roles:
+    - role: simple-disk
+      vars:
+        device: "/dev/vdb"
+        partition_size: "100%"
+        fstype: "ext4"
+        mount_path: "/mnt/backups"
+        mount_opts: "rw"
+    - role: backups
+      vars:
