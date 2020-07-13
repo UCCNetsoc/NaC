@@ -2,6 +2,8 @@
 - name: "Ensure duplicity"
   apt:
     name: duplicity
+    state: latest
+    update_cache: yes
 
 - name: "Ensure duplicity config path; credentials"
   file:
