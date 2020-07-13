@@ -36,14 +36,13 @@
     job: >
       bash -c -l "
         for VM in $(qm list --full | 
-        awk '/vm.netsoc.co/ { if ($2 != "{{ blacklist }}") { printf "%s\n\n", $1; } }') ; 
-          do CONF=`pvesh get /nodes/$(hostname -s)/qemu/$VM/config --output-format=json` && 
+        awk '/vm.netsoc.co/ { if ($2 != "{{ blacklist }}" { printf "%s\n\n", $1; } }') ; 
+          do CONF=`pvesh get /nodes/$(hostname -s)/qemu/$VM/config --output-format=json` &&
+            [[ `echo $CONF | jq .virtio0` != "null" ]] && [[ `echo $CONF | jq .virtio0` != *"backup=0"* ]] && pvesh set /nodes/$(hostname -s)/qemu/$VM/config -virtio0 `echo $CONF | jq .virtio0`,backup=0 && sleep 5;
             [[ `echo $CONF | jq .virtio1` != "null" ]] && 
-            [[ `echo $CONF | jq .virtio0` != *"backup=0"* ]] && pvesh set /nodes/$(hostname -s)/qemu/$VM/config -virtio0 `echo CONF | jq virtio0`,backup=0 && sleep 5;
             echo "Backing up $VM" && MDIR="/backup/$(echo $CONF | jq -r .name)" && 
             mkdir -p $MDIR && vzdump --compress {{ compress }} $VM --mode snapshot --dumpdir $MDIR --exclude-path /boot; 
           done;
           GOOGLE_DRIVE_SETTINGS=~/.duplicity/credentials 
             duplicity --exclude-filelist ~/.duplicity/excludes /backup gdocs://{{ gdrive_username }}@gmail.com/{{ gdrive_location }}/$(hostname -s)
         "
-
