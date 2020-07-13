@@ -6,8 +6,6 @@
     path: "{{ mount }}/"
     owner: root
     group: root
-    # needs to 775 as this folder is accessed internally by a dirsrv user
-    # https://github.com/freeipa/freeipa-container/issues/281
     mode: 0777
     state: directory
 
