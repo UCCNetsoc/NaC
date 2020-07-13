@@ -41,6 +41,12 @@
         state: present
       with_items: "{{ sysadmins }}"
 
+    - name: Add SysAdmins to sudo
+      lineinfile:
+        path: /etc/sudoers
+        regexp: "%admins ALL=(ALL) ALL"
+        line: "%netsoc_sysadmin ALL=(ALL) ALL"
+
     - name: Create netsoc_sysadmin Proxmox group (if it doesn't exist) and give it admin role 
       shell: |
         pveum group list --output-format=json | jq .[].groupid | grep netsoc_sysadmin || pveum group add netsoc_sysadmin -comment 'Netsoc SysAdmins'
