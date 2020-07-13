@@ -4,7 +4,7 @@
   vars:
     backup_day: "6"
     backup_hour: "0"
-    router_hostname: "router.vm.netsoc.co"
+    blacklist: "router.vm.netsoc.co"
     compress: "lzo"
     gdrive_client_id: "{{ vault_gdrive_client_id }}"
     gdrive_client_secret: "{{ vault_gdrive_client_secret }}"
