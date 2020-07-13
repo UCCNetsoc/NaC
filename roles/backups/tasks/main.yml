@@ -1,0 +1,44 @@
+---
+- name: "Ensure duplicity"
+  apt:
+    name: duplicity
+
+- name: "Ensure duplicity config path; credentials"
+  file:
+    path: "/root/.duplicity/credentials"
+
+- name: "Ensure duplicity config path; excludes"
+  file:
+    path: "/root/.duplicity/excludes"
+
+- name: "Ensure duplicity credentials"
+  copy:
+    content: |
+      client_config_backend: settings
+      client_config:
+        client_id: {{ gdrive_client_id }}
+        client_secret: {{ gdrive_client_secret }}
+      save_credentials: True
+      save_credentials_backend: file
+      save_credentials_file: gdrive.cache
+      get_refresh_token: True
+    dest: "/root/.duplicity/credentials"
+
+- name: "Ensure backup cron job on each host"
+  cron:
+    user: "root"
+    name: "Run VZdump and duplicity"
+    weekday: "{{ backup_day }}"
+    hour: "{{ backup_hour }}"
+    minute: "0"
+    job: >
+      for VM in $(qm list --full | 
+      awk '/vm.netsoc.co/ { if ($2 != "{{ router_hostname }}") { printf "%s\n\n", $1; } }') ; 
+        do CONF=`pvesh get /nodes/$(hostname -s)/qemu/$VM/config --output-format=json` && 
+        [[ `echo $CONF | jq .virtio1` != "null" ]] && 
+        echo "Backing up $VM" && MDIR="/backup/$(hostname -s)/$(echo $CONF | jq -r .name)" && 
+        mkdir -p $MDIR && vzdump --compress {{ compress }} $VM --mode snapshot --dumpdir $MDIR --exclude-path /boot; 
+      done;
+      GOOGLE_DRIVE_SETTINGS=~/.duplicity/credentials 
+        duplicity --exclude-filelist ~/.duplicity/excludes /backup gdocs://{{ gdrive_username }}@gmail.com/{{ gdrive_location }}
+
