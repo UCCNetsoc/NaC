@@ -47,6 +47,14 @@ interfaces:
       nameservers: *nameservers
       optional: true # prevents waiting for network hang
       link-local: [ ipv4 ]
+  backups:
+    net0:
+      addresses:
+        - "10.0.{{ subnets.infra }}.10/24"
+      gateway4: "{{ gateway4.infra }}"
+      nameservers: *nameservers
+      optional: true # prevents waiting for network hang
+      link-local: [ ipv4 ]
   databases:
     net0:
       addresses:

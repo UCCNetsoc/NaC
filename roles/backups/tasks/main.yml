@@ -10,7 +10,8 @@
     name: proxmox-backup-server
     update_cache: yes
 
-- name: "Configure Proxmox Backup DataStore"
+- name: "Configure Proxmox Backup DataStore and user"
   shell: |
     proxmox-backup-manager datastore create backups /mnt/backups
     proxmox-backup-manager datastore update backups --keep-last 20 --prune-schedule daily --gc-schedule 'Tue 04:27'
+    proxmox-backup-manager user create {{ user }}@pbs --email {{ email }}

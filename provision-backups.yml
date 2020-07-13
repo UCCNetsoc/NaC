@@ -1,5 +1,5 @@
 - name: "Enroll in IPA server"
-  hosts: nfs 
+  hosts: backups 
   roles:
     - role: freeipa-client
       vars:
@@ -12,7 +12,7 @@
     - "vars/secrets.yml"
 
 - name: "Setup Data Disk & Proxmox Backup Server"
-  hosts: databases
+  hosts: backups
   roles:
     - role: simple-disk
       vars:
@@ -23,3 +23,10 @@
         mount_opts: "rw"
     - role: backups
       vars:
+        user: backups
+        email: root@feynman.netsoc.internal
+
+- name: "Enroll ipaclients as Backups clients"
+  hosts: ipaclients
+  roles:
+    - role: backup-client

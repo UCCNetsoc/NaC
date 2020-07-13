@@ -1,0 +1,11 @@
+---
+- name: "Install proxmox backup client"
+  apt:
+    name: proxmox-backup-client
+
+- name: "Ensure cron for backup client"
+  cron:
+    name: "Ensure cron for backup client"
+    env: yes
+    job: |
+      proxmox-backup-client backup disk-backup.pxar:/ --repository backups:backups
