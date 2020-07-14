@@ -5,8 +5,11 @@
     backup_hour: "3" # Backups everyday at 3am
     blacklist: "router.vm.netsoc.co"
     compress: "lzo"
-    gdrive_client_id: "{{ vault_gdrive_client_id }}"
-    gdrive_client_secret: "{{ vault_gdrive_client_secret }}"
-    gdrive_username: "{{ vault_gdrive_username }}"
-    gdrive_location: "{{ vault_gdrive_location }}"
+
+    # https://rgarth.github.io/2017/10/29/Grive-and-Duplicity/#setup-oath-credentials-in-google-api
+    gdrive_client_id: "{{ vault_gdrive.client_id }}" 
+    gdrive_client_secret: "{{ vault_gdrive.client_secret }}"
+    gdrive_username: "{{ vault_gdrive.username }}" # email address on account
+    gdrive_location: "{{ vault_gdrive.location }}" # "backups", etc
+    gdrive_refresh_token: "{{ vault_gdrive.refresh }}" # From local gdrive.cache
     discord_webhook_url: "{{ vault_webook_url }}"

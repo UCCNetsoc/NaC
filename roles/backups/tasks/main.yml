@@ -5,6 +5,11 @@
     state: latest
     update_cache: yes
 
+- name: "Ensure jq"
+  apt:
+    name: jq
+    state: latest
+
 - name: "Ensure duplicity config path; credentials"
   file:
     path: "/root/.duplicity/credentials"
@@ -12,6 +17,10 @@
 - name: "Ensure duplicity config path; excludes"
   file:
     path: "/root/.duplicity/excludes"
+
+- name: "Ensure duplicity config path; gdrive.cache"
+  file:
+    path: "/root/.duplicity/gdrive.cache"
 
 - name: "Ensure duplicity credentials"
   copy:
@@ -26,6 +35,36 @@
       get_refresh_token: True
     dest: "/root/.duplicity/credentials"
 
+- name: "Ensure duplicity gdrive.cache"
+  copy:
+    content: >
+      {
+        "access_token": "",
+        "client_id": "{{ gdrive_client_id }}",
+        "client_secret": "{{ gdrive_client_secret }}",
+        "refresh_token": "{{ gdrive_refresh_token }}",
+        "token_expiry": "",
+        "token_uri": "https://accounts.google.com/o/oauth2/token",
+        "user_agent": null,
+        "revoke_uri": "https://oauth2.googleapis.com/revoke",
+        "id_token": null,
+        "id_token_jwt": null,
+        "token_response": {
+          "access_token": "",
+          "expires_in": 1,
+          "scope": "https://www.googleapis.com/auth/drive",
+          "token_type": "Bearer"
+        },
+        "scopes": [
+          "https://www.googleapis.com/auth/drive"
+        ],
+        "token_info_uri": "https://oauth2.googleapis.com/tokeninfo",
+        "invalid": false,
+        "_class": "OAuth2Credentials",
+        "_module": "oauth2client.client"
+      }
+    dest: "/root/.duplicity/gdrive.cache"
+
 - name: "Ensure backup script on each host"
   copy:
     content: |
@@ -39,9 +78,9 @@
           mkdir -p $MDIR && vzdump --compress {{ compress }} $VM --mode snapshot --dumpdir $MDIR --exclude-path /boot ||
             curl -H "Content-Type: application/json" -X POST -d '{"username": "$(hostname -s)", "content": "Error backing up VM $VM"}' {{ discord_webhook_url }};
         done;
-        GOOGLE_DRIVE_SETTINGS=~/.duplicity/credentials 
-          duplicity --exclude-filelist ~/.duplicity/excludes /backup gdocs://{{ gdrive_username }}@gmail.com/{{ gdrive_location }}/$(hostname -s);
-        curl -H "Content-Type: application/json" -X POST -d '{"username": "$(hostname -s)", "content": "Weekly VM backups completed"}' {{ discord_webhook_url }}
+        GOOGLE_DRIVE_SETTINGS=~/.duplicity/credentials duplicity --exclude-filelist ~/.duplicity/excludes /backup gdocs://{{ gdrive_username }}/{{ gdrive_location }}/$(hostname -s) --no-encryption || 
+          curl -H "Content-Type: application/json" -X POST -d '{"username": "$(hostname -s)", "content": "Error syncing with Google Drive. You may need to update the refresh token in ansible vault :/"}' {{ discord_webhook_url }}; 
+        curl -H "Content-Type: application/json" -X POST -d '{"username": "$(hostname -s)", "content": "VM backups completed"}' {{ discord_webhook_url }}
     dest: /root/backup.sh
     mode: '0755'
 
