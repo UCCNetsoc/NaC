@@ -30,7 +30,6 @@
   cron:
     user: "root"
     name: "Run VZdump and duplicity"
-    weekday: "{{ backup_day }}"
     hour: "{{ backup_hour }}"
     minute: "0"
     job: >
