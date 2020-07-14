@@ -18,6 +18,10 @@
   file:
     path: "/root/.duplicity/excludes"
 
+- name: "Ensure pydrive for duplicity"
+  pip:
+    name: pydrive
+
 - name: "Ensure duplicity config path; gdrive.cache"
   file:
     path: "/root/.duplicity/gdrive.cache"
