@@ -2,12 +2,11 @@
   hosts: proxmox_hosts
   roles: backups
   vars:
-    backup_day: "6"
-    backup_hour: "0"
+    backup_hour: "3" # Backups everyday at 3am
     blacklist: "router.vm.netsoc.co"
     compress: "lzo"
     gdrive_client_id: "{{ vault_gdrive_client_id }}"
     gdrive_client_secret: "{{ vault_gdrive_client_secret }}"
     gdrive_username: "{{ vault_gdrive_username }}"
     gdrive_location: "{{ vault_gdrive_location }}"
-    discord_webhook_url: "{{ vault_backups.webook_url }}"
+    discord_webhook_url: "{{ vault_webook_url }}"
