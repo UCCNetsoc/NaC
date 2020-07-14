@@ -26,24 +26,29 @@
       get_refresh_token: True
     dest: "/root/.duplicity/credentials"
 
+- name: "Ensure backup script on each host"
+  copy:
+    content: |
+      #!/bin/bash
+      for VM in $(qm list --full | 
+      awk '/vm.netsoc.co/ { if ($2 != "{{ blacklist }}") { printf "%s\n\n", $1; } }') ;
+        do CONF=`pvesh get /nodes/$(hostname -s)/qemu/$VM/config --output-format=json` &&
+          [[ `echo $CONF | jq .virtio0` != "null" ]] && [[ `echo $CONF | jq .virtio0` != *"backup=0"* ]] && pvesh set /nodes/$(hostname -s)/qemu/$VM/config -virtio0 `echo $CONF | jq -r .virtio0`,backup=0 && sleep 5;
+          [[ `echo $CONF | jq .virtio1` != "null" ]] && 
+          echo "Backing up $VM" && MDIR="/backup/$(echo $CONF | jq -r .name)" && 
+          mkdir -p $MDIR && vzdump --compress {{ compress }} $VM --mode snapshot --dumpdir $MDIR --exclude-path /boot ||
+            curl -H "Content-Type: application/json" -X POST -d '{"username": "$(hostname -s)", "content": "Error backing up VM $VM"}' {{ discord_webhook_url }};
+        done;
+        GOOGLE_DRIVE_SETTINGS=~/.duplicity/credentials 
+          duplicity --exclude-filelist ~/.duplicity/excludes /backup gdocs://{{ gdrive_username }}@gmail.com/{{ gdrive_location }}/$(hostname -s);
+        curl -H "Content-Type: application/json" -X POST -d '{"username": "$(hostname -s)", "content": "Weekly VM backups completed"}' {{ discord_webhook_url }}
+    dest: /root/backup.sh
+    mode: '0755'
+
 - name: "Ensure backup cron job on each host"
   cron:
     user: "root"
     name: "Run VZdump and duplicity"
     hour: "{{ backup_hour }}"
     minute: "0"
-    job: >
-      bash -c -l "
-        for VM in $(qm list --full | 
-        awk '/vm.netsoc.co/ { if ($2 != "{{ blacklist }}") { printf "%s\n\n", $1; } }') ;
-          do CONF=`pvesh get /nodes/$(hostname -s)/qemu/$VM/config --output-format=json` &&
-            [[ `echo $CONF | jq .virtio0` != "null" ]] && [[ `echo $CONF | jq .virtio0` != *"backup=0"* ]] && pvesh set /nodes/$(hostname -s)/qemu/$VM/config -virtio0 `echo $CONF | jq -r .virtio0`,backup=0 && sleep 5;
-            [[ `echo $CONF | jq .virtio1` != "null" ]] && 
-            echo "Backing up $VM" && MDIR="/backup/$(echo $CONF | jq -r .name)" && 
-            mkdir -p $MDIR && vzdump --compress {{ compress }} $VM --mode snapshot --dumpdir $MDIR --exclude-path /boot ||
-              curl -H "Content-Type: application/json" -X POST -d '{"username": "$(hostname -s)", "content": "Error backing up VM $VM"}' {{ discord_webhook_url }};
-          done;
-          GOOGLE_DRIVE_SETTINGS=~/.duplicity/credentials 
-            duplicity --exclude-filelist ~/.duplicity/excludes /backup gdocs://{{ gdrive_username }}@gmail.com/{{ gdrive_location }}/$(hostname -s);
-          curl -H "Content-Type: application/json" -X POST -d '{"username": "$(hostname -s)", "content": "Weekly VM backups completed"}' {{ discord_webhook_url }}
-        "
+    job: /root/backup.sh
