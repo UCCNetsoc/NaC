@@ -26,6 +26,7 @@
       KEYCLOAK_IMPORT: "/tmp/keycloak/realm.json"
       KEYCLOAK_FRONTEND_URL: "{{ keycloak.hostname }}"
     hostname: "{{ keycloak.hostname }}"
+    restart: unless-stopped
     ports:
       - "8080:8080"
     volumes:

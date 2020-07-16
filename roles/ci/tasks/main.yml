@@ -80,7 +80,7 @@
               mode: replicated
               replicas: 1
               restart_policy:
-                condition: any
+                condition: unless-stopped
                 delay: 5s
                 max_attempts: 5
               labels:
@@ -131,7 +131,7 @@
               mode: replicated
               replicas: 1
               restart_policy:
-                condition: any
+                condition: unless-stopped
                 delay: 5s
                 max_attempts: 5
             networks:
