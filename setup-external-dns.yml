@@ -1,5 +1,4 @@
 ---
-
 - name: "Setup DNS"
   hosts: localhost
   connection: local
@@ -9,6 +8,24 @@
           X-Auth-Email: "{{ cloudflare.api.email }}"
           Authorization: "Bearer {{ cloudflare.api.dns_api_token }}"
           Content-Type: "application/json"
+        grafana_basic_auth: "{{ grafana.username }}:{{ grafana.password }}"
+
+    - name: "Set Grafana dashboard annotation"
+      uri:
+        url: https://grafana.netsoc.dev/api/annotations
+        method: POST
+        headers:
+          Content-Type: "application/json"
+          Accept: "application/json"
+          Authorization: "Basic {{ grafana_basic_auth | b64encode }}"
+        body_format: json
+        body: '{
+          "panelId": 10,
+          "dashboardId": 25,
+          "time": {{ ansible_date_time.epoch | int * 1000 }},
+          "tags": [ "ansible" ],
+          "text": "Ansible setup-external-dns.yml playbook started",
+        }'
 
     # DNS for netsoc.dev
     - name: "Get zone ID for netsoc.dev"
@@ -54,6 +71,7 @@
         - { type: CNAME,  name: "*.netsoc.dev",     value: "bigbertha.netsoc.dev" }
         - { type: CNAME,  name: "netsoc.dev",       value: "bigbertha.netsoc.dev" }
         - { type: CNAME,  name: "www.*.netsoc.dev", value: "bigbertha.netsoc.dev" }
+        - { type: CNAME,  name: grafana,            value: "bigbertha.netsoc.dev" }
 
         # Internal services 
         - { type: A,      name: 80-443-swarm-ingress,  value: "84.39.234.53"                  }
@@ -181,4 +199,5 @@
   vars_files:
     - vars/network.yml
     - vars/cloudflare.yml
+    - vars/monitoring.yml
     - vars/secrets.yml

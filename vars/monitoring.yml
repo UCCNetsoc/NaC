@@ -1,1 +1,2 @@
+grafana: "{{ vault_grafana }}"
 grafana_admin_pass: "{{ vault_grafana_admin_pass }}"
