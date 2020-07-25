@@ -17,6 +17,7 @@
 1. `template-netsoc-ubuntu-server.yml`
 1. `create-auth.yml`
 1. `provision-auth.yml`
+1. `setup-internal-dns.yml`
 1. `create-nfs.yml`
 1. `provision-nfs.yml`
 1. `create-databases.yml`
