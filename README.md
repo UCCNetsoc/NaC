@@ -45,7 +45,9 @@
 
 This repo currently contains both playbooks for managing 2019/2020 bare-metal infra and 2020/2021 Proxmox infra. Do not get them confused, have a look at `./hosts` to see what's going on.
 
-### **Read `docs/infra.md`**
+### **Read `https://wiki.netsoc.co`**
+
+### Historical Infra changes
 
 `feynman` is now a Proxmox master host but was previously a server we used to give users a root access playground
 
