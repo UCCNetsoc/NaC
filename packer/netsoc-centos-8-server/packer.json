@@ -1,0 +1,76 @@
+{
+    "description": "Generic Proxmox Template Packer file",
+    "variables": {
+      "vm_id": "",
+      "template_name": "",
+      "proxmox_api_url": "",
+      "proxmox_username": "",
+      "proxmox_password": "",
+      "proxmox_node": "",
+      "http_base_url": "",
+      "root_password": ""
+    },
+    "sensitive-variables": [
+      "proxmox_password",
+      "root_password"
+    ],
+    "provisioners": [
+      {
+        "type": "ansible",
+        "playbook_file": "./main.yml"
+      }
+    ],
+    "builders": [
+      {
+        "type": "proxmox",
+        "insecure_skip_tls_verify": true,
+        "proxmox_url": "{{ user `proxmox_api_url`}}",
+        "username": "{{ user `proxmox_username`}}",
+        "password": "{{ user `proxmox_password`}}",
+        "node": "{{ user `proxmox_node` }}",
+        
+        "vm_id": "{{ user `vm_id`}}",
+        "vm_name": "{{ user `vm_name`}}",
+        "template_name": "{{ user `template_name`}}",
+        "template_description": "CentOS 8 Server for Netsoc",
+
+        "iso_url": "http://mirror.mobap.edu/centos/8.1.1911/isos/x86_64/CentOS-8.1.1911-x86_64-dvd1.iso",
+        "iso_checksum_type": "sha256",
+        "iso_checksum": "3ee3f4ea1538e026fff763e2b284a6f20b259d91d1ad5688f5783a67d279423b",
+        "iso_storage_pool": "local",
+
+        "unmount_iso": "true",
+
+        "boot_wait": "5s",
+        "http_directory": ".",
+        "boot_command": [
+          "<tab> text ks=http://{{ .HTTPIP }}:{{ .HTTPPort }}/ks.cfg<enter><wait>"
+        ],
+        
+        "ssh_username": "root",
+        "ssh_password": "{{ user `root_password`}}",
+        "ssh_timeout": "25m",
+        "cloud_init": true,
+        "cpu_type": "host",
+        "cores": "2",
+        "memory": "1024",
+        "os": "l26",
+        "network_adapters": [
+          {
+            "model": "virtio",
+            "bridge": "vmbr1"
+          }
+        ],
+        "scsi_controller": "virtio-scsi-pci",
+        "disks": [
+          {
+            "type": "virtio",
+            "disk_size": "8G",
+            "storage_pool": "local-lvm",
+            "storage_pool_type": "lvm",
+            "format": "raw"
+          }
+        ]
+      }
+    ]
+  }

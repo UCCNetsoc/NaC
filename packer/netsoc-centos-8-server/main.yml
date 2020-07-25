@@ -1,0 +1,15 @@
+---
+- name: "Provision image"
+  hosts: default
+  become: true
+  roles:
+    - ansible-requirements
+    - docker
+    - role: lvm-auto-extend
+      vars:
+        device: "/dev/vda"
+        lvm_extended_partition: "1"
+        lvm_pv_partition: "2"
+        lvm_vg_lv: "cl-root"
+    - serial-console
+    - no-root-login
