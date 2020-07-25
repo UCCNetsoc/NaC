@@ -2,5 +2,5 @@ ipaadmin_password: "{{ freeipa.admin_password }}"
 ipaserver_domain: "{{ freeipa.domain }}"
 ipaserver_realm: "{{ freeipa.realm }}"
 ipaclient_servers:
-  - ipa.vm.netsoc.co
+  - "{{ freeipa.server }}"
 ipaadmin_principal: "admin"
