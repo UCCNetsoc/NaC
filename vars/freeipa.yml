@@ -4,7 +4,3 @@ freeipa:
   domain: "vm.netsoc.co"
   server: "ipa.vm.netsoc.co"
   realm: "VM.NETSOC.CO"
-
-# Used for ipa_host module
-ipa_host: "ipa.vm.netsoc.co"
-ipa_pass: "{{ vault_freeipa.admin_password }}"
