@@ -18,7 +18,7 @@
     - role: autofs-automount
       vars:
         src: nfs.vm.netsoc.co:/
-        mount: /nfs
+        mount: /storage
         opts: fstype=nfs4,rw,vers=4.2,sec=krb5p,hard,bg
   vars_files:
     - "vars/idmap.yml"
@@ -30,7 +30,7 @@
   become: yes
   tasks:
     - file:
-        path: "/nfs/{{ item }}"
+        path: "/storage/{{ item }}"
         state: directory
         recurse: yes
       with_items:

@@ -8,9 +8,9 @@
         path: "{{ item }}"
         mode: '0770'
         state: directory
-      with_items: # do not use recurse: yes because the /nfs mount could have failed
-        - /nfs/docker/traefik
-        - /nfs/docker/traefik/file_config
+      with_items: # do not use recurse: yes because the /storage mount could have failed
+        - /storage/docker/traefik
+        - /storage/docker/traefik/file_config
 
     - set_fact:
         file_config:
@@ -83,14 +83,14 @@
       become: yes
       copy:
         content: "{{ file_config | from_yaml }}"
-        dest: /nfs/docker/traefik/file_config/config.yml
+        dest: /storage/docker/traefik/file_config/config.yml
         
 - name: "Ensure Traefik loadbalancer running"
   hosts: docker_swarm_managers[0]
   roles:
     - role: traefik-proxmox
       vars:
-        mount: "/nfs/docker/traefik"
+        mount: "/storage/docker/traefik"
         dashboard_domain: traefik.netsoc.dev
         dashboard_basicauth: netsoc:$$2y$$05$$1Rro44k9JKujdml4I.JAe.tx2iQEnKj4ykoD3Q50Adk5Q.lOu1CsG
         config:
@@ -137,19 +137,17 @@
         mode: '0755'
         state: directory
       with_items:
-        - /nfs/docker/portainer
+        - /storage/docker/portainer
   
 - name: "Ensure Portainer"
   hosts: docker_swarm_managers[0]
   roles:
     - name: portainer
       vars:
-        mount: /nfs/docker/portainer
+        mount: /storage/docker/portainer
   vars_files:
     - vars/portainer.yml
     - vars/secrets.yml
-
-
 
 - name: "Ensure Netsoc Static Services"
   hosts: docker_swarm_managers[0]

@@ -18,8 +18,8 @@
     - role: zfs-auto-snapshot
     - role: simple-zfs
       vars:
-        pool: nfs
-        mount: /nfs
+        pool: storage
+        mount: /storage
         device: /dev/vdb
         fs:
           - home/users
@@ -33,7 +33,7 @@
   tasks:
     - become: yes
       file:
-        path: /nfs
+        path: /storage
         mode: 0777
         state: directory
 
@@ -42,47 +42,47 @@
 #   become: yes
 #   tasks:
 #     - copy:
-#         content |
-#           #!/bin/bash
+        # content: |
+        #   #!/bin/bash
 
-#           printf "[$(date -u)] Starting user home directory dataset creator\n"
-#           printf "[$(date -u)] Creating nfs/home dataset\n"
-#           zfs create nfs/home
+        #   printf "[$(date -u)] Starting user home directory dataset creator\n"
+        #   printf "[$(date -u)] Creating nfs/home dataset\n"
+        #   zfs create nfs/home
 
-#           printf "[$(date -u)] Creating nfs/home/users dataset\n"
-#           zfs create nfs/home/users
+        #   printf "[$(date -u)] Creating nfs/home/users dataset\n"
+        #   zfs create nfs/home/users
 
-#           while true
-#           do
-#             echo "SomePass" | kinit admin
+        #   while true
+        #   do
+        #     echo "SomePass" | kinit admin
 
-#             all_users=$(ipa user-find --all | awk '/User login/{ print $3 }')
+        #     all_users=$(ipa user-find --all | awk '/User login/{ print $3 }')
 
-#             printf "\n[$(date -u)] Scanning IPA users (with home dirs in /home/users/*) to find users missing home directories\n"
+        #     printf "\n[$(date -u)] Scanning IPA users (with home dirs in /home/users/*) to find users missing home directories\n"
 
-#             for user in $all_users do 
-#               printf "[$(date -u)] Checking $user...\n"
-#               uid=$(getent passwd $user | cut -d ":" -f 3)
-#               gid=$(getent passwd $user | cut -d ":" -f 4)
-#               home=$(getent passwd $user | cut -d ":" -f 6)
+        #     for user in $all_users do 
+        #       printf "[$(date -u)] Checking $user...\n"
+        #       uid=$(getent passwd $user | cut -d ":" -f 3)
+        #       gid=$(getent passwd $user | cut -d ":" -f 4)
+        #       home=$(getent passwd $user | cut -d ":" -f 6)
 
-#               if [ ! -d "/nfs/home/users/$user" ] && [[ $home == "/home/users/$user" ]]; then
-#                 printf "[$(date -u)] $user ($uid:$gid) does not have a zfs home directory, setting them up now\n"
-#                 zfs create nfs/home/users/$user
-#                 chown root:$uid /nfs/home/users/$user
-#                 chmod 770 /nfs/home/users/$user
-#                 cp -a /etc/skel/. /nfs/home/users/$user/.
-#                 chown $uid:$uid -R /nfs/home/users/$user/*
-#               else
-#                 printf "[$(date -u)] $user does not have a home directory pointed to /home/users/$user, ignoring\n"
-#               fi
-#             done
-#               printf "[$(date -u)] Scanning complete\n"
-#               sleep 10
-#           done
+        #       if [ ! -d "/nfs/home/users/$user" ] && [[ $home == "/home/users/$user" ]]; then
+        #         printf "[$(date -u)] $user ($uid:$gid) does not have a zfs home directory, setting them up now\n"
+        #         zfs create nfs/home/users/$user
+        #         chown root:$uid /nfs/home/users/$user
+        #         chmod 770 /nfs/home/users/$user
+        #         cp -a /etc/skel/. /nfs/home/users/$user/.
+        #         chown $uid:$uid -R /nfs/home/users/$user/*
+        #       else
+        #         printf "[$(date -u)] $user does not have a home directory pointed to /home/users/$user, ignoring\n"
+        #       fi
+        #     done
+        #       printf "[$(date -u)] Scanning complete\n"
+        #       sleep 10
+        #   done
 
 # This has the side effect of setting up an IPA service and keytab for the NFS server too
-# as the NFS server shares the same hostname, when we create it below,3 it will mount the same keytab file
+# as the NFS server shares the same hostname, when we create it below it will use the same keytab file
 - name: Setup NFS client requirements
   hosts: nfs
   roles:
@@ -99,7 +99,7 @@
     - role: nfs4-server-krb5
       vars:
         exports: |
-          /nfs 10.0.{{ subnets.infra }}.0/24(fsid=0,rw,sync,crossmnt,no_root_squash,sec=krb5p:krb5i:krb5)
+          /storage 10.0.{{ subnets.infra }}.0/24(fsid=0,rw,sync,crossmnt,no_root_squash,sec=krb5p:krb5i:krb5)
   vars_files:
     - vars/idmap.yml
     - vars/network.yml
