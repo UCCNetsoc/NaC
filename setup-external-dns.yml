@@ -108,8 +108,6 @@
         - { type: A,      name: "ns1",            value: "84.39.234.50" }   # Legacy
         - { type: A,      name: "ns2",            value: "84.39.234.52" }
 
-        - { type: A,      name: "ipa.vm",         value: "10.0.{{ subnets.infra }}.10" }
-
         # New - post proxmoxification
         - { type: A,     name: 80-443-swarm-ingress,  value: "84.39.234.53" }
         - { type: CNAME, name: wiki,                  value: 80-443-swarm-ingress.netsoc.co }
