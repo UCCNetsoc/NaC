@@ -58,11 +58,3 @@
     state: restarted
     daemon_reload: no
     name: docker
-
-- name: Adding netsoc user to Docker group
-  become: yes
-  user:
-    name: "netsoc"
-    shell: "/bin/bash"
-    groups: "docker"
-    append: "yes"
