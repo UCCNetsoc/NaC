@@ -69,3 +69,5 @@
     - "vars/keycloak_freeipa_realm.yml"
     - "vars/freeipa.yml"
     - "vars/secrets.yml"
+
+- import_playbook: "setup-internal-dns.yml"
