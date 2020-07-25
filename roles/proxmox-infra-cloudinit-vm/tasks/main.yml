@@ -98,7 +98,7 @@
     # e.g. existing_disk=`qm config 1232366 | grep ^ide3 | cut -d' ' -f2 | cut -d',' -f1 | grep ^local-lvm`
     existing_disk=`qm config {{ vmid }} | grep ^{{ item.key }} | cut -d' ' -f2 | cut -d',' -f1 | grep ^{{ item.value.pool }}`
 
-    if [[ $existing_disk == '' || {{ 'true' if 'override' in item.value and item.value.override else 'false' }} ]]; then
+    if [[ $existing_disk == '' {{ '|| true' if item.value.override is defined and item.value.override is true else '' }} ]]; then
       # no disk, add one
       qm set {{ vmid }} --{{ item.key }} {{ item.value.pool }}:{{ item.value.definition }}
     fi
