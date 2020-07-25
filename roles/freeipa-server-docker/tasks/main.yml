@@ -34,6 +34,7 @@
     restart: yes
     etc_hosts:
       '{ "{{ freeipa.server }}": "{{ ip }}" }'
+    hostname: "{{ freeipa.server }}"
     env: # environment:
       IPA_SERVER_HOSTNAME: "{{ freeipa.server }}"
       IPA_SERVER_IP: "{{ ip }}"
@@ -66,17 +67,17 @@
   become: yes
   wait_for:
     path: "{{ mount }}/data/var/log/ipaserver-install.log"
-    search_regex: "The ipa-server-install command was successful"
+    search_regex: "The ipa-server-install command"
     timeout: 1200 # 20 minutes
 
-# - name: Ensure freeipa/mods dir
-#   become: yes
-#   file:
-#     path: "{{ mount }}/"
-#     owner: root
-#     group: root
-#     mode: 0755
-#     state: directory
+- name: "Check install status (grep)"
+  register: status
+  shell: "grep -i 'The ipa-server-install command was successful' {{ mount }}/data/var/log/ipaserver-install.log"
+  ignore_errors: yes
+
+- name: "Check install success"
+  fail: "Install failed, check {{ mount }}/data/var/log/ipaserver-install.log for more info"
+  when: status is not changed
 
 - name: Ensure HTTP redirect disabler
   become: yes
