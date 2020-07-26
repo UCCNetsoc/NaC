@@ -15,9 +15,9 @@
               resize: "20G"
             virtio1:
               pool: local-lvm
-              definition: "50,format=raw"
+              definition: "100,format=raw"
           cores: 4
-          memory: 2048
+          memory: 10240
           description:
             groups:
               - vm
