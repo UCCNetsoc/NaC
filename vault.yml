@@ -1,6 +1,6 @@
 ---
 - name: Ensure Hashicorp Vault
-  hosts: swarm_managers
+  hosts: docker_swarm_managers[0]
   vars_files:
     - vars/consul.yml
     - vars/vault.yml
@@ -12,7 +12,7 @@
     - server
 
 - name: Set Docker Registry secrets in Hashicorp Vault
-  hosts: swarm_creators
+  hosts: docker_swarm_managers[0]
   vars_files:
     - vars/vault.yml
     - vars/secrets_legacy.yml
@@ -24,7 +24,7 @@
     - docker_registry
 
 - name: Set Github secrets in Hashicorp Vault
-  hosts: swarm_creators
+  hosts: docker_swarm_managers[0]
   vars_files:
     - vars/vault.yml
     - vars/secrets.yml
@@ -36,7 +36,7 @@
     - github
 
 - name: Set Discord Webhook secrets in Hashicorp Vault
-  hosts: swarm_creators
+  hosts: docker_swarm_managers[0]
   vars_files:
     - vars/vault.yml
     - vars/discord.yml
