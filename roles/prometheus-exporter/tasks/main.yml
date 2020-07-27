@@ -1,0 +1,54 @@
+---
+
+- name: Node Exporter
+  include_role:
+    name: cloudalchemy.node-exporter
+  vars:
+    node_exporter_enabled_collectors: # enabled in addition to default collectors
+      - ntp
+      - systemd
+
+- name: Cadvisor
+  when: "'prometheus_docker' in group_names"
+  docker_container:
+    name: cadvisor
+    image: "google/cadvisor:v0.33.0"
+    state: started
+    restart_policy: unless-stopped
+    ports:
+      - "9338:8080"
+    volumes:
+      - "/:/rootfs:ro"
+      - "/var/run:/var/run:rw"
+      - "/sys:/sys:ro"
+      - "/var/lib/docker/:/var/lib/docker:ro"
+      - "/dev/disk/:/dev/disk:ro"
+
+- name: IPMI Exporter
+  when: "'prometheus_ipmi' in group_names"
+  docker_container:
+    name: ipmi_exporter
+    image: "mloc6/ipmi_exporter"
+    pull: true
+    state: started
+    restart_policy: unless-stopped
+    ports:
+      - "9289:9289"
+    devices:
+      - "/dev/ipmi0"
+
+- name: Apache Prometheus Exporter
+  when: "'prometheus_apache' in group_names"
+  docker_container:
+    name: prometheus_apache
+    image: "lusotycoon/apache-exporter:v0.8.0"
+    command: ["-scrape_uri", "http://{{ ansible_host }}/server-status/?auto"]
+    state: started
+    restart_policy: unless-stopped
+    ports:
+      - "9117:9117"
+
+- name: Exporter Exporter
+  include_tasks: "exporter_exporter.yml"
+    
+    

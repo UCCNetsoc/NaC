@@ -1,0 +1,33 @@
+- name: "Create exp-exp user"
+  become: yes
+  user:
+    name: exp-exp
+    shell: /usr/sbin/nologin
+    system: true
+    create_home: false
+    home: /
+
+- name: "Install exporter proxy"
+  become: yes
+  apt:
+    deb: "https://github.com/QubitProducts/exporter_exporter/releases/download/v0.4.0/expexp_0.4.0-3_amd64.deb"
+
+- name: "Copy systemd unit file"
+  become: yes
+  copy:
+    src: "files/prometheus_exporter_exporter.service"
+    dest: "/etc/systemd/system/prometheus_exporter_exporter.service"
+
+- name: "Generate config"
+  become: yes
+  template:
+    src: "templates/exporter_exporter.yaml.j2"
+    dest: "/etc/exporter_exporter.yaml"
+    
+- name: "Enable systemd service"
+  become: yes
+  systemd:
+    name: "prometheus_exporter_exporter"
+    daemon_reload: yes
+    enabled: yes
+    state: restarted

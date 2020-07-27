@@ -42,10 +42,7 @@ lovelace_vm
 [swarm_workers]
 leela
 
-[prometheus_hosts]
-bigbertha
-
-[prometheus_nodes]
+[prometheus_base]
 boole
 bigbertha
 leela

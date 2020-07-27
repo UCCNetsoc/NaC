@@ -1,0 +1,46 @@
+modules:
+  node:
+    method: http
+    http:
+      port: 9100
+  
+{% if 'prometheus_docker' in group_names %}
+  cadvisor:
+    method: http
+    http:
+      port: 9338
+{% endif %}
+
+{% if 'prometheus_ipmi' in group_names %}
+  ipmi:
+    method: http
+    http:
+      port: 9289
+{% endif %}
+
+{% if 'prometheus_apache' in group_names %}
+  apache:
+    method: http
+    http:
+      port: 9117
+{% endif %}
+
+{% if inventory_hostname == 'games.vm.netsoc.co' %}
+# https://github.com/sladkoff/minecraft-prometheus-exporter
+# Doesn't have allotted port https://github.com/prometheus/prometheus/wiki/Default-port-allocations
+# Uses 9225 by default
+# 9225 & 9226 don't conflict with any of our other exporters
+  netcraft-survival:
+    method: http
+    http:
+      port: 9225 
+
+# Not currently in use
+#  netcraft-creative:
+#    method: http
+#    http:
+#      port: 9226
+
+{% endif %}
+
+
