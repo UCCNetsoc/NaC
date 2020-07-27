@@ -1,5 +1,5 @@
 - name: "Ensure backup job on each proxmox host"
-  hosts: proxmox_hosts
+  hosts: localhost
   roles: backups
   vars:
     backup_hour: "3" # Backups everyday at 3am
