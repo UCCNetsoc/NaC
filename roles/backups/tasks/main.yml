@@ -69,7 +69,7 @@
       }
     dest: "/root/.duplicity/gdrive.cache"
 
-- name: "Ensure backup script on each host"
+- name: "Ensure backup script on host"
   copy:
     content: |
       #!/bin/bash
@@ -94,4 +94,5 @@
     name: "Run VZdump and duplicity"
     hour: "{{ backup_hour }}"
     minute: "0"
-    job: /root/backup.sh
+    job: bash -c "ssh -i /root/NaC/keys/{{ items }}/id_rsa netsoc@{{ item }} 'bash -s' < /root/backup.sh"
+  loop: "{{ proxmox_hosts }}"
