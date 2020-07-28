@@ -94,5 +94,5 @@
     name: "Run VZdump and duplicity"
     hour: "{{ backup_hour }}"
     minute: "0"
-    job: bash -c "ssh -i /root/NaC/keys/{{ items }}/id_rsa netsoc@{{ item }} 'bash -s' < /root/backup.sh"
+    job: bash -c "ssh -i /root/NaC/keys/{{ item }}/id_rsa netsoc@{{ item }} 'bash -s' < /root/backup.sh"
   loop: "{{ proxmox_hosts }}"
