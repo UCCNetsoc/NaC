@@ -1,1 +1,5 @@
 traefik_basic_auth: "{{ vault_traefik_basic_auth }}"
+
+traefik:
+  username: "{{ vault_traefik.username }}"
+  password: "{{ vault_traefik.password }}"

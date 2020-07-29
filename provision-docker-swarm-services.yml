@@ -50,6 +50,15 @@
                 service: unused
                 tls:
                   certResolver: letsencrypt
+              prometheus:
+                entrypoints:
+                  - web-secure
+                rule: Host(`prometheus.netsoc.dev`)
+                middlewares:
+                  - prometheus-auth
+                service: prometheus
+                tls:
+                  certResolver: letsencrypt
 
             middlewares:
               discord-redirect:
@@ -65,6 +74,11 @@
                   customRequestHeaders:
                     Host: ipa.vm.netsoc.co
                     Referer: https://ipa.vm.netsoc.co/ipa/
+              prometheus-auth:
+                basicAuth:
+                  users:
+                    - "{{ prometheus.username }}:{{ prometheus.password | password_hash('bcrypt') }}"
+
             services:
               ipa:
                 loadBalancer:
@@ -74,6 +88,10 @@
                 loadBalancer:
                   servers:
                     - url: "http://auth.vm.netsoc.co:8080"
+              prometheus:
+                loadBalancer:
+                  servers:
+                    - url: "http://prometheus.databases.vm.netsoc.co:9090"
               unused:
                 loadBalancer:
                   servers:
@@ -84,6 +102,9 @@
       copy:
         content: "{{ file_config | from_yaml }}"
         dest: /storage/docker/traefik/file_config/config.yml
+  vars_files:
+    - vars/secrets.yml
+    - vars/prometheus.yml
         
 - name: "Ensure Traefik loadbalancer running"
   hosts: docker_swarm_managers[0]
@@ -92,7 +113,7 @@
       vars:
         mount: "/storage/docker/traefik"
         dashboard_domain: traefik.netsoc.dev
-        dashboard_basicauth: netsoc:$$2y$$05$$1Rro44k9JKujdml4I.JAe.tx2iQEnKj4ykoD3Q50Adk5Q.lOu1CsG
+        dashboard_basicauth: "{{ traefik.username }}:{{ traefik.password | password_hash('bcrypt') | replace('$', '$$') }}"
         config:
           log:
             level: DEBUG
@@ -126,6 +147,7 @@
     - vars/network.yml
     - vars/cloudflare.yml
     - vars/secrets.yml
+    - vars/traefik.yml
 
 - name: "Ensure Portainer config dir"
   hosts: docker_swarm_managers[0]

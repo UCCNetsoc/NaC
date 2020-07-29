@@ -1,0 +1,3 @@
+prometheus:
+  username: "{{ vault_prometheus.username }}"
+  password: "{{ vault_prometheus.password }}"
