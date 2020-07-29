@@ -54,6 +54,12 @@ bigbertha
 leela
 lovelace_vm
 
+[prometheus_ipmi]
+boole
+bigbertha
+leela
+lovelace_vm
+
 [prometheus_apache]
 leela
 lovelace_vm
