@@ -1,0 +1,98 @@
+---
+- name: "Ensure duplicity"
+  apt:
+    name: duplicity
+    state: latest
+    update_cache: yes
+
+- name: "Ensure jq"
+  apt:
+    name: jq
+    state: latest
+
+- name: "Ensure duplicity config path; credentials"
+  file:
+    path: "/root/.duplicity/credentials"
+
+- name: "Ensure duplicity config path; excludes"
+  file:
+    path: "/root/.duplicity/excludes"
+
+- name: "Ensure pydrive for duplicity"
+  pip:
+    name: pydrive
+
+- name: "Ensure duplicity config path; gdrive.cache"
+  file:
+    path: "/root/.duplicity/gdrive.cache"
+
+- name: "Ensure duplicity credentials"
+  copy:
+    content: |
+      client_config_backend: settings
+      client_config:
+        client_id: {{ gdrive_client_id }}
+        client_secret: {{ gdrive_client_secret }}
+      save_credentials: True
+      save_credentials_backend: file
+      save_credentials_file: gdrive.cache
+      get_refresh_token: True
+    dest: "/root/.duplicity/credentials"
+
+- name: "Ensure duplicity gdrive.cache"
+  copy:
+    content: >
+      {
+        "access_token": "",
+        "client_id": "{{ gdrive_client_id }}",
+        "client_secret": "{{ gdrive_client_secret }}",
+        "refresh_token": "{{ gdrive_refresh_token }}",
+        "token_expiry": "",
+        "token_uri": "https://accounts.google.com/o/oauth2/token",
+        "user_agent": null,
+        "revoke_uri": "https://oauth2.googleapis.com/revoke",
+        "id_token": null,
+        "id_token_jwt": null,
+        "token_response": {
+          "access_token": "",
+          "expires_in": 1,
+          "scope": "https://www.googleapis.com/auth/drive",
+          "token_type": "Bearer"
+        },
+        "scopes": [
+          "https://www.googleapis.com/auth/drive"
+        ],
+        "token_info_uri": "https://oauth2.googleapis.com/tokeninfo",
+        "invalid": false,
+        "_class": "OAuth2Credentials",
+        "_module": "oauth2client.client"
+      }
+    dest: "/root/.duplicity/gdrive.cache"
+
+- name: "Ensure backup script on host"
+  copy:
+    content: |
+      #!/bin/bash
+      for VM in $(qm list --full | 
+      awk '/vm.netsoc.co/ { if ($2 != "{{ blacklist }}") { printf "%s\n\n", $1; } }') ;
+        do CONF=`pvesh get /nodes/$(hostname -s)/qemu/$VM/config --output-format=json` &&
+          [[ `echo $CONF | jq .virtio0` != "null" ]] && [[ `echo $CONF | jq .virtio0` != *"backup=0"* ]] && pvesh set /nodes/$(hostname -s)/qemu/$VM/config -virtio0 `echo $CONF | jq -r .virtio0`,backup=0 && sleep 5;
+          [[ `echo $CONF | jq .virtio1` != "null" ]] && 
+          echo "Backing up $VM" && MDIR="/backup/$(echo $CONF | jq -r .name)" && 
+          mkdir -p $MDIR && vzdump --compress {{ compress }} $VM --mode snapshot --dumpdir $MDIR --exclude-path /boot ||
+            curl -H "Content-Type: application/json" -X POST -d '{"username": "$(hostname -s)", "content": "Error backing up VM $VM"}' {{ discord_webhook_url }};
+        done;
+        GOOGLE_DRIVE_SETTINGS=~/.duplicity/credentials duplicity --exclude-filelist ~/.duplicity/excludes /backup gdocs://{{ gdrive_username }}/{{ gdrive_location }}/$(hostname -s) --no-encryption || 
+          curl -H "Content-Type: application/json" -X POST -d '{"username": "$(hostname -s)", "content": "Error syncing with Google Drive. You may need to update the refresh token in ansible vault :/"}' {{ discord_webhook_url }}; 
+        curl -H "Content-Type: application/json" -X POST -d '{"username": "$(hostname -s)", "content": "VM backups completed"}' {{ discord_webhook_url }}
+    dest: /root/backup.sh
+    mode: '0755'
+
+- name: "Ensure backup cron job on each host"
+  cron:
+    user: "root"
+    name: "Run VZdump and duplicity"
+    hour: "{{ backup_hour }}"
+    minute: "0"
+    job: bash -c "ssh -i /root/NaC/keys/{{ item }}/id_rsa netsoc@{{ item }} 'bash -s' < /root/backup.sh"
+  loop: "{{ proxmox_hosts }}"
