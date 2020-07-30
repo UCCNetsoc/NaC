@@ -10,3 +10,4 @@
     gdrive_client_secret: "{{ vault_gdrive_client_secret }}"
     gdrive_username: "{{ vault_gdrive_username }}"
     gdrive_location: "{{ vault_gdrive_location }}"
+    discord_webhook_url: "{{ vault_backups.webook_url }}"

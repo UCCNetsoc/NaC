@@ -44,5 +44,6 @@
             mkdir -p $MDIR && vzdump --compress {{ compress }} $VM --mode snapshot --dumpdir $MDIR --exclude-path /boot; 
           done;
           GOOGLE_DRIVE_SETTINGS=~/.duplicity/credentials 
-            duplicity --exclude-filelist ~/.duplicity/excludes /backup gdocs://{{ gdrive_username }}@gmail.com/{{ gdrive_location }}/$(hostname -s)
+            duplicity --exclude-filelist ~/.duplicity/excludes /backup gdocs://{{ gdrive_username }}@gmail.com/{{ gdrive_location }}/$(hostname -s);
+          curl -H "Content-Type: application/json" -X POST -d '{"username": "$(hostname -s)", "content": "Weekly VM backups completed"}' {{ discord_webhook_url }}
         "
