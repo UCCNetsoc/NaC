@@ -1,0 +1,17 @@
+---
+- name: Ensure auditd installed
+  apt:
+    name: auditd
+
+- name: Ensure rules file 
+  become: yes
+  copy:
+    src: "files/audit.rules"
+    dest: "/etc/audit/audit.rules"
+
+- name: Ensure auditd running
+  systemd:
+    state: started
+    masked: no
+    name: auditd
+
