@@ -3,7 +3,7 @@
   become: yes
   file:
     path: /mnt/data-disk/prometheus
-    mode: 0777 
+    mode: 0770 
     owner: root
     group: root
     state: directory
@@ -12,7 +12,7 @@
   become: yes
   file:
     path: /mnt/data-disk/prometheus/config
-    mode: 0777 
+    mode: 0770 
     owner: root
     group: root
     state: directory
@@ -21,7 +21,7 @@
   become: yes
   file:
     path: /mnt/data-disk/prometheus/data
-    mode: 0777 
+    mode: 0770 
     owner: root
     group: root
     state: directory
@@ -30,7 +30,7 @@
   become: yes
   file:
     path: /mnt/data-disk/blackbox_exporter
-    mode: 0777 
+    mode: 0770 
     owner: root
     group: root
     state: directory
@@ -38,7 +38,7 @@
 - name: "Generate Prometheus config"
   become: yes
   template:
-    mode: 0777
+    mode: 0770
     src: "templates/prometheus.yml.j2"
     dest: "/mnt/data-disk/prometheus/config/prometheus.yml"
 
