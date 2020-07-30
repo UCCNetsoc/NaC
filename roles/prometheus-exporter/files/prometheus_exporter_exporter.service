@@ -3,7 +3,6 @@ Description=Prometheus Node Exporter
 After=network.target
 
 [Service]
-EnvironmentFile=/etc/default/exporter_exporter
 Type=simple
 User=exp-exp
 Group=exp-exp
