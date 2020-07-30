@@ -51,7 +51,3 @@
   connection: local
   tasks:
     - meta: refresh_inventory
-
-- name: "Install and enable auditd"
-  hosts: portal
-  roles: auditd
