@@ -28,7 +28,7 @@
   when: "'prometheus_ipmi' in group_names"
   docker_container:
     name: ipmi_exporter
-    image: "mloc6/ipmi_exporter"
+    image: "uccnetsoc/ipmi_exporter"
     pull: true
     state: started
     restart_policy: unless-stopped
