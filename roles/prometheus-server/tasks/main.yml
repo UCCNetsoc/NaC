@@ -4,8 +4,8 @@
   file:
     path: /mnt/data-disk/prometheus
     mode: 0770 
-    owner: root
-    group: root
+    owner: nobody # Prometheus runs as nobody
+    group: nogroup
     state: directory
 
 - name: "Create /mnt/data-disk/prometheus/config directory"
@@ -13,8 +13,8 @@
   file:
     path: /mnt/data-disk/prometheus/config
     mode: 0770 
-    owner: root
-    group: root
+    owner: nobody
+    group: nogroup
     state: directory
 
 - name: "Create /mnt/data-disk/prometheus/data directory"
@@ -22,8 +22,8 @@
   file:
     path: /mnt/data-disk/prometheus/data
     mode: 0770 
-    owner: root
-    group: root
+    owner: nobody
+    group: nogroup
     state: directory
 
 - name: "Create /mnt/data-disk/blackbox_exporter directory"
@@ -39,14 +39,20 @@
   become: yes
   template:
     mode: 0770
+    owner: nobody
+    group: nogroup
     src: "templates/prometheus.yml.j2"
     dest: "/mnt/data-disk/prometheus/config/prometheus.yml"
+  notify:
+    - restart prometheus
 
 - name: "Copy Blackbox Config"
   become: yes
   copy:
     src: "files/blackbox_exporter.yaml"
     dest: "/mnt/data-disk/blackbox_exporter/blackbox_exporter.yaml"
+  notify:
+    - restart blackbox exporter
 
 - name: "Ensure Docker monitoring network" 
   become: yes
