@@ -1,0 +1,11 @@
+- name: restart prometheus
+  docker_container:
+    name: prometheus
+    state: started
+    restart: true
+
+- name: restart blackbox exporter
+  docker_container:
+    name: blackbox_exporter
+    state: started
+    restart: true
