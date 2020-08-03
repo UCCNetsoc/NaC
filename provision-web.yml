@@ -25,6 +25,17 @@
     - "vars/freeipa.yml"
     - "vars/secrets.yml"
 
-# - name: "Ensure Nginx Unit"
-#   roles:
+- name: "Ensure Nginx Unit"
+  hosts: web
+  tasks:
+    - docker_volume:
+        name: unit_shared_sock
+    - docker_container:
+        name: unit
+        entrypoint: /usr/sbin/unitd --no-daemon --control unix:/var/run/control.unit.sock --user www-data --group www-data
+        image: nginx/unit:1.18.0-full
+        privileged: yes
+        volumes:
+          - "./home/users/:/home/users/:Z"
+          - "unit_shared_sock:/var/run/"
 
