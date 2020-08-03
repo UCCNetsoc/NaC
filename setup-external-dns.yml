@@ -79,6 +79,7 @@
         - { type: CNAME,  name: ipa,                   value: traefik.netsoc.dev              }
         - { type: CNAME,  name: keycloak,              value: traefik.netsoc.dev              }
         - { type: CNAME,  name: portainer,             value: traefik.netsoc.dev              }
+        - { type: CNAME,  name: prometheus,            value: traefik.netsoc.dev              }
 
     # DNS for netsoc.co
     - name: "Get zone ID for netsoc.co"
