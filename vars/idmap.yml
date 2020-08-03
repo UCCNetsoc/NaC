@@ -25,3 +25,8 @@ idmap: |
   nfs/worker1.vm.netsoc.co@VM.NETSOC.CO  = root
   nfs/worker2.vm.netsoc.co@VM.NETSOC.CO  = root
   nfs/worker3.vm.netsoc.co@VM.NETSOC.CO  = root
+  nfs/web0.vm.netsoc.co@VM.NETSOC.CO  = root
+  nfs/web1.vm.netsoc.co@VM.NETSOC.CO  = root
+  nfs/web2.vm.netsoc.co@VM.NETSOC.CO  = root
+  nfs/web3.vm.netsoc.co@VM.NETSOC.CO  = root
+  nfs/web4.vm.netsoc.co@VM.NETSOC.CO  = root
