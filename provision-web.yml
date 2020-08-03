@@ -35,6 +35,7 @@
         entrypoint: /usr/sbin/unitd --no-daemon --control unix:/var/run/control.unit.sock --user www-data --group www-data
         image: nginx/unit:1.18.0-full
         privileged: yes
+        restart_policy: always
         volumes:
           - "./home/users/:/home/users/:Z"
           - "unit_shared_sock:/var/run/"
