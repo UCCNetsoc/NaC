@@ -1,0 +1,6 @@
+---
+
+- name: Install Exporters on Servers
+  hosts: prometheus_base
+  roles:
+    - prometheus-exporter
