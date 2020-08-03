@@ -7,12 +7,12 @@
       - freeipa-client
       - freeipa-admintools
     state: latest
-    update_cache: yes
+    #update_cache: yes
 
 - name: "Check enrollment status"
   become: yes
   shell: |
-    cat /etc/ipa/default.conf | grep "^server = {{ freeipa.server }}$" && echo false
+    echo "{{ freeipa.admin_password }}" | kinit admin >/dev/null && ipa host-show {{ ansible_fqdn }}
   register: result
   ignore_errors: true
 
