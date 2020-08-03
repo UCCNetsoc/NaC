@@ -16,7 +16,5 @@
       - pip
       - jsondiff
       - pymysql # needed for ansible mysql 
-      - passlib
-      - bcrypt
     state: latest
     extra_args: --upgrade
