@@ -11,8 +11,21 @@
     - "vars/network.yml"
     - "vars/secrets.yml"
 
+- name: "Setup Data Disk"
+  hosts: games
+  roles:
+    - role: simple-disk
+      vars:
+        device: "/dev/vdb"
+        partition_size: "100%"
+        fstype: "ext4"
+        mount_path: "/mnt/data-disk"
+        mount_opts: "rw"
+
 - name: Ensure Minecraft Server
   hosts: games
   roles:
-    - minecraft
-  
+    - role: minecraft
+      vars:
+        mount: "/mnt/data-disk/minecraft"
+    
