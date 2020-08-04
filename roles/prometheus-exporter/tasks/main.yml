@@ -14,7 +14,7 @@
     name: cadvisor
     image: "google/cadvisor:v0.33.0"
     state: started
-    restart_policy: unless-stopped
+    restart_policy: on-failure
     ports:
       - "9338:8080"
     volumes:
@@ -31,7 +31,7 @@
     image: "uccnetsoc/ipmi_exporter"
     pull: true
     state: started
-    restart_policy: unless-stopped
+    restart_policy: on-failure
     ports:
       - "9289:9289"
     devices:
@@ -44,7 +44,7 @@
     image: "lusotycoon/apache-exporter:v0.8.0"
     command: ["-scrape_uri", "http://{{ ansible_host }}/server-status/?auto"]
     state: started
-    restart_policy: unless-stopped
+    restart_policy: on-failure
     ports:
       - "9117:9117"
 
