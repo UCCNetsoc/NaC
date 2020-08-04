@@ -1,44 +1,11 @@
-# ---
-
-- hosts: router
-  tasks:
-    - set_fact:
-        dnat_base: 9000
-        dnat:
-          - destination:
-              address: "84.39.234.53"
-              port: "80,443"
-            translation:
-              address: "{{ interfaces.managerN.net0.addresses[0] | ipaddr('address') }}"
-              port: "80"
-        dnat_lines: []
-    
-    # Build list of rules to apply from NAT table
-    - set_fact: 
-        dnat_lines: |
-          {{ dnat_lines }} + [
-            'set nat destination rule {{ dnat_base + 1 + item }} destination address {{ dnat[item].destination.address }}',
-            'set nat destination rule {{ dnat_base + 1 + item }} destination port {{ dnat[item].destination.port }}',
-            'set nat destination rule {{ dnat_base + 1 + item }} translation address {{ dnat[item].translation.port }}',
-            'set nat destination rule {{ dnat_base + 1 + item }} inbound-interface eth0.10'
-          ]
-      loop: "{{ range(0, dnat | length) | list }}"
-    - debug:
-        msg: "{{ dnat_lines }}"
-
-#     # - name: "Provision router"
-#     #   vyos_config:
-#     #     - lines: 
-#     #   loop: "{{ range(nat_rule_base+1, nat_rule_base+1+nat_rule_count)|list }}"
-  vars_files:
-    - vars/network.yml
-
 - name: "Provision router"
   hosts: router
+  vars_files:
+    - vars/network.yml
   tasks:
     - set_fact:
         config_path: "/tmp/router-config-{{ 100000000000 | random }}.boot"
-    # Base config
+    # Base config, don't touch this without talking to canty pls
     - copy:
         dest: "{{ config_path }}"
         content: |
@@ -79,6 +46,7 @@
               vif 10 {
                 address 10.0.0.99/24
                 address 84.39.234.53/29
+                address 84.39.234.52/29
               }
               vif 20 {
                 address 10.0.20.1/24
@@ -91,9 +59,6 @@
               }
               vif 90 {
                 address 10.0.90.1/24
-              }
-              vif 200 {
-                address 10.0.200.1/24
               }
             }
             loopback lo {
@@ -109,7 +74,40 @@
                 inbound-interface eth0.10
                 protocol tcp
                 translation {
-                  address 10.0.30.100
+                  address {{ interfaces.managerN.net0.addresses[0] | ipaddr('address') }}
+                }
+              }
+              rule 801 {
+                destination {
+                  address 84.39.234.53
+                  port 80,443
+                }
+                inbound-interface eth0.30
+                protocol tcp
+                translation {
+                  address {{ interfaces.managerN.net0.addresses[0] | ipaddr('address') }}
+                }
+              }
+              rule 802 {
+                destination {
+                  address 84.39.234.52
+                  port 22
+                }
+                inbound-interface eth0.10
+                protocol tcp
+                translation {
+                  address {{ interfaces.portal.net0.addresses[0] | ipaddr('address') }}
+                }
+              }
+              rule 803 {
+                destination {
+                  address 84.39.234.52
+                  port 22
+                }
+                inbound-interface eth0.30
+                protocol tcp
+                translation {
+                  address {{ interfaces.portal.net0.addresses[0] | ipaddr('address') }}
                 }
               }
               rule 900 {
@@ -167,57 +165,24 @@
                 inbound-interface eth0.10
                 protocol tcp
                 translation {
-                  address 10.0.30.70
+                  address {{ interfaces.games.net0.addresses[0] | ipaddr('address') }}
                   port 1194
-                }
-              }
-              rule 905 {
-                destination {
-                  address 84.39.234.53
-                  port 2229
-                }
-                inbound-interface eth0.10
-                protocol tcp
-                translation {
-                  address 10.0.20.30
-                  port 22
-                }
-              }
-              rule 1105 {
-                destination {
-                  address 84.39.234.53
-                  port 443
-                }
-                inbound-interface eth0.10
-                protocol tcp
-                translation {
-                  address 10.0.30.190
-                  port 443
-                }
-              }
-              rule 1106 {
-                destination {
-                  address 84.39.234.53
-                  port 80
-                }
-                inbound-interface eth0.10
-                protocol tcp
-                translation {
-                  address 10.0.30.190
-                  port 80
-                }
-              }
-              rule 8000 {
-                destination {
-                  address 84.39.234.53
-                }
-                inbound-interface eth0.10
-                translation {
-                  address 10.0.40.53
                 }
               }
             }
             source {
+              rule 10 {
+                outbound-interface eth0.30
+                source {
+                  address 10.0.30.0/24
+                }
+                destination {
+                  address 10.0.30.0/24
+                }
+                translation {
+                  address masquerade
+                }
+              }
               rule 100 {
                 outbound-interface eth0.10
                 source {
@@ -255,7 +220,7 @@
                 }
               }
             }
-          }
+          } 
           protocols {
             static {
               route 0.0.0.0/0 {
@@ -266,18 +231,6 @@
             }
           }
           service {
-            dhcp-server {
-              shared-network-name vmhole {
-                subnet 10.0.200.0/24 {
-                  default-router 10.0.200.1
-                  dns-server 8.8.8.8
-                  range 0 {
-                    start 10.0.200.10
-                    stop 10.0.200.100
-                  }
-                }
-              }
-            }
             ssh {
               listen-address 10.0.90.1
               port 22
@@ -296,7 +249,7 @@
             login {
               user vyos {
                 authentication {
-                  encrypted-password $6$Z3O/fMz9g4zCWys$DiujfJa4GEAlgj8C0WQlAmTTdlqCWFLkMLq5Bq1aBTGusQeyhS7H5K6sLINHmx1qg1BYyF36oPtoCEz/ZZiVJ.
+                  encrypted-password '$6$Z3O/fMz9g4zCWys$DiujfJa4GEAlgj8C0WQlAmTTdlqCWFLkMLq5Bq1aBTGusQeyhS7H5K6sLINHmx1qg1BYyF36oPtoCEz/ZZiVJ.'
                   plaintext-password ""
                 }
                 level admin
@@ -384,7 +337,6 @@
           /* === vyatta-config-version: "broadcast-relay@1:cluster@1:config-management@1:conntrack@1:conntrack-sync@1:dhcp-relay@2:dhcp-server@5:dns-forwarding@2:firewall@5:interfaces@3:ipsec@5:l2tp@1:mdns@1:nat@4:ntp@1:pptp@1:qos@1:quagga@4:snmp@1:ssh@1:system@11:vrrp@2:vyos-accel-ppp@2:wanloadbalance@3:webgui@1:webproxy@2:zone-policy@1" === */
           /* Release version: 1.2-rolling-201911230217 */
     - vyos_config:
-        match: none # completely override config
         save: no
         src: "{{ config_path }}"
       register: result
