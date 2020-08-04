@@ -103,6 +103,7 @@
                 - "traefik.http.routers.dashboard.entrypoints=web-secure"
                 - "traefik.http.routers.dashboard.rule=Host(`{{ dashboard_domain }}`)"
                 - "traefik.http.routers.dashboard.tls"
+                - "traefik.http.routers.dashboard.tls.certResolver=letsencrypt"
                 - "traefik.http.routers.dashboard.service=dashboard-service"
                 - "traefik.http.services.dashboard-service.loadbalancer.server.port=8080"
                 - "traefik.http.middlewares.dashboard-auth.basicauth.users={{ dashboard_basicauth }}"

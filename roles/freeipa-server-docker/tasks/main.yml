@@ -49,7 +49,7 @@
       - "{{ ip }}:123:123"    # ntp
       - "{{ ip }}:53:53/tcp"  # dns
       - "{{ ip }}:53:53/udp"
-    restart_policy: always
+    restart_policy: on-failure
     volumes:
       - "/sys/fs/cgroup:/sys/fs/cgroup:ro"
       - "/etc/machine-id:/etc/machine-id"
