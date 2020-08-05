@@ -26,48 +26,52 @@
   file:
     path: "/root/.duplicity/gdrive.cache"
 
-- name: "Ensure duplicity credentials"
+- name: "Ensure duplicity OneDrive credentials"
   copy:
     content: |
-      client_config_backend: settings
-      client_config:
-        client_id: {{ gdrive_client_id }}
-        client_secret: {{ gdrive_client_secret }}
-      save_credentials: True
-      save_credentials_backend: file
-      save_credentials_file: gdrive.cache
-      get_refresh_token: True
-    dest: "/root/.duplicity/credentials"
-
-- name: "Ensure duplicity gdrive.cache"
-  copy:
-    content: >
       {
-        "access_token": "",
-        "client_id": "{{ gdrive_client_id }}",
-        "client_secret": "{{ gdrive_client_secret }}",
-        "refresh_token": "{{ gdrive_refresh_token }}",
-        "token_expiry": "",
-        "token_uri": "https://accounts.google.com/o/oauth2/token",
-        "user_agent": null,
-        "revoke_uri": "https://oauth2.googleapis.com/revoke",
-        "id_token": null,
-        "id_token_jwt": null,
-        "token_response": {
-          "access_token": "",
-          "expires_in": 1,
-          "scope": "https://www.googleapis.com/auth/drive",
-          "token_type": "Bearer"
-        },
-        "scopes": [
-          "https://www.googleapis.com/auth/drive"
+        "token_type": "bearer",
+        "expires_in": 36000,
+        "scope": [
+          "Files.Read",
+          "Files.ReadWrite",
+          "User.Read"
         ],
-        "token_info_uri": "https://oauth2.googleapis.com/tokeninfo",
-        "invalid": false,
-        "_class": "OAuth2Credentials",
-        "_module": "oauth2client.client"
+        "access_token": "{{ onedrive_access_token }}",
+        "refresh_token": "{{ onedrive_refresh_token }}",
+        "user_id": "{{ onedrive_user_id }}",
+        "expires_at": 1996659305.829954
       }
-    dest: "/root/.duplicity/gdrive.cache"
+    
+
+- name: "Ensure duplicity config"
+  copy:
+    content: |
+      # Folder to backup
+      ROOT="/backup"
+      # Destination
+      DEST="onedrive://{{ onedrive_location }}"
+
+      # Password for ssh key
+      FTP_PASSWORD="SSHTest1!"
+
+      INCLIST=( "*" )
+      EXCLIST=( "" )
+
+      #Passphrase for Signing key
+      PASSPHRASE="{{ backup_sign_key_passphrase }}"
+      # Encryption key
+      GPG_ENC_KEY="{{ backup_encryption_key }}"
+      # Signing key
+      GPG_SIGN_KEY="{{ backup_sign_key }}"
+
+      STATIC_OPTIONS="--full-if-older-than 14D --s3-use-new-style"
+
+      LOGDIR="/var/log/"
+      LOG_FILE="duplicity-$(date +%Y-%m-%d_%H-%M).txt"
+      LOG_FILE_OWNER="root:root"
+    dest: "/root/.duplicity/duplicity-backup.conf"
+
 
 - name: "Ensure backup script on host"
   copy:
@@ -82,8 +86,8 @@
           mkdir -p $MDIR && vzdump --compress {{ compress }} $VM --mode snapshot --dumpdir $MDIR --exclude-path /boot ||
             curl -H "Content-Type: application/json" -X POST -d '{"username": "$(hostname -s)", "content": "Error backing up VM $VM"}' {{ discord_webhook_url }};
         done;
-        GOOGLE_DRIVE_SETTINGS=~/.duplicity/credentials duplicity --exclude-filelist ~/.duplicity/excludes /backup gdocs://{{ gdrive_username }}/{{ gdrive_location }}/$(hostname -s) --no-encryption || 
-          curl -H "Content-Type: application/json" -X POST -d '{"username": "$(hostname -s)", "content": "Error syncing with Google Drive. You may need to update the refresh token in ansible vault :/"}' {{ discord_webhook_url }}; 
+        duplicity-backup.sh --config /root/.dupliticy/duplicity-backup.conf --full || 
+          curl -H "Content-Type: application/json" -X POST -d '{"username": "$(hostname -s)", "content": "Error syncing with OneDrive. You may need to update the refresh token in ansible vault :/"}' {{ discord_webhook_url }}; 
         curl -H "Content-Type: application/json" -X POST -d '{"username": "$(hostname -s)", "content": "VM backups completed"}' {{ discord_webhook_url }}
         rm -rf /root/.duplicity # remove after termination
     dest: /root/backup.sh
@@ -98,5 +102,5 @@
     job: >
       bash -c "
       scp -r -i /root/NaC/keys/{{ item }}/id_rsa /root/.duplicity netsoc@{{ item }}:/root/.duplicity &&
-      ssh -i /root/NaC/keys/{{ item }}/id_rsa netsoc@{{ item }} 'bash -s' < /root/backup.sh" &&
+      ssh -i /root/NaC/keys/{{ item }}/id_rsa netsoc@{{ item }} 'bash -s' < /root/backup.sh"
   loop: "{{ proxmox_hosts }}"
