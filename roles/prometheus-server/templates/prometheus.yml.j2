@@ -117,8 +117,6 @@ scrape_configs:
 
   - job_name: 'site-up'
     metrics_path: /probe
-    params:
-      module: [http_2xx]
     static_configs:
       - targets:
         - 'https://netsoc.co/'
@@ -126,13 +124,20 @@ scrape_configs:
         - 'https://netsoc.dev/'
         - 'https://keycloak.netsoc.dev/'
         - 'https://portainer.netsoc.dev/'
-        - 'https://traefik.netsoc.dev/'
         - 'https://ipa.netsoc.dev/ipa/ui/'
         - 'https://uccexpress.ie/'
         - 'https://motley.ie/'
+        labels:
+          module: http_2xx
+      - targets:
+        - 'https://traefik.netsoc.dev/'
+        labels:
+          module: http_2xx_traefik_auth
     relabel_configs:
       - source_labels: [__address__]
         target_label: __param_target
+      - source_labels: [module]
+        target_label: __param_module
       - source_labels: [__param_target]
         target_label: instance
         regex: '^https?:\/\/(.*)\/'
