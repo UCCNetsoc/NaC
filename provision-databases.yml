@@ -49,3 +49,6 @@
   hosts: databases
   roles:
     - prometheus-server
+  vars_files:
+    - vars/traefik.yml
+    - vars/secrets.yml

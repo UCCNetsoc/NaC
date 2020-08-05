@@ -48,7 +48,8 @@
 
 - name: "Copy Blackbox Config"
   become: yes
-  copy:
+  template:
+    mode: 0440
     src: "files/blackbox_exporter.yaml"
     dest: "/mnt/data-disk/blackbox_exporter/blackbox_exporter.yaml"
   notify:
@@ -78,6 +79,7 @@
     ports:
       - "9090:9090"
     restart_policy: on-failure
+    restart_retries: 3
     volumes:
       - "/mnt/data-disk/prometheus/config:/etc/prometheus"
       - "/mnt/data-disk/prometheus/data:/prometheus"
@@ -93,5 +95,6 @@
     image: "prom/blackbox-exporter:v0.17.0"
     command: "--config.file=/config/blackbox_exporter.yaml"
     restart_policy: on-failure
+    restart_retries: 3
     volumes:
     - "/mnt/data-disk/blackbox_exporter/blackbox_exporter.yaml:/config/blackbox_exporter.yaml"
