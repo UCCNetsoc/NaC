@@ -1,3 +1,9 @@
 modules:
   http_2xx:
     prober: http
+  http_2xx_traefik_auth:
+    prober: http
+    http:
+      basic_auth:
+        username: "{{ traefik.username }}"
+        password: "{{ traefik.password }}"
