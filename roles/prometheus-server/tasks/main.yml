@@ -1,35 +1,35 @@
 ---
-- name: "Create /mnt/data-disk/prometheus directory"
+- name: "Create prometheus directory"
   become: yes
   file:
-    path: /mnt/data-disk/prometheus
+    path: "{{ prometheus_parent_dir }}/prometheus"
     mode: 0770 
     owner: nobody # Prometheus runs as nobody
     group: nogroup
     state: directory
 
-- name: "Create /mnt/data-disk/prometheus/config directory"
+- name: "Create prometheus/config directory"
   become: yes
   file:
-    path: /mnt/data-disk/prometheus/config
+    path: "{{ prometheus_parent_dir }}/prometheus/config"
     mode: 0770 
     owner: nobody
     group: nogroup
     state: directory
 
-- name: "Create /mnt/data-disk/prometheus/data directory"
+- name: "Create prometheus/data directory"
   become: yes
   file:
-    path: /mnt/data-disk/prometheus/data
+    path: "{{ prometheus_parent_dir }}/prometheus/data"
     mode: 0770 
     owner: nobody
     group: nogroup
     state: directory
 
-- name: "Create /mnt/data-disk/blackbox_exporter directory"
+- name: "Create blackbox_exporter directory"
   become: yes
   file:
-    path: /mnt/data-disk/blackbox_exporter
+    path: "{{ blackbox_exporter_parent_dir }}/blackbox_exporter"
     mode: 0770 
     owner: root
     group: root
@@ -42,16 +42,16 @@
     owner: nobody
     group: nogroup
     src: "templates/prometheus.yml.j2"
-    dest: "/mnt/data-disk/prometheus/config/prometheus.yml"
+    dest: "{{ prometheus_parent_dir }}/prometheus/config/prometheus.yml"
   notify:
     - restart prometheus
 
-- name: "Copy Blackbox Config"
+- name: "Generate Blackbox Config"
   become: yes
   template:
     mode: 0440
     src: "files/blackbox_exporter.yaml"
-    dest: "/mnt/data-disk/blackbox_exporter/blackbox_exporter.yaml"
+    dest: "{{ blackbox_exporter_parent_dir }}/blackbox_exporter/blackbox_exporter.yaml"
   notify:
     - restart blackbox exporter
 
@@ -81,8 +81,8 @@
     restart_policy: on-failure
     restart_retries: 3
     volumes:
-      - "/mnt/data-disk/prometheus/config:/etc/prometheus"
-      - "/mnt/data-disk/prometheus/data:/prometheus"
+      - "{{ prometheus_parent_dir }}/prometheus/config:/etc/prometheus"
+      - "{{ prometheus_parent_dir }}/prometheus/data:/prometheus"
 
 - name: "Blackbox Exporter"
   become: yes
@@ -97,4 +97,4 @@
     restart_policy: on-failure
     restart_retries: 3
     volumes:
-    - "/mnt/data-disk/blackbox_exporter/blackbox_exporter.yaml:/config/blackbox_exporter.yaml"
+    - "{{ blackbox_exporter_parent_dir }}/blackbox_exporter/blackbox_exporter.yaml:/config/blackbox_exporter.yaml"
