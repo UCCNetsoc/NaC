@@ -43,4 +43,11 @@ modules:
 
 {% endif %}
 
+{% if inventory_hostname is match("manager\\d+.vm.netsoc.co") %}
+  traefik:
+    method: http
+    http:
+      port: 8082
+{% endif %}
+
 
