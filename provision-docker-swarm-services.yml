@@ -11,7 +11,6 @@
       with_items: # do not use recurse: yes because the /storage mount could have failed
         - /storage/docker/traefik
         - /storage/docker/traefik/file_config
-
     - set_fact:
         file_config:
           http:
@@ -30,6 +29,14 @@
                   - web-secure
                 rule: Host(`keycloak.netsoc.dev`)
                 service: keycloak
+                tls:
+                  certResolver: letsencrypt
+              user-websites:
+                entrypoints:
+                  - web-secure
+                priority: 1
+                rule: Host(`*.netsoc.dev`)
+                service: user-websites
                 tls:
                   certResolver: letsencrypt
               discord-router:
@@ -78,7 +85,6 @@
                 basicAuth:
                   users:
                     - "{{ prometheus.username }}:{{ prometheus.password | password_hash('bcrypt') }}"
-
             services:
               ipa:
                 loadBalancer:
@@ -92,6 +98,11 @@
                 loadBalancer:
                   servers:
                     - url: "http://prometheus.databases.vm.netsoc.co:9090"
+              user-websites:
+                loadBalancer:
+                  services:
+                    - url: "http://web0.vm.netsoc.co"
+                    - url: "http://web1.vm.netsoc.co"
               unused:
                 loadBalancer:
                   servers:
