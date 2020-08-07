@@ -59,6 +59,11 @@
         regex: "^#Banner none"
         line: "Banner /etc/netsoc-banner"
         path: /etc/ssh/sshd_config
+    - become: yes 
+      copy:
+        content: | # print newline after motd dump, looks cleaner
+          printf "\n"
+        dest: /etc/profile.d/netsoc-newline.sh
     - become: yes
       service:
         name: sshd
