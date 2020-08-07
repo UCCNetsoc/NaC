@@ -122,15 +122,18 @@
               webhook_queue = []
 
           def cmd(cmd):
+            os.environ["LC_ALL"] = "C.UTF-8"
+            os.environ["LC_CTYPE"] = "C.UTF-8"
             proc = subprocess.run(cmd,shell=True,stdout=subprocess.PIPE,stderr=subprocess.PIPE, timeout=15)
             return proc.stdout.decode("utf8"), proc.stderr.decode("utf8"), proc.returncode
 
 
           import atexit
 
-          def notify_atexit():
-            log(f"Home dir consistency bot shutting down, if this is unexpected check systemd/journalctl logs on {socket.gethostname()}")
+          def notify_atexit(stub1 = 0, stub2 = None):
+            log(f"Home dir consistency bot shutting down, if this is unexpected check systemd/journalctl logs on {socket.gethostname()}, meta: {stub1} {stub2}")
             push_webhook_queue()
+            sys.exit(0)
             
           atexit.register(notify_atexit)
           signal.signal(signal.SIGTERM, notify_atexit)
@@ -162,18 +165,18 @@
             # Ensure permissions
             home_stat = os.stat("/storage/home")
             
-            if oct(home_stat.st_mode)[4:] != "755":
-              os.chmod("/storage/home", 0o755)
-              log("Updated /storage/home to permissions 755")
+            if oct(home_stat.st_mode)[4:] != "751":
+              os.chmod("/storage/home", 0o751)
+              log("Updated /storage/home to permissions 751")
 
             if home_stat.st_uid != 0 or home_stat.st_gid != 0:
               os.chown("/storage/home", 0, 0)
               log("Updated /storage/home to ids 0:0")
 
             users_stat = os.stat("/storage/home/users")
-            if oct(users_stat.st_mode)[4:] != "755":
-              os.chmod("/storage/home/users", 0o755)
-              log("Updated /storage/home/users permissions 755")
+            if oct(users_stat.st_mode)[4:] != "751":
+              os.chmod("/storage/home/users", 0o751)
+              log("Updated /storage/home/users to permissions 751")
 
             if users_stat.st_uid != 0 or users_stat.st_gid != 0:
               os.chown("/storage/home/users", 0, 0)
@@ -249,7 +252,7 @@
 
           [Service]
           Type=simple
-          ExecStart=/opt/netsoc_homedird.py netsoc-homedird {{ homedird_password }} https://discordapp.com/api/webhooks/732754216883585059/6LqFp1ZsomNdlMT78PBJCQNXN5hq_luwiec4UxTVcRpLErSnLWCi7SRnMKztIYRoSK-t
+          ExecStart=/opt/netsoc_homedird.py netsoc-homedird {{ homedird_password }} {{ webhooks.discord }}
           Restart=always
           RestartSec=3
 
