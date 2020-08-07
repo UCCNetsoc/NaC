@@ -67,15 +67,16 @@
         - { type: A,      name: "feynman",        value: "84.39.234.53" }
         - { type: A,      name: "leela",          value: "84.39.234.51" }
         - { type: A,      name: "lovelace",       value: "84.39.234.52" }
+ 
+        - { type: A,      name: 80-443-swarm-ingress,  value: "84.39.234.53" }
+
         # CNAMEs
-        - { type: CNAME,  name: "*.netsoc.dev",     value: "bigbertha.netsoc.dev" }
         - { type: CNAME,  name: "netsoc.dev",       value: "bigbertha.netsoc.dev" }
-        - { type: CNAME,  name: "www.*.netsoc.dev", value: "bigbertha.netsoc.dev" }
         - { type: CNAME,  name: grafana,            value: "bigbertha.netsoc.dev" }
 
-        # Internal services 
-        - { type: A,      name: 80-443-swarm-ingress,  value: "84.39.234.53"                  }
         - { type: CNAME,  name: traefik,               value: 80-443-swarm-ingress.netsoc.dev }
+        - { type: CNAME,  name: "*.netsoc.dev",        value: traefik.netsoc.dev              }
+        - { type: CNAME,  name: www.*.netsoc.dev,      value: traefik.netsoc.dev              }
         - { type: CNAME,  name: ipa,                   value: traefik.netsoc.dev              }
         - { type: CNAME,  name: keycloak,              value: traefik.netsoc.dev              }
         - { type: CNAME,  name: portainer,             value: traefik.netsoc.dev              }
