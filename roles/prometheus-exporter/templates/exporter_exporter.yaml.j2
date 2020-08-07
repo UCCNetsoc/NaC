@@ -43,7 +43,7 @@ modules:
 
 {% endif %}
 
-{% if inventory_hostname is match("manager\\d+.vm.netsoc.co") %}
+{% if 'prometheus_traefik' in group_names %}
   traefik:
     method: http
     http:
