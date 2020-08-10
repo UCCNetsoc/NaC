@@ -261,6 +261,7 @@
     - vars/netsocbot.yml
     - vars/email.yml
     - vars/secrets.yml
+    - vars/consul.yml
   roles: 
     - netsocbot
   tags:

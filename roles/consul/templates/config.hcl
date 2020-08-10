@@ -5,7 +5,7 @@ ui = true
 
 leave_on_terminate = false
 retry_join = ["consul_bootstrap"]
-bootstrap_expect = 4
+bootstrap_expect = 1
 
 client_addr = "0.0.0.0"
 
