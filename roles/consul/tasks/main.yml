@@ -121,6 +121,7 @@
               mode: global
               placement:
                 constraints:
+                  - node.hostname == {{ inventory_hostname }} # Consul on one manager only due to only 2 running right now. Remove after we get more managers deployed.
                   - node.role == manager
               restart_policy:
                 condition: any
@@ -153,7 +154,7 @@
     url: https://consul.{{ dev_site }}/v1/status/leader
     return_content: yes
   register: response
-  until: response.content_length != "2" and response.status == 200
+  until: response.status == 200
   retries: 10
   tags:
     - server
