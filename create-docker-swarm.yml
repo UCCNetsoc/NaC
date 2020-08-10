@@ -26,6 +26,9 @@
           disks:
             virtio0:
               resize: "30G"
+            virtio1:
+              pool: local-lvm
+              definition: "25,format=raw"
           cores: 4
           memory: 4096
         cloudinit:

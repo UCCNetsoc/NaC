@@ -1,2 +1,2 @@
-consul_master_token: "{{ vault_consul_master_token }}"
-consul_agent_token: "{{ vault_consul_agent_token }}"
+consul_master_token: "{{ vault_consul.master_token }}"
+consul_agent_token: "{{ vault_consul.agent_token }}"
