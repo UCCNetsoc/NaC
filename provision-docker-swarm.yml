@@ -11,6 +11,18 @@
     - "vars/network.yml"
     - "vars/secrets.yml"
 
+- name: "Ensure data disks mounted"
+  hosts: docker_swarm
+  become: yes
+  roles:
+    - role: simple-disk
+      vars:
+        device: "/dev/vdb"
+        partition_size: "100%"
+        fstype: "ext4"
+        mount_path: "/mnt/data-disk"
+        mount_opts: "rw"
+
 - name: Setup NFS client and NFS mount requirements
   hosts: docker_swarm
   roles:

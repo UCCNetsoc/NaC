@@ -1,8 +1,8 @@
-netsocbot_discord_token: '{{ vault_netsocbot_discord_token }}'
-netsocbot_twitter_key: '{{ vault_netsocbot_twitter_key }}'
-netsocbot_twitter_secret: '{{ vault_netsocbot_twitter_secret }}'
-netsocbot_twitter_access_key: '{{ vault_netsocbot_twitter_access_key }}'
-netsocbot_twitter_access_secret: '{{ vault_netsocbot_twitter_access_secret }}'
+netsocbot_discord_token: '{{ vault_netsocbot.discord_token }}'
+netsocbot_twitter_key: '{{ vault_netsocbot.twitter_key }}'
+netsocbot_twitter_secret: '{{ vault_netsocbot.twitter_secret }}'
+netsocbot_twitter_access_key: '{{ vault_netsocbot.twitter_access_key }}'
+netsocbot_twitter_access_secret: '{{ vault_netsocbot.twitter_access_secret }}'
 
 public_announcements: '494539080885993472'
 private_events: '702594452367212544'

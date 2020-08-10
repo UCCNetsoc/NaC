@@ -231,4 +231,33 @@
     - vars/wikijs.yml
     - vars/secrets.yml
 
+- name: Ensure Consul
+  hosts: docker_swarm_managers[0]
+  vars_files:
+      - vars/consul.yml
+      - vars/secrets.yml
+  roles:
+  - consul
+
+- name: Ensure Consul settings set
+  hosts: docker_swarm_managers[0]
+  vars_files:
+    - vars/netsocbot.yml
+    - vars/consul.yml
+    - vars/secrets.yml
+  tasks:
+    - include: roles/netsocbot/tasks/consul_conf.yml
+  tags:
+    - consul
+
+- name: Deploy Netsoc Discord Bot
+  hosts: docker_swarm_managers[0]
+  vars_files:
+    - vars/netsocbot.yml
+    - vars/email.yml
+    - vars/secrets.yml
+  roles: 
+    - netsocbot
+  tags:
+    - bot
 
