@@ -9,17 +9,6 @@
   tags:
     - server
 
-- name: Ensure Consul server directories for data
-  become: yes
-  file:
-    path: '/storage/docker-data/consul'
-    owner: 1000
-    group: 1000
-    mode: 0770
-    state: directory
-  tags:
-    - server    
-
 - name: Ensure Hashicorp Consul network
   become: yes
   docker_network:
@@ -122,7 +111,7 @@
             command: 'agent -config-file=/run/secrets/consul_config.hcl -rejoin'
             hostname: '{% raw %}{{ .Node.Hostname }}.consul.netsoc.dev{% endraw %}'
             volumes:
-              - /storage/docker-data/consul:/consul/data
+              - /mnt/data-disk/consul:/consul/data
             environment:
               - CONSUL_BIND_INTERFACE=eth0
             secrets:
