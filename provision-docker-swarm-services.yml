@@ -231,6 +231,11 @@
     - vars/wikijs.yml
     - vars/secrets.yml
 
+- name: Ensure Consul server directories for data
+  hosts: docker_swarm
+  roles:
+    - docker-swarm-data
+
 - name: Ensure Consul
   hosts: docker_swarm_managers[0]
   vars_files:
