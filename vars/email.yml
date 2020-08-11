@@ -1,1 +1,1 @@
-sendgrid_apikey: "{{ vault_sendgrid.apikey }}"
+sendgrid: "{{ vault_sendgrid }}"

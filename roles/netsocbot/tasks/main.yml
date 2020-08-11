@@ -15,15 +15,15 @@
 
     env:
       CONSUL_ADDRESS: consul_server:8500
-      DISCORD_TOKEN: "{{ netsocbot_discord_token }}"
+      DISCORD_TOKEN: "{{ netsocbot.discord_token }}"
       DISCORD_ROLES: "631196785913888768,720021252676518079"
       BOT_PREFIX: "!"
-      SENDGRID_TOKEN: "{{ sendgrid_apikey }}"
-      CONSUL_TOKEN: "{{ consul_bot_token }}"
-      TWITTER_KEY: "{{ netsocbot_twitter_key }}"
-      TWITTER_SECRET: "{{ netsocbot_twitter_secret }}"
-      TWITTER_ACCESS_KEY: "{{ netsocbot_twitter_access_key }}"
-      TWITTER_ACCESS_SECRET: "{{ netsocbot_twitter_access_secret }}"
+      SENDGRID_TOKEN: "{{ sendgrid.apikey }}"
+      CONSUL_TOKEN: "{{ consul.bot_token }}"
+      TWITTER_KEY: "{{ netsocbot.twitter_key }}"
+      TWITTER_SECRET: "{{ netsocbot.twitter_secret }}"
+      TWITTER_ACCESS_KEY: "{{ netsocbot.twitter_access_key }}"
+      TWITTER_ACCESS_SECRET: "{{ netsocbot.twitter_access_secret }}"
     labels:
       traefik.enable: "true"
       traefik.http.routers.netsocbot.rule: Host(`events.{{ dev_site }}`)
