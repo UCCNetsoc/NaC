@@ -134,6 +134,11 @@
               address: ':80'
             web-secure:
               address: ':443'
+            metrics:
+              address: ':8082'
+          metrics:
+            prometheus:
+              entrypoint: metrics
           serversTransport:
             insecureSkipVerify: true
           certificatesResolvers:

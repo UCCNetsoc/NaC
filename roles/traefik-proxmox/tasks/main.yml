@@ -72,6 +72,10 @@
                 published: 443
                 protocol: tcp
                 mode: host
+              - target: 8082
+                published: 8082
+                protocol: tcp
+                mode: host
             networks:
               traefik:
             deploy:
