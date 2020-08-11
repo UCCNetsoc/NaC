@@ -48,6 +48,11 @@
     ports:
       - "9117:9117"
 
+# Only install on databases
+- name: Proxmox Exporter
+  when: "'databases' in group_names"
+  include_tasks: "pve_exporter.yml"
+
 - name: Exporter Exporter
   include_tasks: "exporter_exporter.yml"
     

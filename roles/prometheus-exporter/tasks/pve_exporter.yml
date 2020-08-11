@@ -1,0 +1,19 @@
+- name: "Generate Config"
+  become: yes
+  template:
+    mode: 0770
+    src: templates/pve.yml.j2
+    dest: /etc/pve.yml
+
+
+- name: "Proxmox Exporter Container"
+  become: yes
+  docker_container:
+    image: prompve/prometheus-pve-exporter:1.3
+    name: pve-exporter
+    state: started
+    restart_policy: on-failure
+    ports:
+      - "9221:9221"
+    volumes:
+      - "/etc/pve.yml:/etc/pve.yml"
