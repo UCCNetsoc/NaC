@@ -9,3 +9,9 @@
     name: blackbox_exporter
     state: started
     restart: true
+
+- name: restart pve exporter
+  docker_container:
+    name: pve-exporter
+    state: started
+    restart: true

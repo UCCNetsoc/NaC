@@ -35,6 +35,15 @@
     group: root
     state: directory
 
+- name: "Create proxmox exporter directory"
+  become: yes
+  file:
+    path: "{{ pve_parent_dir }}/pve"
+    mode: 0770 
+    owner: nobody # pve exporter runs as nobody
+    group: nogroup
+    state: directory
+
 - name: "Generate Prometheus config"
   become: yes
   template:
@@ -46,7 +55,7 @@
   notify:
     - restart prometheus
 
-- name: "Generate Blackbox Config"
+- name: "Generate Blackbox Exporter Config"
   become: yes
   template:
     mode: 0440
@@ -54,6 +63,17 @@
     dest: "{{ blackbox_exporter_parent_dir }}/blackbox_exporter/blackbox_exporter.yaml"
   notify:
     - restart blackbox exporter
+
+- name: "Generate Proxmox Exporter Config"
+  become: yes
+  template:
+    mode: 0440
+    owner: nobody
+    group: nogroup
+    src: templates/pve.yml.j2
+    dest: "{{pve_parent_dir}}/pve/pve.yml"
+  notify:
+    - restart pve exporter
 
 - name: "Ensure Docker monitoring network" 
   become: yes
@@ -98,3 +118,20 @@
     restart_retries: 3
     volumes:
     - "{{ blackbox_exporter_parent_dir }}/blackbox_exporter/blackbox_exporter.yaml:/config/blackbox_exporter.yaml"
+
+- name: "Proxmox Exporter Container"
+  become: yes
+  docker_container:
+    image: prompve/prometheus-pve-exporter:1.3
+    networks:
+      - name: monitoring
+    name: pve-exporter
+    network_mode: bridge
+    purge_networks: true
+    state: started
+    restart_policy: on-failure
+    restart_retries: 3
+    ports:
+      - "9221:9221"
+    volumes:
+      - "{{pve_parent_dir}}/pve/pve.yml:/etc/pve.yml"
