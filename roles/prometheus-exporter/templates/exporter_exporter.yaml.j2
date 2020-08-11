@@ -43,4 +43,11 @@ modules:
 
 {% endif %}
 
+{% if 'prometheus_traefik' in group_names %}
+  traefik:
+    method: http
+    http:
+      port: 8082
+{% endif %}
+
 

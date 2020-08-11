@@ -115,6 +115,22 @@ scrape_configs:
 #        labels:
 #          instance: "games.vm.netsoc.co"
 
+{% if 'prometheus_traefik' in groups %}
+  - job_name: 'traefik'
+    metrics_path: /proxy
+    params:
+      module:
+       - traefik 
+    static_configs:
+    {% for host in groups['prometheus_traefik'] -%}
+      - 
+        targets:
+          - {{host}}:9999
+        labels:
+          instance: "{{host}}"
+    {% endfor %}
+{% endif %}
+
   - job_name: 'site-up'
     metrics_path: /probe
     static_configs:
