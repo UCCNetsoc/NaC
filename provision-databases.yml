@@ -1,54 +1,55 @@
 
-- name: "Enroll in IPA server"
-  hosts: databases 
-  roles:
-    - role: freeipa-client
-      vars:
-        client:
-          addresses: "{{ interfaces.databases.net0.addresses }}"
-  vars_files:
-    - "vars/freeipa.yml"
-    - "vars/network.yml"
-    - "vars/secrets.yml"
+# - name: "Enroll in IPA server"
+#   hosts: databases 
+#   roles:
+#     - role: freeipa-client
+#       vars:
+#         client:
+#           addresses: "{{ interfaces.databases.net0.addresses }}"
+#   vars_files:
+#     - "vars/freeipa.yml"
+#     - "vars/network.yml"
+#     - "vars/secrets.yml"
 
-- name: "Setup Data Disk & MySQL infra, user"
-  hosts: databases
-  roles:
-    - role: simple-disk
-      vars:
-        device: "/dev/vdb"
-        partition_size: "100%"
-        fstype: "ext4"
-        mount_path: "/mnt/data-disk"
-        mount_opts: "rw"
-    - role: postgres-server-docker
-      vars:
-        container_name: postgres-infra
-        ip: "{{ interfaces.databases.net0.addresses[0] | ipaddr('address')  }}"
-        root_password: "{{ postgres.infra.postgres_password }}"
-        mount: "/mnt/data-disk/postgres-infra"
-    - role: mysql-server-docker
-      vars:
-        container_name: mysql-infra
-        ip: "{{ interfaces.databases.net0.addresses[0] | ipaddr('address')  }}"
-        root_password: "{{ mysql.infra.root_password }}"
-        mount: "/mnt/data-disk/mysql-infra"
-    - role: mysql-server-docker
-      vars:
-        container_name: mysql-user
-        ip: "{{ interfaces.databases.net1.addresses[0] | ipaddr('address') }}"
-        root_password: "{{ mysql.user.root_password }}"
-        mount: "/mnt/data-disk/mysql-user"
-  vars_files:
-    - "vars/postgres.yml"
-    - "vars/mysql.yml"
-    - "vars/network.yml"
-    - "vars/secrets.yml"
+# - name: "Setup Data Disk & MySQL infra, user"
+#   hosts: databases
+#   roles:
+#     - role: simple-disk
+#       vars:
+#         device: "/dev/vdb"
+#         partition_size: "100%"
+#         fstype: "ext4"
+#         mount_path: "/mnt/data-disk"
+#         mount_opts: "rw"
+#     - role: postgres-server-docker
+#       vars:
+#         container_name: postgres-infra
+#         ip: "{{ interfaces.databases.net0.addresses[0] | ipaddr('address')  }}"
+#         root_password: "{{ postgres.infra.postgres_password }}"
+#         mount: "/mnt/data-disk/postgres-infra"
+#     - role: mysql-server-docker
+#       vars:
+#         container_name: mysql-infra
+#         ip: "{{ interfaces.databases.net0.addresses[0] | ipaddr('address')  }}"
+#         root_password: "{{ mysql.infra.root_password }}"
+#         mount: "/mnt/data-disk/mysql-infra"
+#     - role: mysql-server-docker
+#       vars:
+#         container_name: mysql-user
+#         ip: "{{ interfaces.databases.net1.addresses[0] | ipaddr('address') }}"
+#         root_password: "{{ mysql.user.root_password }}"
+#         mount: "/mnt/data-disk/mysql-user"
+#   vars_files:
+#     - "vars/postgres.yml"
+#     - "vars/mysql.yml"
+#     - "vars/network.yml"
+#     - "vars/secrets.yml"
 
 - name: Setup Prometheus Server
   hosts: databases
   roles:
     - prometheus-server
   vars_files:
+    - vars/proxmox.yml
     - vars/traefik.yml
     - vars/secrets.yml

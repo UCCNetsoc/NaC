@@ -1,2 +1,3 @@
 prometheus_parent_dir: "/mnt/data-disk/"
 blackbox_exporter_parent_dir: "/mnt/data-disk/"
+pve_parent_dir: "/mnt/data-disk/"

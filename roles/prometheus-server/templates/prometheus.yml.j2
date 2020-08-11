@@ -119,19 +119,25 @@ scrape_configs:
     {% endfor %}
 {% endif %}
 
-{% if 'proxmox_hosts' in group_names %}
+# ansible_host is on vlan 10 i.e. 10.0.10.XX
+# databases cannot access vlan 10
+# proxmox hosts have presence on every vlan
+# adding 5120 to 10.0.10.XX = 10.0.30.XX
+# 5120 = (256 * 10) * 2
+{% if 'proxmox_hosts' in groups %}
   - job_name: 'pve'
     metrics_path: /pve
     params:
       module: [default]
     static_configs:
     {% for host in groups['proxmox_hosts'] -%}
-    - 
-      targets:
-        - "{{hostvars[host].ansible_host}}"
-      labels:
-        instance: "{{host}}"
+      - 
+        targets:
+          - "{{hostvars[host].ansible_host | ipmath(5120)}}"
+        labels:
+          instance: "{{host}}"
     {% endfor %}
+
     relabel_configs:
       - source_labels: [__address__]
         target_label: __param_target
