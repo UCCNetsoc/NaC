@@ -111,7 +111,7 @@
             command: 'agent -config-file=/run/secrets/consul_config.hcl -rejoin'
             hostname: '{% raw %}{{ .Node.Hostname }}.consul.netsoc.dev{% endraw %}'
             volumes:
-              - /mnt/data-disk/consul:/consul/data
+              - "{{ mount }}:/consul/data"
             environment:
               - CONSUL_BIND_INTERFACE=eth0
             secrets:
@@ -154,7 +154,7 @@
     url: https://consul.{{ dev_site }}/v1/status/leader
     return_content: yes
   register: response
-  until: response.status == 200
+  until: response.content_length != "2" and response.status == 200
   retries: 10
   tags:
     - server
@@ -167,8 +167,8 @@
     port: 443
     name: Agent Token - inter-agent comms # why doesnt this get set? idk
     token_type: management
-    token: "{{ consul_agent_token }}"
-    mgmt_token: "{{ consul_master_token }}"
+    token: "{{ consul.agent_token }}"
+    mgmt_token: "{{ consul.master_token }}"
     rules:
       - node: ""
         policy: write
