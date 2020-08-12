@@ -124,7 +124,6 @@ scrape_configs:
 # proxmox hosts have presence on every vlan
 # adding 5120 to 10.0.10.XX = 10.0.30.XX
 # 5120 = (256 * 10) * 2
-{% if 'proxmox_hosts' in groups %}
   - job_name: 'pve'
     metrics_path: /pve
     params:
@@ -137,7 +136,6 @@ scrape_configs:
         target_label: __param_target
       - target_label: __address__
         replacement: pve-exporter:9221
-{% endif %}
 
   - job_name: 'site-up'
     metrics_path: /probe
