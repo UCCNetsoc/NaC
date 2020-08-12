@@ -2,7 +2,7 @@
 - name: "Create prometheus directory"
   become: yes
   file:
-    path: "{{ prometheus_parent_dir }}/prometheus"
+    path: "{{ prometheus_dir }}"
     mode: 0770 
     owner: nobody # Prometheus runs as nobody
     group: nogroup
@@ -11,7 +11,7 @@
 - name: "Create prometheus/config directory"
   become: yes
   file:
-    path: "{{ prometheus_parent_dir }}/prometheus/config"
+    path: "{{ prometheus_dir }}/config"
     mode: 0770 
     owner: nobody
     group: nogroup
@@ -20,7 +20,7 @@
 - name: "Create prometheus/data directory"
   become: yes
   file:
-    path: "{{ prometheus_parent_dir }}/prometheus/data"
+    path: "{{ prometheus_dir }}/data"
     mode: 0770 
     owner: nobody
     group: nogroup
@@ -29,7 +29,7 @@
 - name: "Create blackbox_exporter directory"
   become: yes
   file:
-    path: "{{ blackbox_exporter_parent_dir }}/blackbox_exporter"
+    path: "{{ blackbox_exporter_dir }}"
     mode: 0770 
     owner: root
     group: root
@@ -38,7 +38,7 @@
 - name: "Create proxmox exporter directory"
   become: yes
   file:
-    path: "{{ pve_parent_dir }}/pve"
+    path: "{{ pve_dir }}"
     mode: 0770 
     owner: nobody # pve exporter runs as nobody
     group: nogroup
@@ -51,7 +51,7 @@
     owner: nobody
     group: nogroup
     src: "templates/prometheus.yml.j2"
-    dest: "{{ prometheus_parent_dir }}/prometheus/config/prometheus.yml"
+    dest: "{{ prometheus_dir }}/config/prometheus.yml"
   notify:
     - restart prometheus
 
@@ -60,7 +60,7 @@
   template:
     mode: 0440
     src: "files/blackbox_exporter.yaml"
-    dest: "{{ blackbox_exporter_parent_dir }}/blackbox_exporter/blackbox_exporter.yaml"
+    dest: "{{ blackbox_exporter_dir }}/blackbox_exporter.yaml"
   notify:
     - restart blackbox exporter
 
@@ -71,7 +71,7 @@
     owner: nobody
     group: nogroup
     src: templates/pve.yml.j2
-    dest: "{{pve_parent_dir}}/pve/pve.yml"
+    dest: "{{ pve_dir }}/pve.yml"
   notify:
     - restart pve exporter
 
@@ -101,8 +101,8 @@
     restart_policy: on-failure
     restart_retries: 3
     volumes:
-      - "{{ prometheus_parent_dir }}/prometheus/config:/etc/prometheus"
-      - "{{ prometheus_parent_dir }}/prometheus/data:/prometheus"
+      - "{{ prometheus_dir }}/config:/etc/prometheus"
+      - "{{ prometheus_dir }}/data:/prometheus"
 
 - name: "Blackbox Exporter"
   become: yes
@@ -117,7 +117,7 @@
     restart_policy: on-failure
     restart_retries: 3
     volumes:
-    - "{{ blackbox_exporter_parent_dir }}/blackbox_exporter/blackbox_exporter.yaml:/config/blackbox_exporter.yaml"
+    - "{{ blackbox_exporter_dir }}/blackbox_exporter.yaml:/config/blackbox_exporter.yaml"
 
 - name: "Proxmox Exporter Container"
   become: yes
@@ -134,4 +134,4 @@
     ports:
       - "9221:9221"
     volumes:
-      - "{{pve_parent_dir}}/pve/pve.yml:/etc/pve.yml"
+      - "{{ pve_dir }}/pve.yml:/etc/pve.yml"
