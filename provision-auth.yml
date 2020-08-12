@@ -63,10 +63,8 @@
     - role: keycloak-docker
       vars:
         mount: "/mnt/data-disk/keycloak"
-        realm: "{{ keycloak_freeipa_realm }}"
   vars_files:
     - "vars/keycloak.yml"
-    - "vars/keycloak_freeipa_realm.yml"
     - "vars/freeipa.yml"
     - "vars/secrets.yml"
 

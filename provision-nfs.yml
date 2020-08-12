@@ -56,7 +56,7 @@
         ipa_pass: "{{ freeipa.admin_password }}"
     - shell:
         cmd: | 
-          echo -e "{{ homedird_password }}\n{{ homedird_password }}\n{{ homedird_password }}" | kinit netsoc-homedird && kdestroy -A
+          echo -e "{{ homedird_password }}\n{{ homedird_password }}\n{{ homedird_password }}" | kinit netsoc-homedird
         executable: /bin/bash
     - copy:
         content: |
@@ -82,6 +82,8 @@
           IPA_USERNAME=sys.argv[1]
           IPA_PASSWORD=sys.argv[2]
           WEBHOOK_URL=sys.argv[3]
+
+
 
           def webhook(msg):
             req = urllib.request.Request(
@@ -124,6 +126,9 @@
           def cmd(cmd):
             os.environ["LC_ALL"] = "C.UTF-8"
             os.environ["LC_CTYPE"] = "C.UTF-8"
+
+            # stops from interering with roots other kerb
+            os.environ["KRB5CCNAME"] = "DIR:$/tmp/krb5cc_netsoc_homedird
             proc = subprocess.run(cmd,shell=True,stdout=subprocess.PIPE,stderr=subprocess.PIPE, timeout=15)
             return proc.stdout.decode("utf8"), proc.stderr.decode("utf8"), proc.returncode
 
@@ -151,7 +156,7 @@
               if zfsRc == 0:
                 log("Created zfs dataset for storage/home")
               else:
-                log("Could not create zfs dataset for storage/home: {zfsRc} - {zfsErr}")
+                log(f"Could not create zfs dataset for storage/home: {zfsRc} - {zfsErr}")
 
             try:
               os.stat("/storage/home/users")
@@ -160,7 +165,7 @@
               if zfsRc == 0:
                 log("Created zfs dataset for storage/home/users")
               else:
-                log("Could not create zfs dataset for storage/home/users: {zfsRc} - {zfsErr}")
+                log(f"Could not create zfs dataset for storage/home/users: {zfsRc} - {zfsErr}")
 
             # Ensure permissions
             home_stat = os.stat("/storage/home")
@@ -233,7 +238,7 @@
                     pass
                     # log(f"User {user} does not have a home directory in /home/users/, ignoring...")
                 else:
-                  log("Unable to get info about {user}: {infoRc} - {infoErr}")
+                  log(f"Unable to get info about {user}: {infoRc} - {infoErr}")
             else:
               log(f"Could not get users: {usersRc} - {usersErr}")
             
@@ -262,8 +267,8 @@
     - systemd:
         daemon_reload: yes
         name: netsoc-homedird.service
-        state: restarted
-        enabled: yes
+        state: stopped
+        enabled: no
   vars_files:
     - vars/webhooks.yml
     - vars/freeipa.yml
