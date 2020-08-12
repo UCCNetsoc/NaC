@@ -9,19 +9,7 @@
   tags:
     - server
 
-- name: Ensure Consul server directories for data
-  become: yes
-  file:
-    path: '/netsoc-neo/docker-data/consul'
-    owner: 1000
-    group: 1000
-    mode: 0770
-    state: directory
-  tags:
-    - server    
-
 - name: Ensure Hashicorp Consul network
-  when: inventory_hostname in groups.swarm_creators
   become: yes
   docker_network:
     name: consul
@@ -123,7 +111,7 @@
             command: 'agent -config-file=/run/secrets/consul_config.hcl -rejoin'
             hostname: '{% raw %}{{ .Node.Hostname }}.consul.netsoc.dev{% endraw %}'
             volumes:
-              - /netsoc-neo/docker-data/consul:/consul/data
+              - "{{ mount }}:/consul/data"
             environment:
               - CONSUL_BIND_INTERFACE=eth0
             secrets:
@@ -133,6 +121,7 @@
               mode: global
               placement:
                 constraints:
+                  - node.hostname == {{ inventory_hostname }} # Consul on one manager only due to only 2 running right now. Remove after we get more managers deployed.
                   - node.role == manager
               restart_policy:
                 condition: any
@@ -178,8 +167,8 @@
     port: 443
     name: Agent Token - inter-agent comms # why doesnt this get set? idk
     token_type: management
-    token: "{{ consul_agent_token }}"
-    mgmt_token: "{{ consul_master_token }}"
+    token: "{{ consul.agent_token }}"
+    mgmt_token: "{{ consul.master_token }}"
     rules:
       - node: ""
         policy: write
