@@ -12,7 +12,7 @@ acl {
     enabled = true
     default_policy = "deny"
     tokens {
-        master = "{{ consul_master_token }}"
-        agent = "{{ consul_agent_token }}"
+        master = "{{ consul.master_token }}"
+        agent = "{{ consul.agent_token }}"
     }
 }

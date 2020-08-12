@@ -231,4 +231,49 @@
     - vars/wikijs.yml
     - vars/secrets.yml
 
+- name: Ensure Consul server directories for data
+  hosts: docker_swarm
+  become: yes
+  tasks:
+    - file:
+        path: '/mnt/data-disk/consul'
+        owner: netsoc
+        group: 1000
+        mode: 0770
+        state: directory
+      tags:
+        - server    
+
+- name: Ensure Consul
+  hosts: docker_swarm_managers[0]
+  vars_files:
+      - vars/consul.yml
+      - vars/secrets.yml
+  roles:
+    - role: consul
+      vars:
+        mount: /mnt/data-disk/consul
+
+- name: Ensure Consul settings set
+  hosts: docker_swarm_managers[0]
+  vars_files:
+    - vars/netsocbot.yml
+    - vars/consul.yml
+    - vars/secrets.yml
+  tasks:
+    - include: roles/netsocbot/tasks/consul_conf.yml
+  tags:
+    - consul
+
+- name: Deploy Netsoc Discord Bot
+  hosts: docker_swarm_managers[0]
+  vars_files:
+    - vars/netsocbot.yml
+    - vars/email.yml
+    - vars/secrets.yml
+    - vars/consul.yml
+  roles: 
+    - netsocbot
+  tags:
+    - bot
 
