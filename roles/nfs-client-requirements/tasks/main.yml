@@ -16,7 +16,8 @@
   become: yes
   shell: |
     #!/bin/bash
-    echo '{{ freeipa.admin_password }}' | kinit admin -l 0h1m
+    kdestroy -A
+    echo {{ freeipa.admin_password }} | kinit admin
 
     if [ $? -eq 1 ]; then
       echo "Invalid IPA password"
@@ -28,7 +29,7 @@
     if [ $? -ne 0 ]; then
       echo "Could not find service nfs/{{ ansible_fqdn }}, adding as a service"
       ipa service-add 'nfs/{{ ansible_fqdn }}'
-    fi 
+    fi
 
     ipa-getkeytab -s {{ freeipa.server }} -p nfs/{{ ansible_fqdn }} -k /etc/krb5.keytab
   args:

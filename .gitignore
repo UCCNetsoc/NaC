@@ -4,3 +4,4 @@ lib/
 *.retry
 keys/
 production
+keycloak-realm-exported.json
