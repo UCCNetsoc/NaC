@@ -24,7 +24,7 @@ scrape_configs:
     {% for host in groups['prometheus_base'] -%}
       - 
         targets:
-          - {{host}}:9999
+          - {{hostvars[host].ansible_host}}:9999
         labels:
           instance: "{{host}}"
     {% endfor %}
@@ -38,7 +38,7 @@ scrape_configs:
     {% for host in groups['prometheus_base'] -%}
       - 
         targets:
-          - {{host}}:9999
+          - {{hostvars[host].ansible_host}}:9999
         labels:
           instance: "{{host}}"
     {% endfor %}
@@ -53,7 +53,7 @@ scrape_configs:
     {% for host in groups['prometheus_docker'] -%}
       - 
         targets:
-          - {{host}}:9999
+          - {{hostvars[host].ansible_host}}:9999
         labels:
           instance: "{{host}}"
     {% endfor %}
@@ -69,7 +69,7 @@ scrape_configs:
     {% for host in groups['prometheus_apache'] -%}
       - 
         targets:
-          - {{host}}:9999
+          - {{hostvars[host].ansible_host}}:9999
         labels:
           instance: "{{host}}"
     {% endfor %}
@@ -85,7 +85,7 @@ scrape_configs:
     {% for host in groups['prometheus_ipmi'] -%}
       - 
         targets:
-          - {{host}}:9999
+          - {{hostvars[host].ansible_host}}:9999
         labels:
           instance: "{{host}}"
     {% endfor %}
@@ -103,18 +103,6 @@ scrape_configs:
         labels:
           instance: "games.vm.netsoc.co"
 
-#  - job_name: 'minecraft-creative'
-#    metrics_path: /proxy
-#    params:
-#      module:
-#        - netcraft-creative
-#    static_configs:
-#      - 
-#        targets:
-#        - lovelace.netsoc.co:9999
-#        labels:
-#          instance: "games.vm.netsoc.co"
-
 {% if 'prometheus_traefik' in groups %}
   - job_name: 'traefik'
     metrics_path: /proxy
@@ -125,11 +113,29 @@ scrape_configs:
     {% for host in groups['prometheus_traefik'] -%}
       - 
         targets:
-          - {{host}}:9999
+          - {{hostvars[host].ansible_host}}:9999
         labels:
           instance: "{{host}}"
     {% endfor %}
 {% endif %}
+
+# ansible_host is on vlan 10 i.e. 10.0.10.XX
+# databases cannot access vlan 10
+# proxmox hosts have presence on every vlan
+# adding 5120 to 10.0.10.XX = 10.0.30.XX
+# 5120 = (256 * 10) * 2
+  - job_name: 'pve'
+    metrics_path: /pve
+    params:
+      module: [default]
+    static_configs:
+      - targets:
+          - "{{hostvars[groups['proxmox_hosts'][0]].ansible_host | ipmath(5120)}}"
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: __param_target
+      - target_label: __address__
+        replacement: pve-exporter:9221
 
   - job_name: 'site-up'
     metrics_path: /probe
