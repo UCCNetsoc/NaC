@@ -50,5 +50,6 @@
   roles:
     - prometheus-server
   vars_files:
+    - vars/proxmox.yml
     - vars/traefik.yml
     - vars/secrets.yml
