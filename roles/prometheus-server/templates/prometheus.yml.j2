@@ -130,14 +130,8 @@ scrape_configs:
     params:
       module: [default]
     static_configs:
-    {% for host in groups['proxmox_hosts'] -%}
-      - 
-        targets:
-          - "{{hostvars[host].ansible_host | ipmath(5120)}}"
-        labels:
-          instance: "{{host}}"
-    {% endfor %}
-
+      - targets:
+          - "{{hostvars[groups['proxmox_hosts'][0]].ansible_host | ipmath(5120)}}"
     relabel_configs:
       - source_labels: [__address__]
         target_label: __param_target
