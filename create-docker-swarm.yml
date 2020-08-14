@@ -15,6 +15,9 @@
               - vm
               - docker_swarm
               - docker_swarm_managers
+              - prometheus_base
+              - prometheus_docker
+              - prometheus_traefik
               - ipaclients
             host_vars:
               ansible_ssh_private_key_file: "./keys/docker_swarm/id_rsa"
@@ -23,6 +26,9 @@
           disks:
             virtio0:
               resize: "30G"
+            virtio1:
+              pool: local-lvm
+              definition: "25,format=raw"
           cores: 4
           memory: 4096
         cloudinit:
@@ -60,6 +66,8 @@
             groups:
               - vm
               - docker_swarm
+              - prometheus_base
+              - prometheus_docker
               - docker_workers
             vars:
               ansible_ssh_private_key_file: "./keys/docker_swarm/id_rsa"

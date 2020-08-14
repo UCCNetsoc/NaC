@@ -13,7 +13,7 @@
 #         chdir: /tmp/vyos-build
 #     - name: Build ISO
 #       shell: 
-#         docker run --rm -t --privileged -v $(pwd):/vyos -w /vyos vyos-builder bash -c "./configure --custom-package python-pip --custom-package qemu-guest-agent --custom-package expect --custom-package python3-jsonschema --custom-package python3-oauthlib --custom-package python3-jsonpatch && sudo make iso"
+#         docker run --rm -t --privileged -v $(pwd):/vyos -w /vyos vyos-builder bash -c "./configure --custom-package python3-pip --custom-package python-pip --custom-package qemu-guest-agent --custom-package expect --custom-package python3-jsonschema --custom-package python3-oauthlib --custom-package python3-jsonpatch && sudo make iso"
 #       args:
 #         chdir: /tmp/vyos-build
 

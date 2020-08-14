@@ -17,14 +17,26 @@
     - role: nfs-client-requirements
     - role: autofs-automount
       vars:
-        src: nfs.vm.netsoc.co:/home/users
+        src: nfs.vm.netsoc.co:/
         mount: /home/users
-        opts: fstype=nfs4,rw,vers=4.2,sec=krb5p,hard,bg
+        opts: fstype=nfs4,rw,vers=4.2,sec=sys,hard,bg
   vars_files:
     - "vars/idmap.yml"
     - "vars/freeipa.yml"
     - "vars/secrets.yml"
 
-# - name: "Ensure Nginx Unit"
-#   roles:
+- name: "Ensure Nginx Unit"
+  hosts: web
+  tasks:
+    - docker_volume:
+        name: unit_shared_sock
+    - docker_container:
+        name: unit
+        entrypoint: /usr/sbin/unitd --no-daemon --control unix:/var/run/control.unit.sock --user www-data --group www-data
+        image: nginx/unit:1.18.0-full
+        privileged: yes
+        restart_policy: always
+        volumes:
+          - "./home/users/:/home/users/:Z"
+          - "unit_shared_sock:/var/run/"
 

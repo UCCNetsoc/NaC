@@ -1,6 +1,0 @@
----
-- name: Ensure Minecraft Servers
-  hosts: games
-  roles:
-    - minecraft
-  

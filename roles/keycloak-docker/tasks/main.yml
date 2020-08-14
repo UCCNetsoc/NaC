@@ -11,13 +11,13 @@
 
 - become: yes
   copy:
-    content: "{{ realm }}"
+    content: "{{ keycloak.realm }}"
     dest: "{{ mount }}/realm.json"
     mode: 0755
 
 - docker_container:
     name: keycloak
-    image: jboss/keycloak:9.0.3
+    image: uccnetsoc/keycloak:9.0.3-themed
     recreate: yes
     env:
       DB_VENDOR: h2

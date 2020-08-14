@@ -1,0 +1,1 @@
+webhooks: "{{ vault_webhooks }}"
