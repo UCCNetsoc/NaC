@@ -87,7 +87,7 @@
     marker: "# Trusted Network For Recursive DNS Queries - {mark}"
     block: |
       acl "trusted_network" {
-        {{ interface_address | ipaddr('network') }}/{{ interface_address | ipaddr('prefix') }};
+        {{ recursive_dns_trusted_network }};
       };
 
 
