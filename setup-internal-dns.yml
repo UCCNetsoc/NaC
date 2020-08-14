@@ -18,6 +18,7 @@
         # To remove it here, add state: absent to the record in the table below
         - { type: A, name: "postgres-infra.databases",  value: "{{ interfaces.databases.net0.addresses[0] | ipaddr('address') }}"}
         - { type: A, name: "mysql-infra.databases",     value: "{{ interfaces.databases.net0.addresses[0] | ipaddr('address') }}"}
+        - { type: A, name: "prometheus.databases",      value: "{{ interfaces.databases.net0.addresses[0] | ipaddr('address') }}"}
         - { type: A, name: "mysql-user.databases",      value: "{{ interfaces.databases.net1.addresses[0] | ipaddr('address') }}"}
   vars_files:
     - vars/network.yml

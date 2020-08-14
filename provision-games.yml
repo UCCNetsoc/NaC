@@ -1,0 +1,31 @@
+---
+- name: "Enroll in IPA server"
+  hosts: games
+  roles:
+    - role: freeipa-client
+      vars:
+        client:
+          addresses: "{{ interfaces.games.net0.addresses }}"
+  vars_files:
+    - "vars/freeipa.yml"
+    - "vars/network.yml"
+    - "vars/secrets.yml"
+
+- name: "Setup Data Disk"
+  hosts: games
+  roles:
+    - role: simple-disk
+      vars:
+        device: "/dev/vdb"
+        partition_size: "100%"
+        fstype: "ext4"
+        mount_path: "/mnt/data-disk"
+        mount_opts: "rw"
+
+- name: Ensure Minecraft Server
+  hosts: games
+  roles:
+    - role: minecraft
+      vars:
+        mount: "/mnt/data-disk/minecraft"
+    

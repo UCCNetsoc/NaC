@@ -1,6 +1,6 @@
 global:
-  scrape_interval:     5s # Set the scrape interval to every 5 seconds. Default is every 1 minute.
-  evaluation_interval: 5s # Evaluate rules every 5 seconds. The default is every 1 minute.
+  scrape_interval:     10s # Set the scrape interval to every 10 seconds. Default is every 1 minute.
+  evaluation_interval: 10s # Evaluate rules every 10 seconds. The default is every 1 minute.
 
 rule_files:
   - "/etc/prometheus/rules/*"
@@ -12,20 +12,21 @@ scrape_configs:
         labels:
           instance: "{{inventory_hostname}}"
 
-  - job_name: 'grafana'
-    static_configs:
-      - targets: ['grafana:3000']
-        labels:
-          instance: "{{inventory_hostname}}"
+# todo(jac) Update when grafana has been moved to the new setup
+#  - job_name: 'grafana'
+#    static_configs:
+#      - targets: ['grafana:3000']
+#        labels:
+#          instance: "{{inventory_hostname}}"
 
   - job_name: 'expexp_metrics'
     static_configs:
-    {% for h in groups['prometheus_nodes'] -%}
+    {% for host in groups['prometheus_base'] -%}
       - 
         targets:
-          - {{h}}:9999
+          - {{hostvars[host].ansible_host}}:9999
         labels:
-          instance: "{{h}}"
+          instance: "{{host}}"
     {% endfor %}
 
   - job_name: 'node'
@@ -34,41 +35,61 @@ scrape_configs:
       module:
        - node 
     static_configs:
-    {% for h in groups['prometheus_nodes'] -%}
+    {% for host in groups['prometheus_base'] -%}
       - 
         targets:
-          - {{h}}:9999
+          - {{hostvars[host].ansible_host}}:9999
         labels:
-          instance: "{{h}}"
+          instance: "{{host}}"
     {% endfor %}
 
-  - job_name: 'apache'
-    metrics_path: /proxy
-    params:
-      module:
-       - apache 
-    static_configs:
-    {% for h in groups['prometheus_apache'] -%}
-      - 
-        targets:
-          - {{h}}:9999
-        labels:
-          instance: "{{h}}"
-    {% endfor %}
-
+{% if 'prometheus_docker' in groups %}
   - job_name: 'cadvisor'
     metrics_path: /proxy
     params:
       module:
         - cadvisor
     static_configs:
-    {% for h in groups['prometheus_docker'] -%}
+    {% for host in groups['prometheus_docker'] -%}
       - 
         targets:
-          - {{h}}:9999
+          - {{hostvars[host].ansible_host}}:9999
         labels:
-          instance: "{{h}}"
+          instance: "{{host}}"
     {% endfor %}
+{% endif %}
+
+{% if 'prometheus_apache' in groups %}
+  - job_name: 'apache'
+    metrics_path: /proxy
+    params:
+      module:
+       - apache 
+    static_configs:
+    {% for host in groups['prometheus_apache'] -%}
+      - 
+        targets:
+          - {{hostvars[host].ansible_host}}:9999
+        labels:
+          instance: "{{host}}"
+    {% endfor %}
+{% endif %}
+
+{% if 'prometheus_ipmi' in groups %}
+  - job_name: 'ipmi'
+    metrics_path: /proxy
+    params:
+      module:
+       - ipmi 
+    static_configs:
+    {% for host in groups['prometheus_ipmi'] -%}
+      - 
+        targets:
+          - {{hostvars[host].ansible_host}}:9999
+        labels:
+          instance: "{{host}}"
+    {% endfor %}
+{% endif %}
 
   - job_name: 'minecraft-survival'
     metrics_path: /proxy
@@ -78,75 +99,69 @@ scrape_configs:
     static_configs:
       - 
         targets:
-        - lovelace.netsoc.co:9999
+        - games.vm.netsoc.co:9999
         labels:
-          instance: "{{inventory_hostname}}"
+          instance: "games.vm.netsoc.co"
 
-  - job_name: 'minecraft-creative'
+{% if 'prometheus_traefik' in groups %}
+  - job_name: 'traefik'
     metrics_path: /proxy
     params:
       module:
-        - netcraft-creative
+       - traefik 
     static_configs:
+    {% for host in groups['prometheus_traefik'] -%}
       - 
         targets:
-        - lovelace.netsoc.co:9999
+          - {{hostvars[host].ansible_host}}:9999
         labels:
-          instance: "{{inventory_hostname}}"
+          instance: "{{host}}"
+    {% endfor %}
+{% endif %}
 
-  - job_name: 'site-up'
-    metrics_path: /probe
+# ansible_host is on vlan 10 i.e. 10.0.10.XX
+# databases cannot access vlan 10
+# proxmox hosts have presence on every vlan
+# adding 5120 to 10.0.10.XX = 10.0.30.XX
+# 5120 = (256 * 10) * 2
+  - job_name: 'pve'
+    metrics_path: /pve
     params:
-      module: [http_2xx]
+      module: [default]
     static_configs:
       - targets:
-        - 'https://netsoc.co/'
-        - 'https://motley.ie/'
-        - 'https://uccexpress.ie/'
+          - "{{hostvars[groups['proxmox_hosts'][0]].ansible_host | ipmath(5120)}}"
     relabel_configs:
       - source_labels: [__address__]
         target_label: __param_target
+      - target_label: __address__
+        replacement: pve-exporter:9221
+
+  - job_name: 'site-up'
+    metrics_path: /probe
+    static_configs:
+      - targets:
+        - 'https://netsoc.co/'
+        - 'https://wiki.netsoc.co/'
+        - 'https://netsoc.dev/'
+        - 'https://keycloak.netsoc.dev/'
+        - 'https://portainer.netsoc.dev/'
+        - 'https://ipa.netsoc.dev/ipa/ui/'
+        - 'https://uccexpress.ie/'
+        - 'https://motley.ie/'
+        labels:
+          module: http_2xx
+      - targets:
+        - 'https://traefik.netsoc.dev/'
+        labels:
+          module: http_2xx_traefik_auth
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: __param_target
+      - source_labels: [module]
+        target_label: __param_module
       - source_labels: [__param_target]
         target_label: instance
         regex: '^https?:\/\/(.*)\/'
       - target_label: __address__
         replacement: blackbox_exporter:9115
-
-  - job_name: 'harbor-registry'
-    metrics_path: /probe
-    params:
-      module: [
-        harbor_health_jobservice, 
-        harbor_health_core,
-        harbor_health_redis,
-        harbor_health_database, 
-        harbor_health_registry,
-        harbor_health_registryctl,
-        harbor_health_portal,
-      ]
-    static_configs:
-      - targets:
-        - 'https://docker.netsoc.co/api/health'
-    relabel_configs:
-      - source_labels: [__address__]
-        target_label: __param_target
-      - source_labels: [__param__module]
-        target_label: harbor_component
-      - target_label: instance
-        replacement: docker.netsoc.co
-      - target_label: __address__
-        replacement: blackbox_exporter:9115
-
-  - job_name: 'ipmi'
-    metrics_path: /proxy
-    params:
-      module:
-       - ipmi 
-    static_configs:
-    {% for h in groups['prometheus_nodes'] -%}
-      - 
-        targets:
-          - {{h}}:9999
-        labels:
-          instance: "{{h}}"
-    {% endfor %}

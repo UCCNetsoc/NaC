@@ -20,7 +20,7 @@
     name: freeipa_server
     state: started
     recreate: yes
-    image: freeipa/freeipa-server
+    image: uccnetsoc/freeipa-server:4.8.7-pulled-2020-07-03 # freeipa/freeipa-server
     command: >
       --unattended
       --realm={{ freeipa.realm }}
@@ -32,8 +32,8 @@
       --forward-policy=only
       --ssh-trust-dns
     restart: yes
-    etc_hosts:
-      '{ "{{ freeipa.server }}": "{{ ip }}" }'
+    # etc_hosts:
+    #   '{ "{{ freeipa.server }}": "{{ ip }}" }'
     hostname: "{{ freeipa.server }}"
     env: # environment:
       IPA_SERVER_HOSTNAME: "{{ freeipa.server }}"
@@ -49,6 +49,7 @@
       - "{{ ip }}:123:123"    # ntp
       - "{{ ip }}:53:53/tcp"  # dns
       - "{{ ip }}:53:53/udp"
+    restart_policy: on-failure
     volumes:
       - "/sys/fs/cgroup:/sys/fs/cgroup:ro"
       - "/etc/machine-id:/etc/machine-id"
@@ -71,13 +72,7 @@
     timeout: 1200 # 20 minutes
 
 - name: "Check install status (grep)"
-  register: status
   shell: "grep -i 'The ipa-server-install command was successful' {{ mount }}/data/var/log/ipaserver-install.log"
-  ignore_errors: yes
-
-- name: "Check install success"
-  fail: "Install failed, check {{ mount }}/data/var/log/ipaserver-install.log for more info"
-  when: status is not changed
 
 - name: Ensure HTTP redirect disabler
   become: yes
@@ -92,7 +87,7 @@
     marker: "# Trusted Network For Recursive DNS Queries - {mark}"
     block: |
       acl "trusted_network" {
-        {{ interface_address | ipaddr('network') }}/{{ interface_address | ipaddr('prefix') }};
+        {{ recursive_dns_trusted_network }};
       };
 
 

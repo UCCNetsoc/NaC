@@ -44,3 +44,12 @@
     - "vars/mysql.yml"
     - "vars/network.yml"
     - "vars/secrets.yml"
+
+- name: Setup Prometheus Server
+  hosts: databases
+  roles:
+    - prometheus-server
+  vars_files:
+    - vars/proxmox.yml
+    - vars/traefik.yml
+    - vars/secrets.yml

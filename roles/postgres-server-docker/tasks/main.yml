@@ -22,6 +22,7 @@
     state: started
     recreate: yes
     image: postgres:12.3
+    restart_policy: on-failure
     env:
       POSTGRES_PASSWORD: "{{ root_password }}"
     volumes:
