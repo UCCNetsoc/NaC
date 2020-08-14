@@ -45,4 +45,4 @@
 
 This repo currently contains both playbooks for managing 2019/2020 bare-metal infra and 2020/2021 Proxmox infra. Do not get them confused, have a look at `./hosts` to see what's going on.
 
-### **Read `https://wiki.netsoc.co`**
+### **Read [wiki.netsoc.co](wiki.netsoc.co)**
