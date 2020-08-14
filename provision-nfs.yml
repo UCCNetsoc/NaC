@@ -292,7 +292,9 @@
     - role: nfs4-server-krb5
       vars:
         exports: |
-          /storage 10.0.{{ subnets.infra }}.0/24(fsid=0,rw,sync,crossmnt,no_root_squash,sec=krb5p:krb5i:krb5)
+          /storage            10.0.{{ subnets.infra }}.0/24(fsid=0,rw,sync,crossmnt,sec=sys:krb5p:krb5i:krb5,no_root_squash)
+          /storage/home/users {{ interfaces.portal.net0.addresses[0] }}(fsid=0,rw,sync,crossmnt,sec=krb5p:krb5i:krb5) {{ interfaces.webN.net0.addresses[0] }}(fsid=0,rw,sync,sec=sys)
+          
   vars_files:
     - vars/idmap.yml
     - vars/network.yml

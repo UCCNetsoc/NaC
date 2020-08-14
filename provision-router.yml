@@ -17,7 +17,13 @@
             ipv6-src-route disable
             ip-src-route disable
             log-martians enable
+            name infra-user {
+              default-action accept
+            }
             name infra-wan {
+              default-action accept
+            }
+            name user-infra {
               default-action accept
             }
             name user-wan {
@@ -279,6 +285,11 @@
             zone infra {
               default-action drop
               description "Infrastructure traffic"
+              from user {
+                firewall {
+                  name user-infra
+                }
+              }
               from wan {
                 firewall {
                   name wan-infra
@@ -294,6 +305,11 @@
             zone user {
               default-action drop
               description "User VM traffic"
+              from infra {
+                firewall {
+                  name infra-user
+                }
+              }
               from wan {
                 firewall {
                   name wan-user
@@ -329,6 +345,7 @@
                   name vmhost-wan
                 }
               }
+
               interface eth0.10
             }
           }

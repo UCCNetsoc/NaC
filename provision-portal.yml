@@ -17,7 +17,7 @@
     - role: nfs-client-requirements
     - role: autofs-automount
       vars:
-        src: nfs.vm.netsoc.co:/home/users
+        src: nfs.vm.netsoc.co:/
         mount: /home/users
         opts: fstype=nfs4,rw,vers=4.2,sec=krb5p,hard,bg
   vars_files:
