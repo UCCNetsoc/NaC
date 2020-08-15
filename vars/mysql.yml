@@ -1,1 +1,2 @@
 mysql: "{{ vault_mysql }}"
+mysql_user: "root"
