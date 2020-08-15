@@ -1,1 +1,1 @@
-docker_hub: {{ vault_docker_hub }}
+docker_hub: "{{ vault_docker_hub }}"

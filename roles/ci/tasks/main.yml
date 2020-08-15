@@ -5,7 +5,7 @@
     name: "{{ drone.mysql_database }}"
     login_user: "{{ mysql_user }}"
     login_host: "{{ mysql_server }}"
-    login_password: "{{ mysql.user.root_password }}"
+    login_password: "{{ mysql.infra.root_password }}"
     state: present
 
 - name: Ensure Drone MySQL User
@@ -17,7 +17,7 @@
     host: "%"
     login_user: "{{ mysql_user }}"
     login_host: "{{ mysql_server }}"
-    login_password: "{{ mysql.user.root_password }}"
+    login_password: "{{ mysql.infra.root_password }}"
     state: present
 
 - name: Set log_bin_trust_function_creators=1
@@ -25,7 +25,7 @@
   mysql_variables:
     login_user: "{{ mysql_user }}"
     login_host: "{{ mysql_server }}"
-    login_password: "{{ mysql.user.root_password }}"
+    login_password: "{{ mysql.infra.root_password }}"
     variable: log_bin_trust_function_creators
     value: 1
 
@@ -53,7 +53,7 @@
           drone:
             external: true
         services:
-          server: 
+          drone: 
             image: drone/drone:1.7.0
             container_name: drone_server
             environment:
