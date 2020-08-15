@@ -42,7 +42,6 @@
   register: prev
 
 - name: Possible Vault instance status
-  when: inventory_hostname in groups.swarm_creators
   debug:
       msg: HTTP {{ prev.status }}
 

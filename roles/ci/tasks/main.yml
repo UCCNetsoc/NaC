@@ -61,7 +61,7 @@
               DRONE_GITHUB_CLIENT_ID: eabeb15df953b3daf847
               DRONE_GITHUB_CLIENT_SECRET: "{{ drone.github_secret }}"
               DRONE_RPC_SECRET: "{{ drone.rpc_secret }}"
-              DRONE_SERVER_HOST: ci.{{ co_site }}
+              DRONE_SERVER_HOST: ci.{{ dev_site }}
               DRONE_TLS_AUTOCERT: "false"
               DRONE_SERVER_PROTO: https
               DRONE_DATABASE_DRIVER: mysql
@@ -86,7 +86,7 @@
               labels:
                 - "traefik.enable=true"
                 - "traefik.http.routers.drone.entrypoints=web-secure"
-                - "traefik.http.routers.drone.rule=Host(`ci.{{ co_site }}`)"
+                - "traefik.http.routers.drone.rule=Host(`ci.{{ dev_site }}`)"
                 - "traefik.http.routers.drone.tls.certResolver=letsencrypt"
                 - "traefik.http.routers.drone.service=drone-service"
                 - "traefik.http.services.drone-service.loadbalancer.server.port=80"
@@ -98,7 +98,7 @@
               DRONE_TRACE: "true"
               DRONE_RUNNER_NAME: agent_bert
               DRONE_RPC_PROTO: https
-              DRONE_RPC_HOST: ci.{{ co_site }}
+              DRONE_RPC_HOST: ci.{{ dev_site }}
               DRONE_RPC_SECRET: "{{ drone.rpc_secret }}"
               DRONE_RUNNER_CAPACITY: "4"
               DRONE_SECRET_ENDPOINT: http://drone_vault:3000

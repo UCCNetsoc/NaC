@@ -337,7 +337,7 @@
   vars_files:
     - vars/ci.yml
     - vars/discord.yml
-    - vars/mysql_server_legacy.yml
+    - vars/mysql.yml
     - vars/vault.yml
     - vars/secrets.yml
     - vars/network.yml
