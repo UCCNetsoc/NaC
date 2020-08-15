@@ -3,9 +3,9 @@
   run_once: true
   mysql_db:
     name: "{{ drone.mysql_database }}"
-    login_user: "{{ mysql.admin_username }}"
-    login_host: "{{ mysql.server }}"
-    login_password: "{{ mysql.admin_password }}"
+    login_user: "{{ mysql_user }}"
+    login_host: "{{ mysql_server }}"
+    login_password: "{{ mysql.user.root_password }}"
     state: present
 
 - name: Ensure Drone MySQL User
@@ -15,17 +15,17 @@
     password: "{{ drone.mysql_password }}"
     priv: "{{ drone.mysql_database}}.*:ALL"
     host: "%"
-    login_host: "{{ mysql.server }}"
-    login_user: "{{ mysql.admin_username }}"
-    login_password: "{{ mysql.admin_password }}"
+    login_user: "{{ mysql_user }}"
+    login_host: "{{ mysql_server }}"
+    login_password: "{{ mysql.user.root_password }}"
     state: present
 
 - name: Set log_bin_trust_function_creators=1
   run_once: true
   mysql_variables:
-    login_user: "{{ mysql.admin_username }}"
-    login_host: "{{ mysql.server }}"
-    login_password: "{{ mysql.admin_password }}"
+    login_user: "{{ mysql_user }}"
+    login_host: "{{ mysql_server }}"
+    login_password: "{{ mysql.user.root_password }}"
     variable: log_bin_trust_function_creators
     value: 1
 
@@ -126,7 +126,7 @@
               DRONE_DEBUG: "true"
               VAULT_TOKEN: "{{ hashivault.docker_registry_token }}"
               VAULT_ADDR: "{{ hashivault_url }}"
-              DRONE_SECRET: "{{ drone_vault.secret }}"
+              DRONE_SECRET: "{{ drone.vault_secret }}"
             deploy:
               mode: replicated
               replicas: 1

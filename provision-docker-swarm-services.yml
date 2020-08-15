@@ -340,5 +340,8 @@
     - vars/mysql_server_legacy.yml
     - vars/vault.yml
     - vars/secrets.yml
+    - vars/network.yml
+  vars:
+    mysql_server: "{{ interfaces.databases.net1.addresses[0] | ipaddr('address') }}"
   roles:
   - ci
