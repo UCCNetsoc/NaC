@@ -1,1 +1,1 @@
-discord: "{{ vault_discord }}"
+webhooks: "{{ vault_webhooks }}"
