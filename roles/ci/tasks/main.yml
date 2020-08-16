@@ -37,7 +37,7 @@
     driver: overlay
     attachable: yes
 
-- name: Ensure Drone Stack
+- name: "Ensure Drone Stack"
   run_once: true
   become: yes
   docker_stack:
@@ -53,7 +53,7 @@
           drone:
             external: true
         services:
-          drone: 
+          server: 
             image: drone/drone:1.7.0
             container_name: drone_server
             environment:
@@ -65,7 +65,7 @@
               DRONE_TLS_AUTOCERT: "false"
               DRONE_SERVER_PROTO: https
               DRONE_DATABASE_DRIVER: mysql
-              DRONE_DATABASE_DATASOURCE: "{{ drone.mysql_user }}:{{ drone.mysql_password }}@tcp({{ mysql.server }}:3306)/{{ drone.mysql_database }}?parseTime=true"
+              DRONE_DATABASE_DATASOURCE: "{{ drone.mysql_user }}:{{ drone.mysql_password }}@tcp({{ mysql_server }}:3306)/{{ drone.mysql_database }}?parseTime=true"
               DRONE_SECRET_ENDPOINT: http://drone_vault:3000
               DRONE_SECRET_TOKEN: "{{ drone.vault_secret }}"
               DRONE_JSONNET_ENABLED: "true"
