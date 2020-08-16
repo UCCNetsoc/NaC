@@ -1,29 +1,29 @@
 ---
 - name: Ensure Drone MySQL Database
   run_once: true
+  become: yes
   mysql_db:
     name: "{{ drone.mysql_database }}"
-    login_user: "{{ mysql_user }}"
     login_host: "{{ mysql_server }}"
     login_password: "{{ mysql.infra.root_password }}"
     state: present
 
 - name: Ensure Drone MySQL User
   run_once: true
+  become: yes
   mysql_user:
     name: "{{ drone.mysql_user }}"
     password: "{{ drone.mysql_password }}"
     priv: "{{ drone.mysql_database}}.*:ALL"
     host: "%"
-    login_user: "{{ mysql_user }}"
     login_host: "{{ mysql_server }}"
     login_password: "{{ mysql.infra.root_password }}"
     state: present
 
 - name: Set log_bin_trust_function_creators=1
   run_once: true
+  become: yes
   mysql_variables:
-    login_user: "{{ mysql_user }}"
     login_host: "{{ mysql_server }}"
     login_password: "{{ mysql.infra.root_password }}"
     variable: log_bin_trust_function_creators
