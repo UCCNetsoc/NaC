@@ -1,2 +1,1 @@
-discord_webhook_token: "{{ vault_discord_webhook_token }}"
-discord_webhook_id: "{{ vault_discord_webhook_id }}"
+webhooks: "{{ vault_webhooks }}"

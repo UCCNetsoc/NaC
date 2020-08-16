@@ -2,7 +2,7 @@
 - name: "Ensure Netsoc Discord Bot deployed"
   become: yes
   docker_swarm_service:
-    image: docker.netsoc.co/public/discord-bot:latest
+    image: uccnetsoc/discord-bot:latest
     name: netsocbot
     state: present
     resolve_image: yes
