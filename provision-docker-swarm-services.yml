@@ -277,3 +277,74 @@
   tags:
     - bot
 
+
+- name: Ensure Hashicorp Vault
+  hosts: docker_swarm_managers[0]
+  vars_files:
+    - vars/consul.yml
+    - vars/vault.yml
+    - vars/ldap.yml
+    - vars/secrets.yml
+  roles:
+    - vault
+  tags:
+    - server
+    - vault
+
+- name: Set Docker Registry secrets in Hashicorp Vault
+  hosts: docker_swarm_managers[0]
+  vars_files:
+    - vars/vault.yml
+    - vars/secrets.yml
+    - vars/docker_hub.yml
+  tasks:
+    - include: roles/vault/tasks/secrets_docker_registry.yml
+    - include: roles/vault/tasks/policy_ci.yml
+  tags:
+    - push_secrets
+    - docker_registry
+    - vault
+
+- name: Set Github secrets in Hashicorp Vault
+  hosts: docker_swarm_managers[0]
+  vars_files:
+    - vars/vault.yml
+    - vars/secrets.yml
+  tasks:
+    - include: roles/vault/tasks/secrets_github.yml
+    - include: roles/vault/tasks/policy_ci.yml
+  tags:
+    - push_secrets
+    - github
+    - vault
+
+- name: Set Discord Webhook secrets in Hashicorp Vault
+  hosts: docker_swarm_managers[0]
+  vars_files:
+    - vars/vault.yml
+    - vars/discord.yml
+    - vars/secrets.yml
+  tasks:
+    # Making sure the policy exists
+    - include: roles/vault/tasks/policy_ci.yml 
+    - include: roles/vault/tasks/secrets_discord_webhook.yml
+  tags:
+    - push_secrets
+    - discord_webhook
+    - vault
+
+- name: Ensure Drone Server, Agent and DB
+  hosts: docker_swarm_managers[0]
+  vars_files:
+    - vars/ci.yml
+    - vars/discord.yml
+    - vars/mysql.yml
+    - vars/vault.yml
+    - vars/secrets.yml
+    - vars/network.yml
+  vars:
+    mysql_server: "{{ interfaces.databases.net0.addresses[0] | ipaddr('address') }}"
+  roles:
+    - ci
+  tags:
+    - ci

@@ -42,7 +42,6 @@
   register: prev
 
 - name: Possible Vault instance status
-  when: inventory_hostname in groups.swarm_creators
   debug:
       msg: HTTP {{ prev.status }}
 
@@ -54,8 +53,8 @@
     port: 443
     name: Hashicorp Vault Token # why doesnt this get set? idk
     token_type: management
-    token: "{{ consul_vault_token }}"
-    mgmt_token: "{{ consul_master_token }}"
+    token: "{{ consul.vault_token }}"
+    mgmt_token: "{{ consul.master_token }}"
     rules:
       - key_prefix: "hashicorp-vault/"
         policy: write
@@ -168,7 +167,7 @@
     return_content: yes
     body_format: json
     body: 
-      key: "{{ hashivault_master_key }}"
+      key: "{{ hashivault.master_key }}"
   register: unseal
 
 - name: Vault Unseal response
@@ -184,7 +183,7 @@
   uri:
     url: "{{ hashivault_url }}/v1/sys/auth"
     headers:
-      X-Vault-Token: "{{ hashivault_root_token }}"
+      X-Vault-Token: "{{ hashivault.root_token }}"
     method: GET
     return_content: yes
   register: ldap_check
@@ -195,7 +194,7 @@
   uri:
     url: "{{ hashivault_url }}/v1/sys/auth/ldap"
     headers:
-      X-Vault-Token: "{{ hashivault_root_token }}"
+      X-Vault-Token: "{{ hashivault.root_token }}"
     method: POST
     body_format: json
     status_code: [204]
@@ -208,26 +207,26 @@
   uri:
     url: "{{ hashivault_url }}/v1/auth/ldap/config"
     headers:
-      X-Vault-Token: "{{ hashivault_root_token }}"
+      X-Vault-Token: "{{ hashivault.root_token }}"
     method: POST
     body_format: json
     status_code: [204]
     body:
-      url: "{{ ldap_schema }}://{{ ldap_server }}:{{ ldap_port }}"
-      binddn: "{{ ldap_admin_account }}"
-      bindpass: "{{ ldap_admin_password }}"
-      userattr: "{{ ldap_search_attr }}"
-      groupattr: "{{ ldap_group_attr }}"
-      groupdn: "{{ ldap_admin_base_dn }}"
-      groupfilter: "{{ ldap_filter }}"
-      userdn: "{{ ldap_admin_base_dn }}"
+      url: "{{ ldap.schema }}://{{ ldap.server }}:{{ ldap.port }}"
+      binddn: "{{ ldap.admin_account }}"
+      bindpass: "{{ ldap.admin_password }}"
+      userattr: "{{ ldap.search_attr }}"
+      groupattr: "{{ ldap.group_attr }}"
+      groupdn: "{{ ldap.admin_base_dn }}"
+      groupfilter: "{{ ldap.filter }}"
+      userdn: "{{ ldap.admin_base_dn }}"
 
 - name: Configure LDAP Auth admin group - step 1
   run_once: true
   uri:
     url: "{{ hashivault_url }}/v1/auth/ldap/groups/sysadmins"
     headers:
-      X-Vault-Token: "{{ hashivault_root_token }}"
+      X-Vault-Token: "{{ hashivault.root_token }}"
     method: POST
     body_format: json
     status_code: [204]
@@ -239,7 +238,7 @@
   uri:
     url: "{{ hashivault_url }}/v1/auth/ldap/groups/420"
     headers:
-      X-Vault-Token: "{{ hashivault_root_token }}"
+      X-Vault-Token: "{{ hashivault.root_token }}"
     method: POST
     body_format: json
     status_code: [204]
@@ -251,7 +250,7 @@
   uri:
     url: "{{ hashivault_url }}/v1/sys/policy/sysadmins"
     headers:
-      X-Vault-Token: "{{ hashivault_root_token }}"
+      X-Vault-Token: "{{ hashivault.root_token }}"
     method: POST
     body_format: json
     status_code: [204]
