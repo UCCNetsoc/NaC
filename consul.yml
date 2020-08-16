@@ -1,8 +1,0 @@
----
-- name: Ensure Consul
-  hosts: docker_swarm_managers[0]
-  vars_files:
-      - vars/consul.yml
-      - vars/secrets_legacy.yml
-  roles:
-  - consul
