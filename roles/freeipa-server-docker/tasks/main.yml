@@ -87,7 +87,9 @@
     marker: "# Trusted Network For Recursive DNS Queries - {mark}"
     block: |
       acl "trusted_network" {
-        {{ recursive_dns_trusted_network }};
+        {% for trusted in recursive_dns_trusted_network %}
+          {{ trusted }};
+        {% endfor %}
       };
 
 
