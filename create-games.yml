@@ -1,23 +1,22 @@
 ---
-
 - name: "Ensure games server"
-  hosts: lovelace
+  hosts: proxmox_hosts,!control,!feynman
   roles:
     - role: proxmox-infra-cloudinit-vm
       vars:
         vm:
-          name: "games.vm.netsoc.co"
+          name: "games{{ ansible_play_hosts_all.index( inventory_hostname ) }}.vm.netsoc.co"
           clone: "netsoc-ubuntu-server-{{ inventory_hostname }}"
           net:
             net0: "virtio,bridge=vmbr0,tag=30"
           disks:
             virtio0:
-              resize: "20G"
+              resize: "10G" # To be changed
             virtio1:
               pool: local-lvm
               definition: "100,format=raw"
           cores: 4
-          memory: 10240
+          memory: 8192 # To be changed
           description:
             groups:
               - vm
