@@ -348,3 +348,10 @@
     - ci
   tags:
     - ci
+
+- name: Wetty
+  hosts: docker_swarm_managers[0]
+  roles:
+    - wetty
+  tags:
+    - wetty
