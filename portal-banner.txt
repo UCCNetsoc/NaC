@@ -44,7 +44,7 @@
                                -[ IMPORTANT ]-    
                if you had signed up to netsocadmin prior to the 
         2020/2021 academic year, you will need to reset your password:
-              https://admin.netsoc.co/account/password-reset
+              https://admin.netsoc.co/accounts/password-reset
 
              If you are new to Linux it is normal for the cursor to
                     not move when you type in your password
