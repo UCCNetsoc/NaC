@@ -6,7 +6,7 @@
     - git
 
 - hosts: control
-  tasks: 
+  tasks:
     - set_fact:
         sysadmins:
           - { name: eric,     public_key: "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAACAQDIH9yhmm/hMX3FHK5TAaSwYHGl94CrG56Sy7CQNTymlsq3XFMuP2cWuTUNwj3uN22Mj+id+6AhvcttE5o5h3ASuVWY51CKHsq1NliOAnPUlSN5X9EEWbeYzAN5aWaars4Kwvrhf22TrPqVI7kjiRIF2ikR3j4tSyrX7Bjtn9WIsYzFGTCrGTFCKa8ImjwxKSJkRmiuuVRKoofk4M+517G7vRl9Q/14fpp9SndmSIosQFXUyEVTX66h2Uu3feOKB3XUSps6I8UicVmnXO0ZNS/YpWKK2oiA6RVbVRzPBAZx/RoQYhJ2t8rlMTdadZvOL+8WUGKlKcSMQ6+rLV9Z6FhIiXdxHoQGLA1R2R83CGltN44DmT/G3pa0Jcl3k0YJ1Qyxnb5WOq/BoTscCSIdnfHN9K9pFgICjt4qa1s9sSxg0YgSZhVo2FUMBj7EJZVWmA5dda50hdnmAFPD6TLrcFwi6YHi1S2WYklXATkobUanbov70os87yT8i7xX48sah5rE9vzr7EiiFDuF+9QpH42Nog49JqOo4ypTYiBl7rL0RBpAekHTmUKM0MukPvdNNX8FBdkcDX0kSqlNlosysg/fJkGxsZWRRpfB4pl1Q23q+LDcjswyJOF0Nwta+ILtyQdanx1Zs0peqjiwZjOe1fM9k8hDtXcLIxvMI4qZCdM5cQ==" }
@@ -26,8 +26,8 @@
       group:
         name: netsoc_sysadmin
         state: present
-        
-    - name: Create SysAdmin Linux accounts 
+
+    - name: Create SysAdmin Linux accounts
       user:
         name: "{{ item.name }}"
         state: present
@@ -55,7 +55,7 @@
         regexp: "%admins ALL=(ALL) ALL"
         line: "%netsoc_sysadmin ALL=(ALL) ALL"
 
-    - name: Create netsoc_sysadmin Proxmox group (if it doesn't exist) and give it admin role 
+    - name: Create netsoc_sysadmin Proxmox group (if it doesn't exist) and give it admin role
       shell: |
         pveum group list --output-format=json | jq .[].groupid | grep netsoc_sysadmin || pveum group add netsoc_sysadmin -comment 'Netsoc SysAdmins'
         pveum aclmod / -group netsoc_sysadmin -role Administrator
@@ -63,4 +63,15 @@
     - name: Create Proxmox-PAM users for Netsoc SysAdmin Linux accounts (if they don't exist)
       shell: |
         pveum user list --output-format=json | jq .[].userid | grep {{ item.name }}@pam || pveum user add {{ item.name }}@pam --groups netsoc_sysadmin
-      with_items: "{{ sysadmins }}" 
+      with_items: "{{ sysadmins }}"
+
+# Jsonnet is used for Grafonnet to configure Grafana Dashboards
+- name: "Install Jsonnet"
+  hosts: control
+  become: yes
+  roles:
+    - go
+  tasks:
+    - shell: |
+        export GOBIN=/usr/local/bin
+        go get github.com/google/go-jsonnet/cmd/jsonnet

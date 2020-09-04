@@ -1,39 +1,55 @@
 ---
-- name: "Create /netsoc-neo/docker-data/grafana directory"
+- name: "Create /storage/docker/grafana directory"
   become: yes
   file:
-    path: /netsoc-neo/docker-data/grafana
+    path: /storage/docker/grafana
     mode: 0770
-    owner: root
-    group: root
     state: directory
 
-- name: "Create /netsoc-neo/docker-data/grafana/config directory"
+- name: "Create /storage/docker/grafana/data directory"
   become: yes
   file:
-    path: /netsoc-neo/docker-data/grafana/config
-    mode: 0774
-    owner: 472
-    group: 472
+    path: /storage/docker/grafana/data
+    mode: 0770
     state: directory
 
-- name: "Create /netsoc-neo/docker-data/grafana/data directory"
+- name: "Copy config provisioning"
+  become: yes
+  copy:
+    mode: 0770
+    src: files/provisioning # without / copies provisioning itself not just contents
+    dest: /storage/docker/grafana/
+
+- name: "Create notifier directory"
   become: yes
   file:
-    path: /netsoc-neo/docker-data/grafana/data
-    mode: 0774
-    owner: 472
-    group: 472
-    state: directory
+    mode: 0700
+    path: /storage/docker/grafana/provisioning/notifiers
 
+- name: "Template Discord Webhook"
+  become: yes
+  template:
+    mode: 0770
+    src: templates/discord.yaml
+    dest: /storage/docker/grafana/provisioning/notifiers/discord.yaml
 
-- name: "Ensure Docker monitoring network" 
+- name: Docker Network for Remote Rendoring
   become: yes
   docker_network:
-    name: monitoring
+    name: rendering
     driver: overlay
     attachable: yes
-    appends: yes
+    state: present
+    scope: swarm
+
+- name: Copy Dashboards
+  become: yes
+  copy:
+    mode: 0770
+    src: /tmp/grafana/
+    dest: /storage/docker/grafana/data/dashboards/
+  tags:
+    - dashboards
 
 - name: Ensure Grafana Docker Container
   become: yes
@@ -41,45 +57,59 @@
     state: present
     name: grafana
     compose:
-      - version: "3.5"
+      - version: "3.8"
         services:
           server:
-            image: "grafana/grafana:6.6.2"
+            image: "grafana/grafana:7.1.3"
+            user: root
             restart: always
             networks:
               traefik:
-              monitoring:
-                aliases: 
-                  - grafana
+              rendering:
             deploy:
-              mode: global
-              placement:
-                constraints:
-                  - node.hostname == {{ inventory_hostname }}
-                preferences:
-                  - spread: node.id
               labels:
                 - "traefik.enable=true"
-                - "traefik.http.routers.grafana.rule=Host(`grafana.{{ dev_site }}`)"
+                - "traefik.http.routers.grafana.rule=Host(`new.grafana.{{ dev_site }}`)"
                 - "traefik.http.routers.grafana.entrypoints=web-secure"
                 - "traefik.http.routers.grafana.tls.certResolver=letsencrypt"
                 - "traefik.http.services.grafana-service.loadbalancer.server.port=3000"
                 - "traefik.http.routers.grafana.service=grafana-service"
                 - "traefik.docker.network=traefik"
+              mode: replicated
+              replicas: 1
               restart_policy:
                 condition: any
                 delay: 5s
                 max_attempts: 5
+                window: 60s
             volumes:
-              - "/netsoc-neo/docker-data/grafana/config:/etc/grafana"
-              - "/netsoc-neo/docker-data/grafana/data:/var/lib/grafana"
+              - "/storage/docker/grafana/provisioning/:/etc/grafana/provisioning/"
+              - "/storage/docker/grafana/data/:/var/lib/grafana/"
+            ports:
+              - 3000
             environment:
-              GF_SECURITY_ADMIN_PASSWORD: "{{ grafana_admin_pass }}"
-              GF_SERVER_ROOT_URL: "https://grafana.{{ dev_site }}"
+              GF_SECURITY_ADMIN_PASSWORD: "{{ grafana.password }}"
+              GF_SERVER_ROOT_URL: "https://new.grafana.{{ dev_site }}"
+              GF_RENDERING_SERVER_URL: "http://renderer:8081/render"
+              GF_RENDERING_CALLBACK_URL: "http://grafana:3000/"
+          renderer:
+            image: "grafana/grafana-image-renderer:2.0.0"
+            restart: always
+            networks:
+              rendering:
+            deploy:
+              mode: replicated
+              replicas: 1
+              restart_policy:
+                condition: any
+                max_attempts: 5
+                window: 60s
+            ports:
+              - 8081  
         networks:
           traefik:
             name: traefik
             external: true
-          monitoring:
+          rendering:
+            name: rendering
             external: true
-            name: monitoring
