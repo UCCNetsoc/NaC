@@ -1,6 +1,6 @@
 ---
 - name: "Ensure games server"
-  hosts: proxmox_hosts,!control,!feynman
+  hosts: proxmox_hosts,!control,!feynman # To be changed -- remove feynman, leave control
   roles:
     - role: proxmox-infra-cloudinit-vm
       vars:
@@ -39,7 +39,7 @@
                   - {{ lookup('file', './keys/games/id_rsa.pub') }}
             preserve_hostname: false
             manage_etc_hosts: true
-            fqdn: games.vm.netsoc.co
+            fqdn: games{{ ansible_play_hosts_all.index(inventory_hostname) }}.vm.netsoc.co
           networkconfig: 
             version: 2
             ethernets:
