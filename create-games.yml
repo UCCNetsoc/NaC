@@ -43,7 +43,12 @@
           networkconfig: 
             version: 2
             ethernets:
-              ens18: "{{ interfaces.games.net0 }}"
+              ens18:
+                addresses:
+                  - "{{ interfaces.gamesN.net0.addresses[0] | ipmath(ansible_play_hosts_all.index(inventory_hostname)) }}/24"
+                gateway4: "{{ interfaces.gamesN.net0.gateway4 }}"
+                nameservers: "{{ interfaces.gamesN.net0.nameservers }}"
+                optional: true
         wait_for_ssh_ip: "{{ interfaces.games.net0.addresses[0] }}"
   vars_files:
     - vars/network.yml

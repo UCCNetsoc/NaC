@@ -86,14 +86,6 @@ interfaces:
       nameservers: *nameservers
       optional: true # prevents waiting for network hang
       link-local: [ ipv4 ]
-  games:
-    net0:
-      addresses:
-        - "10.0.{{ subnets.infra }}.70/24"
-      gateway4: "{{ gateway4.infra }}"
-      nameservers: *nameservers
-      optional: true # prevents waiting for network hang
-      link-local: [ ipv4 ]
   portal:
     net0_tag: "{{ vlan.user }}"
     net0:
@@ -103,6 +95,13 @@ interfaces:
       nameservers: *nameservers
       optional: true # prevents waiting for network hang
       link-local: [ ipv4 ]
+  gamesN:
+    net0:
+      addresses:
+        - "10.0.{{ subnets.infra }}.70/24"
+      gateway4: "{{ gateway4.infra }}"
+      nameservers: *nameservers
+    # expect +5-10 free after this IP
   managerN:
     net0:
       addresses:
