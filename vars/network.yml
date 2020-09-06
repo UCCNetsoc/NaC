@@ -98,7 +98,7 @@ interfaces:
   gamesN:
     net0:
       addresses:
-        - "10.0.{{ subnets.infra }}.70/24"
+        - "10.0.{{ subnets.infra }}.40/24"
       gateway4: "{{ gateway4.infra }}"
       nameservers: *nameservers
     # expect +5-10 free after this IP
