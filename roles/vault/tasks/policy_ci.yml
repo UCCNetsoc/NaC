@@ -3,13 +3,13 @@
   uri:
     url: "{{ hashivault_url }}/v1/auth/token/create"
     headers:
-      X-Vault-Token: "{{ hashivault_root_token }}"
+      X-Vault-Token: "{{ hashivault.root_token }}"
     method: POST
     body_format: json
     body:
       display_name: CI Access Token
       policies: ci
-      id: "{{ hashivault_docker_registry_token }}"
+      id: "{{ hashivault.docker_registry_token }}"
       no_default_policy: true
   register: resp
   failed_when: "resp.status != 200 and resp.json != {\"errors\": [\"cannot create a token with a duplicate ID\"]}"
@@ -21,7 +21,7 @@
   uri:
     url: "{{ hashivault_url }}/v1/sys/policy/ci"
     headers:
-      X-Vault-Token: "{{ hashivault_root_token }}"
+      X-Vault-Token: "{{ hashivault.root_token }}"
     method: POST
     body_format: json
     status_code: [204]

@@ -1,31 +1,31 @@
 ---
 - name: Ensure Drone MySQL Database
   run_once: true
+  become: yes
   mysql_db:
-    name: "{{ drone_mysql_database }}"
-    login_user: "{{ mysql_admin_username }}"
+    name: "{{ drone.mysql_database }}"
     login_host: "{{ mysql_server }}"
-    login_password: "{{ mysql_admin_password }}"
+    login_password: "{{ mysql.infra.root_password }}"
     state: present
 
 - name: Ensure Drone MySQL User
   run_once: true
+  become: yes
   mysql_user:
-    name: "{{ drone_mysql_user }}"
-    password: "{{ drone_mysql_password }}"
-    priv: "{{ drone_mysql_database}}.*:ALL"
+    name: "{{ drone.mysql_user }}"
+    password: "{{ drone.mysql_password }}"
+    priv: "{{ drone.mysql_database}}.*:ALL"
     host: "%"
     login_host: "{{ mysql_server }}"
-    login_user: "{{ mysql_admin_username }}"
-    login_password: "{{ mysql_admin_password }}"
+    login_password: "{{ mysql.infra.root_password }}"
     state: present
 
 - name: Set log_bin_trust_function_creators=1
   run_once: true
+  become: yes
   mysql_variables:
-    login_user: "{{ mysql_admin_username }}"
     login_host: "{{ mysql_server }}"
-    login_password: "{{ mysql_admin_password }}"
+    login_password: "{{ mysql.infra.root_password }}"
     variable: log_bin_trust_function_creators
     value: 1
 
@@ -37,7 +37,7 @@
     driver: overlay
     attachable: yes
 
-- name: Ensure Drone Stack
+- name: "Ensure Drone Stack"
   run_once: true
   become: yes
   docker_stack:
@@ -59,15 +59,15 @@
             environment:
               DRONE_GITHUB_SERVER: https://github.com
               DRONE_GITHUB_CLIENT_ID: eabeb15df953b3daf847
-              DRONE_GITHUB_CLIENT_SECRET: "{{ drone_github_secret }}"
-              DRONE_RPC_SECRET: "{{ drone_rpc_secret }}"
-              DRONE_SERVER_HOST: ci.{{ co_site }}
+              DRONE_GITHUB_CLIENT_SECRET: "{{ drone.github_secret }}"
+              DRONE_RPC_SECRET: "{{ drone.rpc_secret }}"
+              DRONE_SERVER_HOST: ci.{{ dev_site }}
               DRONE_TLS_AUTOCERT: "false"
               DRONE_SERVER_PROTO: https
               DRONE_DATABASE_DRIVER: mysql
-              DRONE_DATABASE_DATASOURCE: "{{ drone_mysql_user }}:{{ drone_mysql_password }}@tcp({{ mysql_server }}:3306)/{{ drone_mysql_database }}?parseTime=true"
+              DRONE_DATABASE_DATASOURCE: "{{ drone.mysql_user }}:{{ drone.mysql_password }}@tcp({{ mysql_server }}:3306)/{{ drone.mysql_database }}?parseTime=true"
               DRONE_SECRET_ENDPOINT: http://drone_vault:3000
-              DRONE_SECRET_TOKEN: "{{ drone_vault_secret }}"
+              DRONE_SECRET_TOKEN: "{{ drone.vault_secret }}"
               DRONE_JSONNET_ENABLED: "true"
               DRONE_STATUS_NAME: uccnetsoc/ci/drone
               DRONE_AGENTS_ENABLED: "true"
@@ -86,7 +86,7 @@
               labels:
                 - "traefik.enable=true"
                 - "traefik.http.routers.drone.entrypoints=web-secure"
-                - "traefik.http.routers.drone.rule=Host(`ci.{{ co_site }}`)"
+                - "traefik.http.routers.drone.rule=Host(`ci.{{ dev_site }}`)"
                 - "traefik.http.routers.drone.tls.certResolver=letsencrypt"
                 - "traefik.http.routers.drone.service=drone-service"
                 - "traefik.http.services.drone-service.loadbalancer.server.port=80"
@@ -98,11 +98,11 @@
               DRONE_TRACE: "true"
               DRONE_RUNNER_NAME: agent_bert
               DRONE_RPC_PROTO: https
-              DRONE_RPC_HOST: ci.{{ co_site }}
-              DRONE_RPC_SECRET: "{{ drone_rpc_secret }}"
+              DRONE_RPC_HOST: ci.{{ dev_site }}
+              DRONE_RPC_SECRET: "{{ drone.rpc_secret }}"
               DRONE_RUNNER_CAPACITY: "4"
               DRONE_SECRET_ENDPOINT: http://drone_vault:3000
-              DRONE_SECRET_SECRET: "{{ drone_vault_secret }}"
+              DRONE_SECRET_SECRET: "{{ drone.vault_secret }}"
               DRONE_LIMIT_EVENTS: UCCNetsoc/*
             volumes:
               - /var/run/docker.sock:/var/run/docker.sock
@@ -124,9 +124,9 @@
             container_name: drone_vault
             environment:
               DRONE_DEBUG: "true"
-              VAULT_TOKEN: "{{ hashivault_docker_registry_token }}"
+              VAULT_TOKEN: "{{ hashivault.docker_registry_token }}"
               VAULT_ADDR: "{{ hashivault_url }}"
-              DRONE_SECRET: "{{ drone_vault_secret }}"
+              DRONE_SECRET: "{{ drone.vault_secret }}"
             deploy:
               mode: replicated
               replicas: 1
