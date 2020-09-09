@@ -69,3 +69,60 @@
         name: sshd
         state: restarted
 
+- name: "Ensure Nginx Unit"
+  hosts: portal
+  become: yes
+  tasks:
+    - docker_volume:
+        name: unit_shared_sock
+    - docker_container:
+        name: unit
+        entrypoint: /usr/sbin/unitd --no-daemon --control unix:/var/run/control.unit.sock --user www-data --group www-data
+        image: nginx/unit:1.19.0-full
+        privileged: yes
+        restart_policy: always
+        volumes:
+          - "/home/users/:/home/users/:z"
+          - "unit_shared_sock:/var/run/:z"
+    - file:
+        path: /root/unit
+        state: directory
+    - copy:
+        content: |
+          chmod 777 /var/run/control.unit.sock
+        dest: /root/unit/fix-socket-permissions.sh
+        mode: 
+    - copy: 
+        content: |
+          server {
+            auth_basic           "pass pls";
+            auth_basic_user_file "/proxy.htpasswd"; 
+            listen 0.0.0.0:8080;
+            location / {
+              proxy_pass http://unix:/var/run/control.unit.sock:/;
+            }
+          }
+        dest: /root/unit/nginx.conf
+        mode: 0755
+    - copy:
+        dest: /root/unit/proxy.htpasswd
+        content: |
+          {{ unit.proxy.htpasswd }}
+        owner: 101 # see User and group id https://hub.docker.com/_/nginx
+        group: 101 
+        mode: 0640
+    - docker_container:
+        name: unit_proxy
+        image: nginx:1.19.2
+        restart_policy: always
+        ports:
+          - "0.0.0.0:1023:8080"
+        volumes:
+          - "/root/unit/nginx.conf:/etc/nginx/conf.d/default.conf"
+          - "/root/unit/proxy.htpasswd:/proxy.htpasswd:ro"
+          - "/root/unit/fix-socket-permissions.sh:/docker-entrypoint.d/fix-socket-permssions.sh"
+          - "unit_shared_sock:/var/run/:z"
+  vars_files:
+    - "vars/unit.yml"
+    - "vars/secrets.yml"
+
