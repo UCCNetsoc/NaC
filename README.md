@@ -17,7 +17,7 @@
 * You will need a `keys/` folder which contains SSH keys to target all physical and virtual machines. Ask the Head SysAdmin for this.
   * Do **NOT** commit them or remove the `keys/` clause from `.gitignore`.
   * Do **NOT** share them with people who are not SysAdmins
-  * Do **NOT** leave them sitting on a random server somewhere, it's happened in the past
+  * Do **NOT** leave them sitting on a random server somewhere
 
 * You can peek and edit the vault using `./vault-peek.sh` and `./vault-edit.sh`
 
