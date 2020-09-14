@@ -1,0 +1,20 @@
+---
+- name: Ensure pterodactyl/data dir
+  become: yes
+  file:
+    path: "{{ mount }}/data"
+    owner: root
+    group: root
+    mode: 0755
+    state: directory
+
+- name: "Ensure Pterodactyl daemon container"
+  become: yes
+  docker_container:
+    name: wings
+    state: started
+    recreate: yes
+    image: uccnetsoc/wings
+    restart: yes
+    volumes:
+      - "{{ mount }}/data:"

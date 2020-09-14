@@ -11,7 +11,7 @@
     - "vars/network.yml"
     - "vars/secrets.yml"
 
-- name: "Setup Data Disk"
+- name: "Ensure data disks mounted"
   hosts: games
   roles:
     - role: simple-disk
@@ -22,7 +22,15 @@
         mount_path: "/mnt/data-disk"
         mount_opts: "rw"
 
-- name: Ensure Minecraft Server
+- name: "Ensure Pterodactyl Daemon"
+  hosts: games
+  roles:
+    - role: pterodactyl
+      vars:
+        mysql:
+          host: "{{ mysql.infra.host }}"
+
+- name: "Ensure Minecraft Server"
   hosts: games
   roles:
     - role: minecraft

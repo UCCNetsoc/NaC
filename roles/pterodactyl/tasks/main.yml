@@ -1,24 +1,41 @@
 ---
 
-- name: Ensure pterodactyl database
-  become: yes
-  mysql_db:
-    login_host: "{{ mysql_server }}"
-    login_user: "{{ mysql_admin_username }}"
-    login_password: "{{ mysql_admin_password }}"
-    name: "{{ pterodactyl_mysql_database }}"
-    state: present
+# - name: Ensure Pterodactyl MySQL Database
+#   run_once: true
+#   become: yes
+#   mysql_db:
+#     login_host: "{{ mysql_server }}"
+#     login_user: "{{ mysql_admin_username }}"
+#     login_password: "{{ mysql_admin_password }}"
+#     name: "{{ pterodactyl_mysql_database }}"
+#     state: present
 
-- name: Ensure pterodactyl database user
-  mysql_user:
-    name: "{{ pterodactyl_mysql_user }}"
-    host: "%"
-    priv: "{{ pterodactyl_mysql_database }}.*:ALL"
-    password: "{{ pterodactyl_mysql_password }}"
-    login_host: "{{ mysql_server }}"
-    login_user: "{{ mysql_admin_username }}"
-    login_password: "{{ mysql_admin_password }}"
-    state: present
+# - name: Ensure pterodactyl database user
+#   mysql_user:
+#     name: "{{ pterodactyl_mysql_user }}"
+#     host: "%"
+#     priv: "{{ pterodactyl_mysql_database }}.*:ALL"
+#     password: "{{ pterodactyl_mysql_password }}"
+#     login_host: "{{ mysql_server }}"
+#     login_user: "{{ mysql_admin_username }}"
+#     login_password: "{{ mysql_admin_password }}"
+#     state: present
+
+- name: "Ensure Pterodactyl MySQL user and db"
+  hosts: databases
+  become: yes
+  tasks:
+    - msyql_db:
+      name: "{{ pterodactyl.mysql_db }}"
+      state: present
+      login_host: "{{ mysql.infra.host }}"
+      login_password: "{{ mysql.infra.mysql_password }}"
+    - msyql_user:
+      name: "{{ pterodactyl.mysql_user }}"
+      password: "{{ pterodactyl.mysql_password }}"
+      state: present
+      login_host: "{{ mysql.infra.host }}"
+      login_password: "{{ mysql.infra.mysql_password }}"
 
 - name: Ensure Pterodactyl mount directories
   become: yes
@@ -29,30 +46,30 @@
     mode: 0770
     state: directory
   with_items:
-    - /netsoc-neo/docker-data/pterodactyl/
-    - /netsoc-neo/docker-data/pterodactyl/data
-    - /netsoc-neo/docker-data/pterodactyl/certs
-    - /netsoc-neo/docker-data/pterodactyl-daemon
-    - /netsoc-neo/docker-data/pterodactyl-daemon/config
-    - /netsoc-neo/docker-data/pterodactyl-daemon/tmp
-    - /netsoc-neo/docker-data/pterodactyl-daemon/packs
-    - /netsoc-neo/docker-data/pterodactyl-daemon/data
+    - {{ mount }}/pterodactyl/
+    - {{ mount }}/pterodactyl/data
+    - {{ mount }}/pterodactyl/certs
+    - {{ mount }}/pterodactyl-daemon
+    - {{ mount }}/pterodactyl-daemon/config
+    - {{ mount }}/pterodactyl-daemon/tmp
+    - {{ mount }}/pterodactyl-daemon/packs
+    - {{ mount }}/pterodactyl-daemon/data
 
 - become: yes
   openssl_privatekey:
-    path: /netsoc-neo/docker-data/pterodactyl/certs/cert.key
+    path: {{ mount }}/pterodactyl/certs/cert.key
     size: 2048 
 
 - become: yes
   openssl_csr:
-    path: /netsoc-neo/docker-data/pterodactyl/certs/cert.csr
-    privatekey_path: /netsoc-neo/docker-data/pterodactyl/certs/cert.key
+    path:{{ mount }}/pterodactyl/certs/cert.csr
+    privatekey_path:{{ mount }}/pterodactyl/certs/cert.key
 
 - become: yes
   openssl_certificate:
-    path: /netsoc-neo/docker-data/pterodactyl/certs/cert.crt
-    privatekey_path: /netsoc-neo/docker-data/pterodactyl/certs/cert.key
-    csr_path: /netsoc-neo/docker-data/pterodactyl/certs/cert.csr
+    path: {{ mount }}/pterodactyl/certs/cert.crt
+    privatekey_path: {{ mount }}/pterodactyl/certs/cert.key
+    csr_path: {{ mount }}/pterodactyl/certs/cert.csr
     provider: selfsigned
 
 - name: Ensure Pterodactyl  Docker network
@@ -67,7 +84,7 @@
   become: yes
   template:
     src: templates/core.json
-    dest: /netsoc-neo/docker-data/pterodactyl-daemon/config/core.json
+    dest: {{ mount }}/pterodactyl-daemon/config/core.json
 
 - name: Ensure Pterodactyl Docker stack
   become: yes
@@ -95,70 +112,71 @@
           # Pterodactyl Panel
           # This is the main service that will be seen publically.
           ##
-          panel:
-            depends_on:
-            - cache
-            environment:
-              SSL: "true"
-              SSL_CERT: "/etc/certs/cert.crt"
-              SSL_CERT_KEY: "/etc/certs/cert.key"
+          # panel:
+          #   depends_on:
+          #   - cache
+          #   environment:
+          #     SSL: "true"
+          #     SSL_CERT: "/etc/certs/cert.crt"
+          #     SSL_CERT_KEY: "/etc/certs/cert.key"
 
-              # Disable's runtime workers & cronjob (this is useful if you want to run these in another container)
-              DISABLE_WORKERS: "false"
+          #     # Disable's runtime workers & cronjob (this is useful if you want to run these in another container)
+          #     DISABLE_WORKERS: "false"
 
-              ##
-              # Panel Variables
-              # These variables can be used within pterodactyl.conf (.env when symlinked 
-              # into the docker webroot). These variables are also set via pterodactyl:env
-              # and pterodactyl:mail.
-              ##
-              APP_URL: "https://pterodactyl.netsoc.dev:443/"
-              TIMEZONE: "UTC"
+          #     ##
+          #     # Panel Variables
+          #     # These variables can be used within pterodactyl.conf (.env when symlinked 
+          #     # into the docker webroot). These variables are also set via pterodactyl:env
+          #     # and pterodactyl:mail.
+          #     ##
+          #     APP_URL: "https://pterodactyl.netsoc.dev:443/"
+          #     TIMEZONE: "UTC"
 
-              CACHE_DRIVER: "redis"
+          #     CACHE_DRIVER: "redis"
 
-              # Rely on an external source so we can put the panel container down when updates are needed
-              REDIS_HOST: "cache"
-              REDIS_PORT: "6379"
+          #     # Rely on an external source so we can put the panel container down when updates are needed
+          #     REDIS_HOST: "cache"
+          #     REDIS_PORT: "6379"
 
-              DB_HOST: "{{ mysql_server }}"
-              DB_PORT: "3306"
-              DB_DATABASE: "{{ pterodactyl_mysql_database }}"
-              DB_USERNAME: "{{ pterodactyl_mysql_user }}"
-              DB_PASSWORD: "{{ pterodactyl_mysql_password }}"
+          #     DB_HOST: "{{ mysql_server }}"
+          #     DB_PORT: "3306"
+          #     DB_DATABASE: "{{ pterodactyl_mysql_database }}"
+          #     DB_USERNAME: "{{ pterodactyl_mysql_user }}"
+          #     DB_PASSWORD: "{{ pterodactyl_mysql_password }}"
 
-              MAIL_DRIVER: "mail"
-              MAIL_FROM: "admin@localhost"
-              MAIL_FROM_NAME: "Pterodactyl Panel"
+          #     MAIL_DRIVER: "mail"
+          #     MAIL_FROM: "admin@localhost"
+          #     MAIL_FROM_NAME: "Pterodactyl Panel"
 
-              DOCKER_ROOT: "/var/lib/docker"
-              DOCKER_SOCKET: "/var/run/docker.sock"
-            image: ccarney16/pterodactyl-panel:latest
-            restart: always
-            networks:
-              pterodactyl:
-              traefik:
-            deploy:
-              mode: global
-              restart_policy:
-                condition: on-failure
-                delay: 5s
-                max_attempts: 5
-              placement:
-                constraints:
-                  - node.hostname == {{ inventory_hostname }}
-              labels:
-                - "traefik.enable=true"
-                - "traefik.http.routers.pterodactyl.rule=Host(`pterodactyl.{{ dev_site }}`)"
-                - "traefik.http.routers.pterodactyl.entrypoints=web-secure"
-                - "traefik.http.routers.pterodactyl.tls.certResolver=letsencrypt"
-                - "traefik.http.routers.pterodactyl.service=pterodactyl-service"
-                - "traefik.http.services.pterodactyl-service.loadbalancer.server.port=443"
-                - "traefik.http.services.pterodactyl-service.loadbalancer.server.scheme=https"
-                - "traefik.docker.network=pterodactyl"
-            volumes:
-            - /netsoc-neo/docker-data/pterodactyl/data:/data
-            - /netsoc-neo/docker-data/pterodactyl/certs:/etc/certs
+          #     DOCKER_ROOT: "/var/lib/docker"
+          #     DOCKER_SOCKET: "/var/run/docker.sock"
+          #   # image: ccarney16/pterodactyl-panel:latest
+          #   image: uccnetsoc/games-panel
+          #   restart: always
+          #   networks:
+          #     pterodactyl:
+          #     traefik:
+          #   deploy:
+          #     mode: global
+          #     restart_policy:
+          #       condition: on-failure
+          #       delay: 5s
+          #       max_attempts: 5
+          #     placement:
+          #       constraints:
+          #         - node.hostname == {{ inventory_hostname }}
+          #     labels:
+          #       - "traefik.enable=true"
+          #       - "traefik.http.routers.pterodactyl.rule=Host(`pterodactyl.{{ dev_site }}`)"
+          #       - "traefik.http.routers.pterodactyl.entrypoints=web-secure"
+          #       - "traefik.http.routers.pterodactyl.tls.certResolver=letsencrypt"
+          #       - "traefik.http.routers.pterodactyl.service=pterodactyl-service"
+          #       - "traefik.http.services.pterodactyl-service.loadbalancer.server.port=443"
+          #       - "traefik.http.services.pterodactyl-service.loadbalancer.server.scheme=https"
+          #       - "traefik.docker.network=pterodactyl"
+          #   volumes:
+          #   - {{ mount }}/pterodactyl/data:/data
+          #   -{{ mount }}/pterodactyl/certs:/etc/certs
 
           ##
           # Pterodactyl Daemon
@@ -169,19 +187,20 @@
             depends_on:
             - panel
             image: ccarney16/pterodactyl-daemon:latest
+            # image: uccnetsoc/games-daemon
             networks:
               pterodactyl:
               traefik:
             privileged: true
             restart: always
             volumes:
-              - /netsoc-neo/docker-data/pterodactyl-daemon/config:/srv/daemon/config
-              - /netsoc-neo/docker-data/pterodactyl-daemon/config/core.json:/srv/daemon/config/core.json
-              - /netsoc-neo/docker-data/pterodactyl-daemon/packs:/srv/daemon/packs
-              - /netsoc-neo/docker-data/pterodactyl-daemon/data:/srv/daemon-data
-              - /netsoc-neo/docker-data/pterodactyl-daemon/tmp:/tmp/pterodactyl
-              - /netsoc-neo/docker-data/pterodactyl/certs/cert.key:/etc/certs/privkey.pem
-              - /netsoc-neo/docker-data/pterodactyl/certs/cert.crt:/etc/certs/fullchain.pem
+              - {{ mount }}/pterodactyl-daemon/config:/srv/daemon/config
+              - {{ mount }}/pterodactyl-daemon/config/core.json:/srv/daemon/config/core.json
+              - {{ mount }}/pterodactyl-daemon/packs:/srv/daemon/packs
+              - {{ mount }}/pterodactyl-daemon/data:/srv/daemon-data
+              - {{ mount }}/pterodactyl-daemon/tmp:/tmp/pterodactyl
+              - {{ mount }}/pterodactyl/certs/cert.key:/etc/certs/privkey.pem
+              - {{ mount }}/pterodactyl/certs/cert.crt:/etc/certs/fullchain.pem
 
               - /etc/localtime:/etc/localtime
               # Docker socket and directory, needed to communicate to docker
