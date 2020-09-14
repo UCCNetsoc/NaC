@@ -3,11 +3,10 @@ Description=Prometheus Node Exporter
 After=network.target
 
 [Service]
-EnvironmentFile=/etc/default/exporter_exporter
 Type=simple
-User=prometheus
-Group=prometheus
-ExecStart=/usr/local/bin/exporter_exporter -config.file /etc/exporter_exporter.yaml ${EXPEXP_FLAGS}
+User=exp-exp
+Group=exp-exp
+ExecStart=/usr/local/bin/exporter_exporter -config.file /etc/exporter_exporter.yaml
 SyslogIdentifier=prometheus_exporter_exporter
 Restart=always
 

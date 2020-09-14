@@ -1,6 +1,0 @@
--
-  name: "restart proxy"
-  systemd:
-    daemon_reload: yes
-    name: "prometheus_exporter_exporter"
-    state: restarted

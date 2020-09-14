@@ -1,6 +1,1 @@
-drone_rpc_secret: "{{ vault_drone_rpc_secret }}"
-drone_github_secret: "{{ vault_drone_github_secret }}"
-drone_mysql_user: "{{ vault_drone_mysql_user }}"
-drone_mysql_password: "{{ vault_drone_mysql_password }}"
-drone_mysql_database: "{{ vault_drone_mysql_database }}"
-drone_vault_secret: "{{ vault_drone_vault_secret }}"
+drone: "{{ vault_drone }}"

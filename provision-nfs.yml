@@ -37,49 +37,242 @@
         mode: 0777
         state: directory
 
-# - name: "Setup ZFS dataset user home directory generator"
-#   hosts: nfs
-#   become: yes
-#   tasks:
-#     - copy:
-        # content: |
-        #   #!/bin/bash
+- name: "Setup home directory creator and consistency daemon"
+  hosts: nfs
+  become: yes
+  tasks:
+    - set_fact:
+        homedird_password: "{{ lookup('password', '/dev/null length=32 chars=ascii_letters') }}"
+    - ipa_user:
+        name: netsoc-homedird
+        state: present
+        givenname: Netsoc
+        sn: Home Directory ZFS Dataset Creator & Permissions Fixer User
+        password: "{{ homedird_password }}"
+        update_password: always
+        krbpasswordexpiration: "2030-01-01" # expire in 2028 :^)
+        ipa_host: "{{ freeipa.server }}"
+        ipa_user: "admin"
+        ipa_pass: "{{ freeipa.admin_password }}"
+    - shell:
+        cmd: | 
+          echo -e "{{ homedird_password }}\n{{ homedird_password }}\n{{ homedird_password }}" | kinit netsoc-homedird
+        executable: /bin/bash
+    - copy:
+        content: |
+          {% raw %}#!/usr/bin/env python3
 
-        #   printf "[$(date -u)] Starting user home directory dataset creator\n"
-        #   printf "[$(date -u)] Creating nfs/home dataset\n"
-        #   zfs create nfs/home
+          import os
+          import time
+          import urllib
+          import urllib.request
+          import urllib.parse
+          import json
+          import subprocess
+          import socket
+          import datetime
+          import time
+          import sys
+          import signal
 
-        #   printf "[$(date -u)] Creating nfs/home/users dataset\n"
-        #   zfs create nfs/home/users
+          if len(sys.argv) != 4:
+            sys.stderr.write("Usage: <ipa user> <ipa pass> <discord webhook url>")
+            sys.exit(1)
 
-        #   while true
-        #   do
-        #     echo "SomePass" | kinit admin
+          IPA_USERNAME=sys.argv[1]
+          IPA_PASSWORD=sys.argv[2]
+          WEBHOOK_URL=sys.argv[3]
 
-        #     all_users=$(ipa user-find --all | awk '/User login/{ print $3 }')
 
-        #     printf "\n[$(date -u)] Scanning IPA users (with home dirs in /home/users/*) to find users missing home directories\n"
 
-        #     for user in $all_users do 
-        #       printf "[$(date -u)] Checking $user...\n"
-        #       uid=$(getent passwd $user | cut -d ":" -f 3)
-        #       gid=$(getent passwd $user | cut -d ":" -f 4)
-        #       home=$(getent passwd $user | cut -d ":" -f 6)
+          def webhook(msg):
+            req = urllib.request.Request(
+              WEBHOOK_URL,
+              data=json.dumps({
+                "username": "Home Directory Consistency Cowboy",
+                "content": f"{msg}",
+                "avatar_url": "https://i.imgur.com/22ZR3YT.png"
+              }).encode("utf8"),
+              headers={
+                "Content-Type": "application/json",
+                "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/84.0.4147.89 Safari/537.36"
+              }
+            )
+            urllib.request.urlopen(req)
 
-        #       if [ ! -d "/nfs/home/users/$user" ] && [[ $home == "/home/users/$user" ]]; then
-        #         printf "[$(date -u)] $user ($uid:$gid) does not have a zfs home directory, setting them up now\n"
-        #         zfs create nfs/home/users/$user
-        #         chown root:$uid /nfs/home/users/$user
-        #         chmod 770 /nfs/home/users/$user
-        #         cp -a /etc/skel/. /nfs/home/users/$user/.
-        #         chown $uid:$uid -R /nfs/home/users/$user/*
-        #       else
-        #         printf "[$(date -u)] $user does not have a home directory pointed to /home/users/$user, ignoring\n"
-        #       fi
-        #     done
-        #       printf "[$(date -u)] Scanning complete\n"
-        #       sleep 10
-        #   done
+          def timestamp():
+            return datetime.datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S')
+
+          webhook_queue = []
+
+          def log(msg):
+            global webhook_queue 
+            
+            line = f"{timestamp()} {msg}"
+            webhook_queue.append(line)
+            
+            if len(" ".join(webhook_queue)) > 1500:
+              push_webhook_queue()
+
+            print(line)
+
+          def push_webhook_queue():
+            global webhook_queue
+
+            if len(webhook_queue) > 0:
+              webhook('\n'.join(webhook_queue))
+              webhook_queue = []
+
+          def cmd(cmd):
+            os.environ["LC_ALL"] = "C.UTF-8"
+            os.environ["LC_CTYPE"] = "C.UTF-8"
+
+            # stops from interering with roots other kerb
+            os.environ["KRB5CCNAME"] = "DIR:$/tmp/krb5cc_netsoc_homedird
+            proc = subprocess.run(cmd,shell=True,stdout=subprocess.PIPE,stderr=subprocess.PIPE, timeout=15)
+            return proc.stdout.decode("utf8"), proc.stderr.decode("utf8"), proc.returncode
+
+
+          import atexit
+
+          def notify_atexit(stub1 = 0, stub2 = None):
+            log(f"Home dir consistency bot shutting down, if this is unexpected check systemd/journalctl logs on {socket.gethostname()}, meta: {stub1} {stub2}")
+            push_webhook_queue()
+            sys.exit(0)
+            
+          atexit.register(notify_atexit)
+          signal.signal(signal.SIGTERM, notify_atexit)
+          signal.signal(signal.SIGINT, notify_atexit)
+
+          log("Starting user home directory consistency bot")
+          push_webhook_queue()
+
+          while True:
+            # First ensure consistency of home/users
+            try:
+              os.stat("/storage/home")
+            except FileNotFoundError as e:
+              zfsRes, zfsErr, zfsRc = cmd("zfs create storage/home")
+              if zfsRc == 0:
+                log("Created zfs dataset for storage/home")
+              else:
+                log(f"Could not create zfs dataset for storage/home: {zfsRc} - {zfsErr}")
+
+            try:
+              os.stat("/storage/home/users")
+            except FileNotFoundError as e:
+              zfsRes, zfsErr, zfsRc = cmd("zfs create storage home/users")
+              if zfsRc == 0:
+                log("Created zfs dataset for storage/home/users")
+              else:
+                log(f"Could not create zfs dataset for storage/home/users: {zfsRc} - {zfsErr}")
+
+            # Ensure permissions
+            home_stat = os.stat("/storage/home")
+            
+            if oct(home_stat.st_mode)[4:] != "751":
+              os.chmod("/storage/home", 0o751)
+              log("Updated /storage/home to permissions 751")
+
+            if home_stat.st_uid != 0 or home_stat.st_gid != 0:
+              os.chown("/storage/home", 0, 0)
+              log("Updated /storage/home to ids 0:0")
+
+            users_stat = os.stat("/storage/home/users")
+            if oct(users_stat.st_mode)[4:] != "751":
+              os.chmod("/storage/home/users", 0o751)
+              log("Updated /storage/home/users to permissions 751")
+
+            if users_stat.st_uid != 0 or users_stat.st_gid != 0:
+              os.chown("/storage/home/users", 0, 0)
+              log("Updated /storage/home/users to ids 0:0")
+
+            usersRes, usersErr, usersRc = cmd(f"echo '{IPA_PASSWORD}' | kinit '{IPA_USERNAME}' > /dev/null && ipa user-find --all | awk '/User login/{{ print $3 }}'")
+            if usersRc == 0:
+              users = usersRes.split("\n")
+              users = users[:len(users)-1]
+              # log(users)
+
+              for user in users:
+                infoRes, infoErr, infoRc = cmd(f"echo '{IPA_PASSWORD}' | kinit '{IPA_USERNAME}' > /dev/null && ipa user-find --login {user} | awk '/Home directory:/{{print $3}} /UID:|GID:/{{ print $2 }}'")
+
+                if infoRc == 0:
+                  homePath, uid, gid = infoRes.split("\n")[:3]
+                  uid, gid = int(uid), int(gid)
+
+                  if homePath.find("/home/users") == 0:
+                    
+                    # Create home directories for any user missing them
+                    try:
+                      st = os.stat(f"/storage{homePath}")
+                    except FileNotFoundError as e:
+                      zfsRes, zfsErr, zfsRc = cmd(f"zfs create storage{ homePath }")
+                      if zfsRc == 0:
+                        log(f"User {user} did not have a zfs dataset on (/storage{homePath}), created one")
+
+                        # Set up skel
+                        skelRes, skelErr, skelRc = cmd(f"cp /etc/skel/. /storage{homePath} -r && chown -R {uid}:{gid} /storage{homePath}/ ")
+                        if skelRc == 0:
+                          log(f"Setup skel for {user}")
+                        else:
+                          log(f"Error trying to setup skel for {user}: {skelRc} - {skelErr}")
+                      else:
+                        log(f"User {user} did not have a zfs dataset, could not create one: {zfsErr}")               
+                    
+                    # Now check permissions on those home directories
+                    try:
+                        home_stat = os.stat(f"/storage{homePath}")
+
+                        if home_stat.st_uid != uid or home_stat.st_gid != gid:
+                          os.chown(f"/storage{homePath}", uid, gid)
+                          log(f"Applied chown {uid}:{gid} to {user}'s home directory: {homePath}")
+
+                        # Ensure permission and uid/gid are set correctly
+                        if oct(home_stat.st_mode)[4:] != "770":
+                          os.chmod(f"/storage{homePath}", 0o770)
+                          log(f"Applied 0o770 to {user}'s home directory: {homePath}")
+                    except Exception as e:
+                      log(f"While checking consistency for {user}: {e}")
+
+                  else:
+                    pass
+                    # log(f"User {user} does not have a home directory in /home/users/, ignoring...")
+                else:
+                  log(f"Unable to get info about {user}: {infoRc} - {infoErr}")
+            else:
+              log(f"Could not get users: {usersRc} - {usersErr}")
+            
+            push_webhook_queue()
+            time.sleep(15)
+
+          {% endraw %}
+        dest: /opt/netsoc_homedird.py
+        mode: '0550' # r-x,r-x,-
+        owner: root
+        group: root
+    - copy:
+        content: |
+          [Unit]
+          Description=Netsoc Home Directory ZFS Dataset Creator & Permissions Fixer
+
+          [Service]
+          Type=simple
+          ExecStart=/opt/netsoc_homedird.py netsoc-homedird {{ homedird_password }} {{ webhooks.discord }}
+          Restart=always
+          RestartSec=3
+
+          [Install]
+          WantedBy=multi-user.target
+        dest: /lib/systemd/system/netsoc-homedird.service
+    - systemd:
+        daemon_reload: yes
+        name: netsoc-homedird.service
+        state: stopped
+        enabled: no
+  vars_files:
+    - vars/webhooks.yml
+    - vars/freeipa.yml
+    - vars/secrets.yml
 
 # This has the side effect of setting up an IPA service and keytab for the NFS server too
 # as the NFS server shares the same hostname, when we create it below it will use the same keytab file
@@ -99,7 +292,9 @@
     - role: nfs4-server-krb5
       vars:
         exports: |
-          /storage 10.0.{{ subnets.infra }}.0/24(fsid=0,rw,sync,crossmnt,no_root_squash,sec=krb5p:krb5i:krb5)
+          /storage            10.0.{{ subnets.infra }}.0/24(fsid=0,rw,sync,crossmnt,sec=sys:krb5p:krb5i:krb5,no_root_squash)
+          /storage/home/users {{ interfaces.portal.net0.addresses[0] }}(fsid=0,rw,sync,crossmnt,sec=krb5p:krb5i:krb5) {{ interfaces.webN.net0.addresses[0] }}(fsid=0,rw,sync,sec=sys)
+          
   vars_files:
     - vars/idmap.yml
     - vars/network.yml
