@@ -4,7 +4,7 @@
 -D
 
 # Buffer Size -- Large in case of stress events
--b 8192
+-b 16,384
 
 # Failure mode (0-silent, 1-print error msg, 2-panic)
 -f 1
