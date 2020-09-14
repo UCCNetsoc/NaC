@@ -1,0 +1,37 @@
+- become: yes
+  docker_stack:
+    name: wetty
+    compose:
+      - version: '3.8'
+        services:
+          server:
+            image: wettyoss/wetty@sha256:55efea8eac05a552acbb344449358f1fb10b7d7e06f192d20f4762bf1c4fc1d9
+            working_dir: /usr/src/app
+            networks:
+              traefik:
+            deploy:
+              mode: replicated
+              replicas: 1
+              restart_policy:
+                condition: any
+                delay: 5s
+                max_attempts: 5
+              labels:
+                - "traefik.enable=true"
+                - "traefik.http.routers.wetty.rule=Host(`portal.{{ co_site }}`)"
+                - "traefik.http.routers.wetty.entrypoints=web-secure"
+                - "traefik.http.routers.wetty.tls.certResolver=letsencrypt"
+                - "traefik.http.middlewares.wetty-path.redirectregex.regex=^https:\/\/portal.{{ co_site }}\/?$$"
+                - "traefik.http.middlewares.wetty-path.redirectregex.replacement=https:\/\/portal.{{ co_site }}\/wetty"
+                - "traefik.http.middlewares.wetty-access.headers.customresponseheaders.Content-Security-Policy=frame-ancestors *"
+                - "traefik.http.routers.wetty.middlewares=wetty-path,wetty-access"
+                - "traefik.http.services.wetty-service.loadbalancer.server.port=3000"
+                - "traefik.http.routers.wetty.service=wetty-service"
+                - "traefik.docker.network=traefik"
+            environment:
+              SSHHOST: "portal.vm.netsoc.co"
+              SSHPORT: 22
+        networks:
+          traefik:
+            name: traefik
+            external: true

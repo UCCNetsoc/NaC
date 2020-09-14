@@ -1,0 +1,50 @@
+- name: "Create exp-exp user"
+  become: yes
+  user:
+    name: exp-exp
+    shell: /usr/sbin/nologin
+    system: true
+    create_home: false
+    home: /
+
+- name: "Download Exporter Exporter"
+  get_url:
+    url: https://github.com/QubitProducts/exporter_exporter/releases/download/v0.4.0/exporter_exporter-0.4.0.linux-amd64.tar.gz
+    checksum: sha1:10cc48ea8baeeab63d830fe15071105636ee7468
+    dest: /tmp/exp_exp.tar.gz
+
+- name: "Unarchive Exporter Exporter"
+  unarchive:
+    src: /tmp/exp_exp.tar.gz
+    dest: /tmp/
+    remote_src: yes
+
+- name: "Copy Exporter Exporter to /usr/local/bin"
+  become: yes
+  copy:
+    src: /tmp/exporter_exporter-0.4.0.linux-amd64/exporter_exporter
+    dest: /usr/local/bin/exporter_exporter
+    remote_src: yes
+    mode: 0770
+    owner: exp-exp
+    group: exp-exp
+
+- name: "Copy systemd unit file"
+  become: yes
+  copy:
+    src: "files/prometheus_exporter_exporter.service"
+    dest: "/etc/systemd/system/prometheus_exporter_exporter.service"
+
+- name: "Generate config"
+  become: yes
+  template:
+    src: "templates/exporter_exporter.yaml.j2"
+    dest: "/etc/exporter_exporter.yaml"
+    
+- name: "Enable systemd service"
+  become: yes
+  systemd:
+    name: "prometheus_exporter_exporter"
+    daemon_reload: yes
+    enabled: yes
+    state: restarted

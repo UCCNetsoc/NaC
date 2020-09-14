@@ -7,19 +7,19 @@
       - freeipa-client
       - freeipa-admintools
     state: latest
-    update_cache: yes
+    #update_cache: yes
 
-- name: "Check enrollment status"
-  become: yes
-  shell: |
-    cat /etc/ipa/default.conf | grep "^server = {{ freeipa.server }}$" && echo false
-  register: result
-  ignore_errors: true
+# - name: "Check enrollment status"
+#   become: yes
+#   shell: |
+#     echo "{{ freeipa.admin_password }}" | kinit admin >/dev/null && ipa host-show {{ ansible_fqdn }}
+#   register: result
+#   ignore_errors: true
 
 - name: "Unenroll from enrolled server"
   become: yes
-  shell: ipa-client-install --uninstall
-  when: "'rc' in result and result.rc != 0"
+  shell: echo "no" | ipa-client-install --uninstall
+  #when: "('rc' in result and result.rc != 0) or (force is defined and force is true) or true"
   ignore_errors: true
 
 - name: "Enroll server as a FreeIPA client"
@@ -37,13 +37,13 @@
     --force-join
     --ssh-trust-dns
   register: result2
-  when: "'rc' in result and result.rc != 0"
+  #when: "('rc' in result and result.rc != 0) or (force is defined and force is true) or true"
 
 - debug: msg="{{ result2.stdout }}"
-  when: "'rc' in result and result.rc != 0"
+  #when: "'rc' in result and result.rc != 0"
 
 - debug: msg="{{ result2.stderr }}"
-  when: "'rc' in result and result.rc != 0"
+  #when: "'rc' in result and result.rc != 0"
 
 - name: "Update nsswitch.conf to use Files, SSSD for auth"
   become: yes

@@ -16,7 +16,6 @@ vlan:
   router: 70  # Used for vyos clustering + failover
   oob:    80  # OOB, connected to CIX OOBnet and OOB ports on machines
   mgmt:   90  #
-  dhcp:  100  # DHCP Vlan, used to offer IP leases to building Packer templates
 
 # 10.0.x.0/24
 subnets:
@@ -30,6 +29,17 @@ subnets:
   mgmt:   90  #
   dhcp:  100  # DHCP Vlan, used to offer IP leases to building Packer templates
 
+# su 
+# subnets:
+#   wan:   10.0.{{ vlan.wan }}.0/24  # Uplink, connected directly to patch panel
+#   vmhost:10.0.{{ vlan.vmhost }}.0/24  # Used for management traffic and proxmox clustering, has NAT to WAN
+#   infra: 10.0.{{ vlan.infra }}.0/24  # Used for infra VMs, can route to user and vmhost, has NAT to WAN
+#   user:  10.0.{{ vlan.user }}.0/24  # User VM traffic, includes the User ssh server and user databases
+#   extern:10.0.{{ vlan.extern }}.0/24  # VRRP stuff
+#   router:10.0.{{ vlan.router }}.0/24  # Used for vyos clustering + failover
+#   oob:   10.0.{{ vlan.oob }}.0/24  # OOB, connected to CIX OOBnet and OOB ports on machines
+#   mgmt:  10.0.{{ vlan.mgmt }}.0/24  #
+#   dhcp:  10.0.100.0/24  # DHCP Vlan, used to offer IP leases to building Packer templates
 gateway4:
   infra: "10.0.{{ subnets.infra }}.1"
   user: "10.0.{{ subnets.user }}.1"
@@ -51,14 +61,20 @@ interfaces:
     net0:
       addresses:
         - "10.0.{{ subnets.infra }}.20/24"
-      gateway4: "{{ gateway4.infra }}"
+      routes:
+       - to: 0.0.0.0/0
+         via: "{{ gateway4.infra }}"
+         metric: 2047
       nameservers: *nameservers
       optional: true # prevents waiting for network hang
       link-local: [ ipv4 ]
     net1:
       addresses:
         - "10.0.{{ subnets.user }}.20/24"
-      gateway4: "{{ gateway4.user }}"
+      routes:
+       - to: 0.0.0.0/0
+         via: "{{ gateway4.user }}"
+         metric: 2048
       nameservers: *nameservers
       optional: true # prevents waiting for network hang
       link-local: [ ipv4 ]
@@ -66,14 +82,6 @@ interfaces:
     net0:
       addresses:
         - "10.0.{{ subnets.infra }}.30/24"
-      gateway4: "{{ gateway4.infra }}"
-      nameservers: *nameservers
-      optional: true # prevents waiting for network hang
-      link-local: [ ipv4 ]
-  portal:
-    net0:
-      addresses:
-        - "10.0.{{ subnets.infra }}.69/24"
       gateway4: "{{ gateway4.infra }}"
       nameservers: *nameservers
       optional: true # prevents waiting for network hang
@@ -86,12 +94,15 @@ interfaces:
       nameservers: *nameservers
       optional: true # prevents waiting for network hang
       link-local: [ ipv4 ]
-  webN:
+  portal:
+    net0_tag: "{{ vlan.user }}"
     net0:
       addresses:
-        - "10.0.{{ subnets.infra }}.90/24"
-      gateway4: "{{ gateway4.infra }}"
+        - "10.0.{{ subnets.user }}.10/24"
+      gateway4: "{{ gateway4.user }}"
       nameservers: *nameservers
+      optional: true # prevents waiting for network hang
+      link-local: [ ipv4 ]
   managerN:
     net0:
       addresses:
@@ -106,3 +117,10 @@ interfaces:
       gateway4: "{{ gateway4.infra }}"
       nameservers: *nameservers
     # expect +5-10 free after this IP
+  webN:
+    net0_tag: "{{ vlan.user }}"
+    net0:
+      addresses:
+        - "10.0.{{ subnets.user }}.90/24"
+      gateway4: "{{ gateway4.user }}"
+      nameservers: *nameservers
