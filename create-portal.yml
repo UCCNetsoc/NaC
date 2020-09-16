@@ -12,7 +12,7 @@
             net0: "virtio,bridge=vmbr0,tag={{ interfaces.portal.net0_tag }}"
           disks:
             virtio0:
-              resize: "20G"
+              resize: "50G"
           cores: 4
           memory: 2048
           description:
