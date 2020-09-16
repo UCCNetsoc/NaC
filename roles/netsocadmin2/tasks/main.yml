@@ -16,7 +16,7 @@
       - version: "3.7"
         services:
           server:
-            image:  docker.netsoc.co/netsoc/netsocadmin:latest
+            image:  uccnetsoc/netsocadmin
             hostname: admin.netsoc.co
             volumes:
               - "/media/odin/admin.netsoc.co/storage/backups:/backups"

@@ -66,6 +66,15 @@
                 service: prometheus
                 tls:
                   certResolver: letsencrypt
+              tutorial-router:
+                entrypoints:
+                  - web-secure
+                rule: Host(`tutorial.netsoc.co`)
+                middlewares:
+                  - tutorial-redirect
+                service: unused
+                tls:
+                  certResolver: letsencrypt
 
             middlewares:
               discord-redirect:
@@ -85,6 +94,12 @@
                 basicAuth:
                   users:
                     - "{{ prometheus.username }}:{{ prometheus.password | password_hash('bcrypt') }}"
+              tutorial-redirect:
+                redirectRegex:
+                  regex: ^(.*)
+                  replacement: 'https://wiki.netsoc.co/en/services/tutorial'
+                  permanent: true
+                  
             services:
               ipa:
                 loadBalancer:

@@ -132,6 +132,7 @@
         # New - post proxmoxification
         - { type: A,     name: 80-443-swarm-ingress,  value: "84.39.234.53" }
         - { type: CNAME, name: portal,                value: 80-443-swarm-ingress.netsoc.co }
+        - { type: CNAME, name: tutorial,              value: 80-443-swarm-ingress.netsoc.co }
         - { type: CNAME, name: wiki,                  value: 80-443-swarm-ingress.netsoc.co }
 
         # ;; CNAME Records
