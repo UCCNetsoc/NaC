@@ -32,7 +32,7 @@
                 delay: 5s
                 max_attempts: 5
           staging:
-            image: docker.netsoc.co/public/netsoc.co:new
+            image: uccnetsoc/netsoc.co:new
             networks:
               traefik:
             deploy:
