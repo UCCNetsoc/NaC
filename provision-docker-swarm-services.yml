@@ -189,6 +189,8 @@
 
 - name: "Ensure Netsoc Static Services"
   hosts: docker_swarm_managers[0]
+  tags:
+    - static
   roles:
     - netsoc.co
     - blog.netsoc.co
