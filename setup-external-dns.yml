@@ -71,7 +71,7 @@
         - { type: A,      name: 80-443-swarm-ingress,  value: "84.39.234.53" }
 
         # CNAMEs
-        - { type: CNAME,  name: "netsoc.dev",       value: "bigbertha.netsoc.dev" }
+        - { type: CNAME,  name: "netsoc.dev",       value: "traefik.netsoc.dev" }
         - { type: CNAME,  name: grafana,            value: "bigbertha.netsoc.dev" }
 
         - { type: CNAME,  name: traefik,               value: 80-443-swarm-ingress.netsoc.dev }
