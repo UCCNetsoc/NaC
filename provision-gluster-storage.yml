@@ -22,7 +22,7 @@
   tags:
     - ipa
 
-- name: "Setup Data Disk"
+- name: "Setup Data Disk for Gluster on server machines"
   hosts: gluster_server
   become: yes
   tasks:
@@ -81,15 +81,25 @@
         opts: rw,inode64,noatime,nouuid
         state: mounted
   tags:
-    - data-disk
+    - gluster
 
-- name: Setup GlusterFS volumes
-  hosts: gluster_server
+- name: Install Gluster binaries on all machines
+  hosts: gluster
   become: yes
   roles:
     - geerlingguy.glusterfs
+  tags:
+    - gluster
+
+- name: Setup GlusterFS volumes on server machines
+  hosts: gluster_server
+  become: yes
   tasks:
+    # - command: echo "y" | gluster volume stop {{ item.name }} || true
+    #   with_items: "{{ gluster_volumes }}"
+    
     - name: Configure Gluster volume
+      become: yes
       gluster_volume:
         state: present
         name: "{{ item.name }}"
@@ -97,17 +107,28 @@
         replicas: "{{ groups.gluster_server | length }}"
         cluster: "{{ groups.gluster_server | join(',') }}"
         host: "{{ inventory_hostname }}"
-        force: yes
-      run_once: true
+      with_items: "{{ gluster_volumes }}"
+
+    - name: Configure Gluster volume
+      become: yes
+      gluster_volume:
+        state: started
+        name: "{{ item.name }}"
+        brick: "{{ gluster_brick_dir }}/{{ item.name }}"
+        replicas: "{{ groups.gluster_server | length }}"
+        cluster: "{{ groups.gluster_server | join(',') }}"
+        host: "{{ inventory_hostname }}"
       with_items: "{{ gluster_volumes }}"
   vars:
     gluster_volumes:
       - { name: storage }
       - { name: homedirs }
     gluster_brick_dir: "/mnt/data-disk"
+  tags:
+    - gluster
 
 # https://www.redhat.com/en/blog/hardening-gluster-installations-tls
-- name: "Setup TLS/SSL Private Key & Cert"
+- name: "Setup TLS/SSL Private Key & Cert on all machines"
   hosts: gluster
   become: yes
   tasks:
@@ -123,8 +144,10 @@
         host_pem: "{{ host_pem_slurped['content'] | b64decode }}"
     - debug:
         msg: "{{ host_pem }}"
+  tags:
+    - gluster
 
-- name: "Setup self-signed CA"
+- name: "Setup self-signed CA on all machines"
   hosts: gluster
   become: yes
   tasks:
@@ -138,8 +161,11 @@
     - copy:
         content: "{{ ca }}"
         dest: "/etc/ssl/glusterfs.ca"
+  tags:
+    - gluster
 
-- name: "Start TLS/SSL and mount volumes"
+
+- name: "Start TLS/SSL and mount volumes on all machines"
   hosts: gluster
   become: yes
   tasks:
@@ -150,9 +176,9 @@
         gluster volume set {{ item.name }} auth.ssl-allow {{ groups[item.group] | join(',') }}
         gluster volume set {{ item.name }} ssl.cipher-list 'HIGH:!SSLv2'
         gluster volume start {{ item.name }}
+      when: "inventory_hostname == groups.gluster_server[0]"
       args:
         executable: /bin/bash
-      when: "inventory_hostname in groups.gluster_server"
       with_items: "{{ gluster_volumes }}"
       run_once: true 
     - shell:
@@ -168,7 +194,11 @@
         opts: "defaults,_netdev"
         state: mounted
       with_items: "{{ gluster_volumes }}"
+      when: "inventory_hostname in item.group"
   vars:
     gluster_volumes: 
       - { name: "storage", mount: "/storage", group: "gluster_client_allowed_mount_storage" }
       - { name: "homedirs", mount: "/home/users", group: "gluster_client_allowed_mount_homedirs" }
+  tags:
+    - gluster
+

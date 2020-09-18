@@ -1,4 +1,14 @@
 
+- name: "Initial setup"
+  hosts: databases
+  become: yes
+  roles:
+    - ansible-requirements
+    - utf8-locale
+    - docker
+  tags:
+    - initial
+
 - name: "Enroll in IPA server"
   hosts: databases 
   roles:

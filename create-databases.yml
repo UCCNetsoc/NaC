@@ -4,14 +4,17 @@
     - role: proxmox-infra-cloudinit-vm
       vars:
         vm:
+          protection: yes
           name: "databases.vm.netsoc.co"
-          clone: "netsoc-ubuntu-server-{{ inventory_hostname }}"
+          clone_qcow2: "https://cloud-images.ubuntu.com/releases/focal/release-20200907/ubuntu-20.04-server-cloudimg-amd64.img"
+          clone_qcow2_hash: sha256:995771784f85305ef7e9b779f0f39dde6a0e59b50914c316a9ae8b039cb4c52e
           net:
             net0: "virtio,bridge=vmbr0,tag={{ vlan.infra }}"
             net1: "virtio,bridge=vmbr0,tag={{ vlan.user }}"
           disks:
             virtio0:
-              resize: "20G"
+              pool: local-lvm
+              definition: "50,format=raw"
             virtio1:
               pool: local-lvm
               definition: "50,format=raw"
@@ -30,16 +33,30 @@
           drive_device: ide2
           userdata: |
             #cloud-config
+            preserve_hostname: false
+            manage_etc_hosts: true
+            fqdn: databases.vm.netsoc.co
+            packages:
+              - qemu-guest-agent
+            runcmd:
+              - [ systemctl, enable, qemu-guest-agent ]
+              - [ systemctl, start, qemu-guest-agent, --no-block ]  
             users:
               - name: netsoc
                 gecos: Netsoc Management User
                 primary_group: netsoc
+                groups: netsoc
+                shell: /bin/bash
                 sudo: ALL=(ALL) NOPASSWD:ALL
                 ssh_authorized_keys:
-                  - {{ lookup('file', './keys/databases/id_rsa.pub') }}
-            preserve_hostname: false
-            manage_etc_hosts: true
-            fqdn: databases.vm.netsoc.co
+                  - "{{ lookup('file', './keys/databases/id_rsa.pub') }}"
+            apt: 
+              preserve_sources_list: true
+              primary:
+                - arches: [default]
+                  uri: http://ie.archive.ubuntu.com/ubuntu/
+              security:
+                - uri: http://security.ubuntu.com/ubuntu
           networkconfig: 
             version: 2
             ethernets:

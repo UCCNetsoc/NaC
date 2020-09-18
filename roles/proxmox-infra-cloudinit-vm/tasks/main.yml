@@ -35,7 +35,28 @@
     storage:        "local-lvm"
     full:           yes
     state:          present
-  when: "(not vm_exists_result.rc == 0 and vm.clone is defined and vm.clone) or (vm.recreate is defined and vm.recreate)"
+  when: "(not vm_exists_result.rc == 0 and vm.clone is defined and vm.clone) or (vm.clone_qcow2 is not defined and vm.recreate is defined and vm.recreate)"
+
+- name: Get qcow image
+  get_url:
+    url: "{{ vm.clone_qcow2 }}"
+    dest: "/var/lib/vz/images/{{ vm.clone_qcow2.split('/')[-1] }}-{{ vm.clone_qcow2_hash }}.qcow2"
+    checksum: "{{ vm.clone_qcow2_hash }}"
+  register: qcow_download 
+  when: "(not vm_exists_result.rc == 0 or vm.recreate is defined and vm.recreate) and (vm.clone_qcow2 is defined and vm.clone_qcow2_hash is defined)"
+
+- name: Ensure Proxmox VM cloned from qcow
+  proxmox_kvm:
+    api_host:       "localhost"
+    api_user:       "{{ proxmox.username }}"
+    api_password:   "{{ proxmox.password }}"
+    vmid:          "{{ vm_hash_id }}"
+    timeout:        "{{ vm.timeout | default(300) }}"
+    node:           "{{ inventory_hostname }}"
+    name:           "{{ vm.name }}"
+    storage:        "local-lvm"
+    state:          present
+  when: "(not vm_exists_result.rc == 0 or vm.recreate is defined and vm.recreate) and (vm.clone_qcow2 is defined and vm.clone_qcow2_hash is defined)"
 
 - name: Ensure Proxmox VM exists
   proxmox_kvm:
@@ -48,7 +69,7 @@
     name:           "{{ vm.name }}"
     storage:        "local-lvm"
     state:          present
-  when: "vm.clone is not defined"
+  when: "vm.clone is not defined and vm.clone_qcow2 is not defined"
 
 # proxmox_kvm has a load of issues so here are a bunch of workarounds below
 
@@ -82,7 +103,7 @@
     description:    "{{ vm.description | from_yaml }}"
     cores:          "{{ vm.cores | default(1) }}"
     memory:         "{{ vm.memory | default(1024) }}"
-    protection:     "{{ vm.protection | default('yes') }}"
+    protection:     "{{ vm.protection | default('no') }}"
     update:         yes
     state:          present
 
@@ -92,6 +113,15 @@
 - name: Set net
   shell: qm set {{ vmid }} --{{ item.key }} {{ item.value }}
   with_dict: "{{ vm.net }}"
+
+- name: Enable guest agent
+  shell: qm set {{ vmid }} --agent 1
+
+# - name: Enable serial port
+#   shell: qm set {{ vmid }} -serial0 socket
+
+- name: Set VirtIO SCSI
+  shell: qm set {{ vmid }} --scsihw virtio-scsi-pci
 
 - name: Add the new disks (if they don't exist already)
   shell: |
@@ -112,6 +142,16 @@
   shell: qm resize {{ vmid }} {{ item.key }} {{ item.value.resize }}
   with_dict: "{{ vm.disks | default('{}') }}"
   when: "'resize' in item.value"
+
+
+- name: "Write QCOW2 Image"
+  shell:
+    qemu-img convert -p -f qcow2 "/var/lib/vz/images/{{ vm.clone_qcow2.split('/')[-1] }}-{{ vm.clone_qcow2_hash }}.qcow2" -O raw /dev/mapper/pve-vm--{{ vmid }}--disk--0 &&
+    qm set {{ vmid }} --bootdisk virtio0
+  args:
+    executable: "/bin/bash"
+  when: "(not vm_exists_result.rc == 0 or vm.recreate is defined and vm.recreate) and (vm.clone_qcow2 is defined and vm.clone_qcow2_hash is defined)"
+
 
 - name: Set description
   raw: qm set {{ vmid }} --description "{{ vm.description | from_yaml | to_nice_yaml }}"
