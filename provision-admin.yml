@@ -87,16 +87,18 @@
 
 - import_playbook: "setup-internal-dns.yml"
 
-# - hosts: admin
-#   roles:
-#     - role: admin-api
-#       vars:
-#         bind_port: 1020
-#         mount: "/mnt/data-disk/admin-api"
-#         homedir_mount: "/home/users"
-#     # - role: admin-ui
-#     #   vars:
-#     #     bind_port: 10
-#   vars_files:
-#     - "vars/admin.yml"
-#     - "vars/secrets.yml"
+- hosts: admin
+  roles:
+    - role: admin-api
+      vars:
+        bind_port: 1020
+        mount: "/mnt/data-disk/admin-api"
+        homedir_mount: "/home/users"
+    - role: admin-ui
+      vars:
+        bind_port: 1021
+  vars_files:
+    - "vars/admin.yml"
+    - "vars/secrets.yml"
+  tags:
+    - admin

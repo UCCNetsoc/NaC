@@ -1,14 +1,9 @@
 ---
 
 - become: yes
-  copy:
-    content: "{{ admin.api.config | from_yaml }}"
-    dest: "{{ mount }}/config.yml"
-    mode: 0700
-
-- become: yes
   docker_container:
     name: admin-ui
     image: uccnetsoc/admin-ui:latest
+    
     ports:
-      - "{{ bind_port }}:8080"
+      - "{{ bind_port }}:80"

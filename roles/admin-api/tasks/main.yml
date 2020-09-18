@@ -6,7 +6,7 @@
     path: "{{ mount }}"
     owner: root
     group: root
-    mode: 0755
+    mode: 0750
     state: directory
 
 - become: yes
@@ -19,8 +19,9 @@
   docker_container:
     name: admin-api
     image: uccnetsoc/admin-api
+    entrypoint: /start.sh --host 0.0.0.0 --port 8080
     ports:
       - "{{ bind_port }}:8080"
     volumes:
       - "{{ mount }}/config.yml:/config.yml"
-      - "{{ homedir_mount }}:/home/:Z"
+      - "{{ homedir_mount }}:{{ homedir_mount }}:z"

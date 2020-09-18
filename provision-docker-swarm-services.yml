@@ -38,6 +38,13 @@
                 service: admin-api
                 tls:
                   certResolver: letsencrypt
+              admin-ui:
+                entrypoints:
+                  - web-secure
+                rule: Host(`admin.netsoc.dev`)
+                service: admin-ui
+                tls:
+                  certResolver: letsencrypt
               user-websites:
                 entrypoints:
                   - web-secure
@@ -116,10 +123,14 @@
                 loadBalancer:
                   servers:
                     - url: "http://admin.vm.netsoc.co:8080"
+              admin-ui:
+                loadBalancer:
+                  servers:
+                    - url: "http://admin.vm.netsoc.co:1021"
               admin-api:
                 loadBalancer:
                   servers:
-                    - url: "http://admin.vm.netsoc.co:8000"
+                    - url: "http://admin.vm.netsoc.co:1020"
               prometheus:
                 loadBalancer:
                   servers:
@@ -142,6 +153,8 @@
   vars_files:
     - vars/secrets.yml
     - vars/prometheus.yml
+  tags:
+    - traefik-config
         
 - name: "Ensure Traefik loadbalancer running"
   hosts: docker_swarm_managers[0]
