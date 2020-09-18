@@ -72,6 +72,8 @@
     - "vars/freeipa.yml"
     - "vars/network.yml"
     - "vars/secrets.yml"
+  tags:
+    - ipa-enroll
 
 - name: "Setup Keycloak"
   hosts: admin
@@ -84,19 +86,22 @@
     - "vars/keycloak.yml"
     - "vars/freeipa.yml"
     - "vars/secrets.yml"
+  tags:
+    - keycloak
 
 - import_playbook: "setup-internal-dns.yml"
 
 - hosts: admin
+  become: yes
   roles:
     - role: admin-api
       vars:
-        bind_port: 1020
+        bind_port: "{{ ansible_default_ipv4.address }}:1020"
         mount: "/mnt/data-disk/admin-api"
         homedir_mount: "/home/users"
     - role: admin-ui
       vars:
-        bind_port: 1021
+        bind_port: "{{ ansible_default_ipv4.address }}:1021"
   vars_files:
     - "vars/admin.yml"
     - "vars/secrets.yml"

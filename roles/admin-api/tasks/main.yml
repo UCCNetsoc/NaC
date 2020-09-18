@@ -9,17 +9,19 @@
     mode: 0750
     state: directory
 
-- become: yes
-  copy:
-    content: "{{ admin.api.config | from_yaml }}"
-    dest: "{{ mount }}/config.yml"
-    mode: 0700
+# - become: yes
+#   copy:
+#     content: "{{ admin.api.config | from_yaml }}"
+#     dest: "{{ mount }}/config.yml"
+#     mode: 0700
 
 - become: yes
   docker_container:
     name: admin-api
-    image: uccnetsoc/admin-api
-    entrypoint: /start.sh --host 0.0.0.0 --port 8080
+    image: uccnetsoc/admin-api:latest
+    entrypoint: /start.sh
+    pull: yes
+    command: /start.sh --host 0.0.0.0 --port 8080
     ports:
       - "{{ bind_port }}:8080"
     volumes:

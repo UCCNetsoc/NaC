@@ -3,7 +3,7 @@
 - become: yes
   docker_container:
     name: admin-ui
+    pull: yes
     image: uccnetsoc/admin-ui:latest
-    
     ports:
       - "{{ bind_port }}:80"
