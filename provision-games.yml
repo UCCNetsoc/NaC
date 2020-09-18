@@ -1,11 +1,22 @@
 ---
+- name: "Initial setup"
+  hosts: games
+  become: yes
+  roles:
+    - ansible-requirements
+    - utf8-locale
+    - docker
+  tags:
+    - initial
+
 - name: "Enroll in IPA server"
   hosts: games
   roles:
     - role: freeipa-client
       vars:
         client:
-          addresses: "{{ interfaces.games.net0.addresses }}"
+          addresses:
+            - "{{ ansible_default_ipv4.address }}"
   vars_files:
     - "vars/freeipa.yml"
     - "vars/network.yml"

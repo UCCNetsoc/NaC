@@ -1,7 +1,7 @@
 ---
 
 
-- hosts: auth
+- hosts: admin
   tasks:
     - ipa_dnsrecord:
         zone_name: vm.netsoc.co

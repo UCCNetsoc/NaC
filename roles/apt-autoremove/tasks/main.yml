@@ -1,3 +1,4 @@
+---
 - name: Remove unneeded APT dependencies
   become: yes
   apt:

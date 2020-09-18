@@ -2,7 +2,7 @@
 - name: "Ensure Traefik directory and file config"
   hosts: docker_swarm_managers[0]
   tasks:
-    - name: Ensure Traefik file config dir on NFS
+    - name: Ensure Traefik file config dir on storage
       become: yes
       file:
         path: "{{ item }}"
@@ -29,6 +29,13 @@
                   - web-secure
                 rule: Host(`keycloak.netsoc.dev`)
                 service: keycloak
+                tls:
+                  certResolver: letsencrypt
+              admin-api:
+                entrypoints:
+                  - web-secure
+                rule: Host(`api.netsoc.dev`)
+                service: admin-api
                 tls:
                   certResolver: letsencrypt
               user-websites:
@@ -104,11 +111,15 @@
               ipa:
                 loadBalancer:
                   servers:
-                    - url: "https://auth.vm.netsoc.co"
+                    - url: "https://admin.vm.netsoc.co"
               keycloak:
                 loadBalancer:
                   servers:
-                    - url: "http://auth.vm.netsoc.co:8080"
+                    - url: "http://admin.vm.netsoc.co:8080"
+              admin-api:
+                loadBalancer:
+                  servers:
+                    - url: "http://admin.vm.netsoc.co:8000"
               prometheus:
                 loadBalancer:
                   servers:
@@ -134,6 +145,7 @@
         
 - name: "Ensure Traefik loadbalancer running"
   hosts: docker_swarm_managers[0]
+  become: yes
   roles:
     - role: traefik-proxmox
       vars:
@@ -182,9 +194,9 @@
 
 - name: "Ensure Portainer config dir"
   hosts: docker_swarm_managers[0]
+  become: yes
   tasks:
     - name: Ensure Portainer config dir on NFS
-      become: yes
       file:
         path: "{{ item }}"
         mode: '0755'
@@ -194,6 +206,7 @@
   
 - name: "Ensure Portainer"
   hosts: docker_swarm_managers[0]
+  become: yes
   roles:
     - name: portainer
       vars:
@@ -204,6 +217,7 @@
 
 - name: "Ensure Netsoc Static Services"
   hosts: docker_swarm_managers[0]
+  become: yes
   roles:
     - netsoc.co
     - blog.netsoc.co
@@ -251,26 +265,28 @@
   become: yes
   tasks:
     - file:
-        path: '/mnt/data-disk/consul'
-        owner: netsoc
-        group: 1000
+        path: '/etc/consul'
         mode: 0770
-        state: directory
-      tags:
-        - server    
+        owner: 1000
+        group: 1000
+        state: directory 
 
 - name: Ensure Consul
   hosts: docker_swarm_managers[0]
+  become: yes
   vars_files:
       - vars/consul.yml
       - vars/secrets.yml
   roles:
     - role: consul
       vars:
-        mount: /mnt/data-disk/consul
+        mount: '/etc/consul/'
+  tags: 
+    - consul
 
 - name: Ensure Consul settings set
   hosts: docker_swarm_managers[0]
+  become: yes
   vars_files:
     - vars/netsocbot.yml
     - vars/consul.yml
@@ -282,6 +298,7 @@
 
 - name: Deploy Netsoc Discord Bot
   hosts: docker_swarm_managers[0]
+  become: yes
   vars_files:
     - vars/netsocbot.yml
     - vars/email.yml
@@ -292,9 +309,9 @@
   tags:
     - bot
 
-
 - name: Ensure Hashicorp Vault
   hosts: docker_swarm_managers[0]
+  become: yes
   vars_files:
     - vars/consul.yml
     - vars/vault.yml
@@ -308,6 +325,7 @@
 
 - name: Set Docker Registry secrets in Hashicorp Vault
   hosts: docker_swarm_managers[0]
+  become: yes
   vars_files:
     - vars/vault.yml
     - vars/secrets.yml
@@ -322,6 +340,7 @@
 
 - name: Set Github secrets in Hashicorp Vault
   hosts: docker_swarm_managers[0]
+  become: yes
   vars_files:
     - vars/vault.yml
     - vars/secrets.yml
@@ -335,6 +354,7 @@
 
 - name: Set Discord Webhook secrets in Hashicorp Vault
   hosts: docker_swarm_managers[0]
+  become: yes
   vars_files:
     - vars/vault.yml
     - vars/discord.yml
@@ -350,6 +370,7 @@
 
 - name: Ensure Drone Server, Agent and DB
   hosts: docker_swarm_managers[0]
+  become: yes
   vars_files:
     - vars/ci.yml
     - vars/discord.yml
@@ -366,6 +387,7 @@
 
 - name: Wetty
   hosts: docker_swarm_managers[0]
+  become: yes
   roles:
     - wetty
   tags:
