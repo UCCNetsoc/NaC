@@ -9,7 +9,7 @@
       - version: "3.7"
         services:
           server:
-            image: docker.netsoc.co/public/blog.netsoc.co:latest
+            image: uccnetsoc/blog:latest
             networks:
               traefik:
             environment:
