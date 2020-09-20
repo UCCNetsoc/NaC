@@ -30,7 +30,7 @@
                 - "traefik.http.routers.blog_netsoc_co.service=blog_netsoc_co-service"
                 - "traefik.docker.network=traefik"
               restart_policy:
-                condition: any
+                condition: on-failure
                 delay: 5s
                 max_attempts: 5
         networks:

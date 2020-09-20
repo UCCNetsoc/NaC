@@ -17,7 +17,7 @@
 * You will need a `keys/` folder which contains SSH keys to target all physical and virtual machines. Ask the Head SysAdmin for this.
   * Do **NOT** commit them or remove the `keys/` clause from `.gitignore`.
   * Do **NOT** share them with people who are not SysAdmins
-  * Do **NOT** leave them sitting on a random server somewhere, it's happened in the past
+  * Do **NOT** leave them sitting on a random server somewhere
 
 * You can peek and edit the vault using `./vault-peek.sh` and `./vault-edit.sh`
 
@@ -45,60 +45,4 @@
 
 This repo currently contains both playbooks for managing 2019/2020 bare-metal infra and 2020/2021 Proxmox infra. Do not get them confused, have a look at `./hosts` to see what's going on.
 
-### **Read `https://wiki.netsoc.co`**
-
-### Historical Infra changes
-
-`feynman` is now a Proxmox master host but was previously a server we used to give users a root access playground
-
-The 2019/2020 version of `feynman` now lives on as `feynman-vm`
-
-`lovelace` is now a Proxmox cluster host but was previously a server we used to host gameservers
-
-The 2019/2020 version of `lovelace` now lives on as `lovelace-vm`
-
-`leela`, `bigbertha`, `boole` are currently still bare-metal and undergoing migration.
-
-The secrets for the playbooks that configured 2019/2020 servers are now stored in `vars/secrets_legacy.yml`
-
-# Legacy Instructions (pre-2020/2021)
-
-## Local Development
-
-### Prerequisites
-
-1. Hashicorp Packer
-2. LXD up and running
-
-### How 2
-
-1. Run `./simulation.sh` and wait for everything to startup.
-2. Go ham and run some playbooks!
-
-The simulation may need to be torn down and brought back up after PC restarts.
-
-SSH Keys are generated and placed into the correct directories. You can SSH to each container/host using username `netsoc` and password `borger`
-
-Make sure not to commit the host_vars with changed IPs.
-
-## Misc Info
-
-ssh priv key structure:
-`/keys/<host>/id_rsa`
-
-i.e for feynman
-`/keys/feynman/id_rsa`
-
-`/vars/cloudflare.yml` format:
-
-```yaml
-cf_api_email: <cloudflare email>
-cf_api_key: <cloudflare api key>
-```
-
-`/vars/freeipa.yml` format:
-
-```yaml
-ipa_ds_password: <directory server pass>
-ipa_admin_password: <admin pass>
-```
+### **Read [wiki.netsoc.co](wiki.netsoc.co)**

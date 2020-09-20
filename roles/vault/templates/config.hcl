@@ -17,5 +17,5 @@ listener "tcp" {
 storage "consul" {
     address = "consul_bootstrap:8500"
     path = "hashicorp-vault/"
-    token = "{{ consul_vault_token }}"
+    token = "{{ consul.vault_token }}"
 }
