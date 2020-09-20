@@ -1,0 +1,12 @@
+---
+- name: "Ensure pydrive for duplicity"
+  become: yes
+  pip:
+    name: pydrive
+
+- name: "Ensure duplicity"
+  become: yes
+  apt:
+    name: duplicity
+    state: latest
+    update_cache: yes
