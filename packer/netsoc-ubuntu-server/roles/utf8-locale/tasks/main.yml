@@ -1,8 +1,0 @@
----
-  
-- name: "Ensure LC_ALL set correctly"
-  become: yes
-  lineinfile:
-    path: /etc/default/locale
-    regexp: '^LC_ALL='
-    line: LC_ALL="C.UTF-8"

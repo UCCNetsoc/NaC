@@ -1,48 +1,60 @@
 ---
-- name: Ensure directory
+
+- name: Ensure root directory
   become: yes
   file:
-    path: '/servers/minecraft-{{ item.folder }}'
+    path: "{{ mount }}"
     owner: 1000
-    group: '{{ admins_gid }}'
+    group: 1000
+    mode: 0770
+    state: directory
+
+- name: Ensure directory per server type
+  become: yes
+  file:
+    path: "{{ mount }}/{{ item }}"
+    owner: 1000
+    group: 1000
     mode: 0770
     state: directory
   with_items:
-    - { folder: survival }
-    #- { folder: creative }
+    - survival
+    #- creative 
 
 - name: Create server.properties
   become: yes
   template:
-    dest: '/servers/minecraft-{{ item.gamemode }}/server.properties'
+    dest: '{{ mount }}/{{ item }}/server.properties'
     src: server.properties.j2
     owner: 1000
-    group: '{{ admins_gid }}'
+    group: 1000
     mode: 0440
   vars:
-    gamemode: '{{ item.gamemode }}'
+    gamemode: "{{ item }}"
   with_items:
-    - { gamemode: survival }
-    #- { gamemode: creative }
+    - survival
+    #- creative 
 
 - name: NetCraft Minecraft Server - Survival
   become: yes
   docker_container:
     image: itzg/minecraft-server:openj9
-    name: netsoc-survival
+    name: minecraft-{{ item }}
     state: started
-    restart_policy: unless-stopped
+    restart_policy: on-failure
     memory: 6.5G
     env:
       EULA: "TRUE"
       TYPE: "PAPER"
       INIT_MEMORY: 1G
       MAX_MEMORY: 5G
-      VERSION: "1.16.1"
+      VERSION: "1.16.2"
       JVM_XX_OPTS: "-Xtune:virtualized -Xgc:concurrentScavenge -Xgc:dnssExpectedTimeRatioMaximum=3 -Xgc:scvNoAdaptiveTenure -Xdisableexplicitgc"
     ports:
       - "25565:25565"
       - "1194:25565"
       - "127.0.0.1:9225:9225"
     volumes:
-      - "/servers/minecraft-survival:/data"
+      - "{{ mount }}/{{ item }}:/data"
+  with_items:
+    - survival

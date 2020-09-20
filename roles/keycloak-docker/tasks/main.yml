@@ -11,13 +11,13 @@
 
 - become: yes
   copy:
-    content: "{{ realm }}"
+    content: "{{ keycloak.realm }}"
     dest: "{{ mount }}/realm.json"
     mode: 0755
 
 - docker_container:
     name: keycloak
-    image: jboss/keycloak:9.0.3
+    image: uccnetsoc/keycloak:9.0.3-themed
     recreate: yes
     env:
       DB_VENDOR: h2
@@ -26,6 +26,7 @@
       KEYCLOAK_IMPORT: "/tmp/keycloak/realm.json"
       KEYCLOAK_FRONTEND_URL: "{{ keycloak.hostname }}"
     hostname: "{{ keycloak.hostname }}"
+    restart_policy: on-failure
     ports:
       - "8080:8080"
     volumes:

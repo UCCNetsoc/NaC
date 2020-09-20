@@ -2,7 +2,7 @@
 - name: "Ensure Traefik directory and file config"
   hosts: docker_swarm_managers[0]
   tasks:
-    - name: Ensure Traefik file config dir on NFS
+    - name: Ensure Traefik file config dir on storage
       become: yes
       file:
         path: "{{ item }}"
@@ -11,7 +11,6 @@
       with_items: # do not use recurse: yes because the /storage mount could have failed
         - /storage/docker/traefik
         - /storage/docker/traefik/file_config
-
     - set_fact:
         file_config:
           http:
@@ -30,6 +29,28 @@
                   - web-secure
                 rule: Host(`keycloak.netsoc.dev`)
                 service: keycloak
+                tls:
+                  certResolver: letsencrypt
+              admin-api:
+                entrypoints:
+                  - web-secure
+                rule: Host(`api.netsoc.dev`)
+                service: admin-api
+                tls:
+                  certResolver: letsencrypt
+              admin-ui:
+                entrypoints:
+                  - web-secure
+                rule: Host(`admin.netsoc.dev`)
+                service: admin-ui
+                tls:
+                  certResolver: letsencrypt
+              user-websites:
+                entrypoints:
+                  - web-secure
+                priority: 1
+                rule: Host(`*.netsoc.dev`)
+                service: user-websites
                 tls:
                   certResolver: letsencrypt
               discord-router:
@@ -59,6 +80,15 @@
                 service: prometheus
                 tls:
                   certResolver: letsencrypt
+              tutorial-router:
+                entrypoints:
+                  - web-secure
+                rule: Host(`tutorial.netsoc.co`)
+                middlewares:
+                  - tutorial-redirect
+                service: unused
+                tls:
+                  certResolver: letsencrypt
 
             middlewares:
               discord-redirect:
@@ -78,20 +108,38 @@
                 basicAuth:
                   users:
                     - "{{ prometheus.username }}:{{ prometheus.password | password_hash('bcrypt') }}"
-
+              tutorial-redirect:
+                redirectRegex:
+                  regex: ^(.*)
+                  replacement: 'https://wiki.netsoc.co/en/services/tutorial'
+                  permanent: true
+                  
             services:
               ipa:
                 loadBalancer:
                   servers:
-                    - url: "https://auth.vm.netsoc.co"
+                    - url: "https://admin.vm.netsoc.co"
               keycloak:
                 loadBalancer:
                   servers:
-                    - url: "http://auth.vm.netsoc.co:8080"
+                    - url: "http://admin.vm.netsoc.co:8080"
+              admin-ui:
+                loadBalancer:
+                  servers:
+                    - url: "http://admin.vm.netsoc.co:1021"
+              admin-api:
+                loadBalancer:
+                  servers:
+                    - url: "http://admin.vm.netsoc.co:1020"
               prometheus:
                 loadBalancer:
                   servers:
                     - url: "http://prometheus.databases.vm.netsoc.co:9090"
+              user-websites:
+                loadBalancer:
+                  services:
+                    - url: "http://web0.vm.netsoc.co"
+                    - url: "http://web1.vm.netsoc.co"
               unused:
                 loadBalancer:
                   servers:
@@ -105,9 +153,12 @@
   vars_files:
     - vars/secrets.yml
     - vars/prometheus.yml
+  tags:
+    - traefik-config
         
 - name: "Ensure Traefik loadbalancer running"
   hosts: docker_swarm_managers[0]
+  become: yes
   roles:
     - role: traefik-proxmox
       vars:
@@ -123,6 +174,11 @@
               address: ':80'
             web-secure:
               address: ':443'
+            metrics:
+              address: ':8082'
+          metrics:
+            prometheus:
+              entrypoint: metrics
           serversTransport:
             insecureSkipVerify: true
           certificatesResolvers:
@@ -151,9 +207,9 @@
 
 - name: "Ensure Portainer config dir"
   hosts: docker_swarm_managers[0]
+  become: yes
   tasks:
     - name: Ensure Portainer config dir on NFS
-      become: yes
       file:
         path: "{{ item }}"
         mode: '0755'
@@ -163,6 +219,7 @@
   
 - name: "Ensure Portainer"
   hosts: docker_swarm_managers[0]
+  become: yes
   roles:
     - name: portainer
       vars:
@@ -173,6 +230,7 @@
 
 - name: "Ensure Netsoc Static Services"
   hosts: docker_swarm_managers[0]
+  become: yes
   roles:
     - netsoc.co
     - blog.netsoc.co
@@ -215,4 +273,135 @@
     - vars/wikijs.yml
     - vars/secrets.yml
 
+- name: Ensure Consul server directories for data
+  hosts: docker_swarm
+  become: yes
+  tasks:
+    - file:
+        path: '/etc/consul'
+        mode: 0770
+        owner: 1000
+        group: 1000
+        state: directory 
 
+- name: Ensure Consul
+  hosts: docker_swarm_managers[0]
+  become: yes
+  vars_files:
+      - vars/consul.yml
+      - vars/secrets.yml
+  roles:
+    - role: consul
+      vars:
+        mount: '/etc/consul/'
+  tags: 
+    - consul
+
+- name: Ensure Consul settings set
+  hosts: docker_swarm_managers[0]
+  become: yes
+  vars_files:
+    - vars/netsocbot.yml
+    - vars/consul.yml
+    - vars/secrets.yml
+  tasks:
+    - include: roles/netsocbot/tasks/consul_conf.yml
+  tags:
+    - consul
+
+- name: Deploy Netsoc Discord Bot
+  hosts: docker_swarm_managers[0]
+  become: yes
+  vars_files:
+    - vars/netsocbot.yml
+    - vars/email.yml
+    - vars/secrets.yml
+    - vars/consul.yml
+  roles: 
+    - netsocbot
+  tags:
+    - bot
+
+- name: Ensure Hashicorp Vault
+  hosts: docker_swarm_managers[0]
+  become: yes
+  vars_files:
+    - vars/consul.yml
+    - vars/vault.yml
+    - vars/ldap.yml
+    - vars/secrets.yml
+  roles:
+    - vault
+  tags:
+    - server
+    - vault
+
+- name: Set Docker Registry secrets in Hashicorp Vault
+  hosts: docker_swarm_managers[0]
+  become: yes
+  vars_files:
+    - vars/vault.yml
+    - vars/secrets.yml
+    - vars/docker_hub.yml
+  tasks:
+    - include: roles/vault/tasks/secrets_docker_registry.yml
+    - include: roles/vault/tasks/policy_ci.yml
+  tags:
+    - push_secrets
+    - docker_registry
+    - vault
+
+- name: Set Github secrets in Hashicorp Vault
+  hosts: docker_swarm_managers[0]
+  become: yes
+  vars_files:
+    - vars/vault.yml
+    - vars/secrets.yml
+  tasks:
+    - include: roles/vault/tasks/secrets_github.yml
+    - include: roles/vault/tasks/policy_ci.yml
+  tags:
+    - push_secrets
+    - github
+    - vault
+
+- name: Set Discord Webhook secrets in Hashicorp Vault
+  hosts: docker_swarm_managers[0]
+  become: yes
+  vars_files:
+    - vars/vault.yml
+    - vars/discord.yml
+    - vars/secrets.yml
+  tasks:
+    # Making sure the policy exists
+    - include: roles/vault/tasks/policy_ci.yml 
+    - include: roles/vault/tasks/secrets_discord_webhook.yml
+  tags:
+    - push_secrets
+    - discord_webhook
+    - vault
+
+- name: Ensure Drone Server, Agent and DB
+  hosts: docker_swarm_managers[0]
+  become: yes
+  vars_files:
+    - vars/ci.yml
+    - vars/discord.yml
+    - vars/mysql.yml
+    - vars/vault.yml
+    - vars/secrets.yml
+    - vars/network.yml
+  vars:
+    mysql_server: "{{ interfaces.databases.net0.addresses[0] | ipaddr('address') }}"
+  roles:
+    - ci
+  tags:
+    - ci
+
+- name: Wetty
+  hosts: docker_swarm_managers[0]
+  become: yes
+  roles:
+    - wetty
+  tags:
+    - wetty

@@ -7,8 +7,8 @@
     port: 443
     name: Discord Bot Token
     token_type: management
-    token: '{{ consul_bot_token }}'
-    mgmt_token: '{{ consul_master_token }}'
+    token: '{{ consul.bot_token }}'
+    mgmt_token: '{{ consul.master_token }}'
     rules:
       - key_prefix: discord/
         policy: read
@@ -19,7 +19,7 @@
     port: 443
     key: 'discordbot/{{ item.key }}'
     value: '{{ item.value | to_json }}'
-    token: '{{ consul_master_token }}'
+    token: '{{ consul.master_token }}'
   with_items:
     - key: channels
       value:

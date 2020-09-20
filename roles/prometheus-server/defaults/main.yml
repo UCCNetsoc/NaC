@@ -1,0 +1,3 @@
+prometheus_dir: "/mnt/data-disk/prometheus"
+blackbox_exporter_dir: "/mnt/data-disk/blackbox_exporter"
+pve_dir: "/mnt/data-disk/pve"

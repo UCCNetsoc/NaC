@@ -1,4 +1,14 @@
 
+- name: "Initial setup"
+  hosts: databases
+  become: yes
+  roles:
+    - ansible-requirements
+    - utf8-locale
+    - docker
+  tags:
+    - initial
+
 - name: "Enroll in IPA server"
   hosts: databases 
   roles:
@@ -49,3 +59,7 @@
   hosts: databases
   roles:
     - prometheus-server
+  vars_files:
+    - vars/proxmox.yml
+    - vars/traefik.yml
+    - vars/secrets.yml
