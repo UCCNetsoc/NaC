@@ -1,26 +1,8 @@
 - name: "Ensure backup job on proxmox backup host"
   hosts: localhost
   roles: backups
-  vars:
-    backup_hour: "3" # Backups everyday at 3am
-    blacklist: "router.vm.netsoc.co"
-    compress: "lzo"
-
-    # Get these by generating .duplicity_onedrive_oauthtoken.json with duplicity on your own machine.
-    onedrive_access_token: "{{ vault_onedrive_access_token }}"
-    onedrive_refresh_token: "{{ vault_onedrive_refresh_token }}"
-    onedrive_user_id: "{{ vault_onedrive_user_id: }}"
-
-    onedrive_location: "{{ vault_onedrive_location }}"
-
-    backup_sign_key: "{{ vault_backup_sign_key }}"
-    backup_sign_key_passphrase: "{{ vault_backup_sign_key_passphrase }}"
-    backup_encryptionn_key:_key: "{{ vault_backup_encryptionn_key:_key }}"
-
-    discord_webhook_url: "{{ vault_webook_url }}"
   vars_files:
     - "vars/secrets.yml"
+    - "vars/webhooks.yml"
+    - "vars/backups.yml"
 
-- name: "Ensure backup dependencies on each proxmox host"
-  hosts: proxmox_hosts
-  roles: backups-hosts

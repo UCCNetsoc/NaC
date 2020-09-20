@@ -5,6 +5,7 @@
   roles:
     - ansible
     - ifupdown2
+    - roles/backups/tasks/dependencies.yml
     - packer
     - jq  # for manipulating the proxmox api pvesh when it was --output-format=json 
   # TODO(ocanty) - automate me

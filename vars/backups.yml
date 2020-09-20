@@ -1,0 +1,15 @@
+onedrive: "{{ vault_onedrive }}"
+#   access_token 
+#   refresh_token
+#   user_id
+#   location
+
+backups: "{{ vault_backups }}"
+#   sign_key
+#   sign_key_passphrase
+#   encryption_key
+
+backup_hour: "3" # Backups everyday at 3am
+blacklist: 
+  - "router.vm.netsoc.co"
+compress: "lzo"
