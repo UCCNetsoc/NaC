@@ -1,4 +1,4 @@
-- name: Ensure Vault Data driver
+- name: Ensure Vault Data directory
   become: yes
   file:
     path: "{{ mount }}/vault/data"
