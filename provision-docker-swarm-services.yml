@@ -156,6 +156,13 @@
   tags:
     - traefik-config
         
+- name: Add python-consul
+  hosts: docker_swarm
+  tasks:
+    - become: yes
+      apt:
+        name: python3-consul
+
 - name: "Ensure Traefik loadbalancer running"
   hosts: docker_swarm_managers[0]
   become: yes
