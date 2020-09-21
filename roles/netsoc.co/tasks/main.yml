@@ -8,7 +8,7 @@
       - version: "3.7"
         services:
           live:
-            image: docker.netsoc.co/public/netsoc.co:latest
+            image: uccnetsoc/netsoc.co:latest
             networks:
               traefik:
             deploy:
