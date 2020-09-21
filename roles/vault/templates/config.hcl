@@ -14,8 +14,6 @@ listener "tcp" {
     tls_disable = 1
 }
 
-storage "consul" {
-    address = "consul_bootstrap:8500"
-    path = "hashicorp-vault/"
-    token = "{{ consul.vault_token }}"
+storage "file " {
+    path = {{ mount }}/vault/data
 }
