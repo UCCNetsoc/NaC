@@ -1,3 +1,12 @@
+- name: Ensure Vault Data driver
+  become: yes
+  file:
+    path: "{{ mount }}/vault/data"
+    owner: root
+    group: root
+    mode: 0770
+    state: directory
+
 - name: Ensure Vault Config in Docker Swarm Secrets
   run_once: true
   become: yes
