@@ -1,0 +1,19 @@
+{
+    "api_address": "{{ hashivault_url }}",
+    "log_format": "json",
+    "disable_mlock": "true",
+    "max_lease_ttl": "87600h",
+    "default_lease_ttl": "87600h",
+    "backend": {
+      "file": {
+        "path": "{{ mount }}/vault/file"
+      }
+    },
+    "listener": {
+      "tcp":{
+        "address": "0.0.0.0:8200",
+        "tls_disable": 1
+      }
+    },
+    "ui": true
+  }
