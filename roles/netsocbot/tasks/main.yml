@@ -49,6 +49,9 @@
       TWITTER_SECRET: "{{ netsocbot.twitter_secret }}"
       TWITTER_ACCESS_KEY: "{{ netsocbot.twitter_access_key }}"
       TWITTER_ACCESS_SECRET: "{{ netsocbot.twitter_access_secret }}"
+      MYSQL_URL: "{{ mysql_server }}:3306"
+      MYSQL_USERNAME: "{{ netsocbot.mysql_user }}"
+      MYSQL_PASSWORD: "{{ netsocbot.mysql_password }}"
     labels:
       traefik.enable: "true"
       traefik.http.routers.netsocbot.rule: Host(`events.{{ dev_site }}`)
