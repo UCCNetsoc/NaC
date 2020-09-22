@@ -14,6 +14,9 @@ listener "tcp" {
     tls_disable = 1
 }
 
-storage "file " {
-    path = {{ mount }}/vault/data
+storage "mysql" {
+  username = "{{ hashivault.mysql.user }}"
+  password = "{{ hashivault.mysql.password }}"
+  database = "{{ hashivault.mysql.database }}"
+  address =  "{{ mysql_server }}:3306"
 }

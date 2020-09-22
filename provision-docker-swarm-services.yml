@@ -329,7 +329,10 @@
     mount: "/mnt/data-disk/vault"
   vars_files:
     # - vars/consul.yml
+    - vars/mysql.yml
     - vars/vault.yml
+    - vars/hashivault.yml
+    - vars/network.yml
     - vars/ldap.yml
     - vars/secrets.yml
   roles:
