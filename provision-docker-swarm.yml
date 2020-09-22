@@ -1,3 +1,14 @@
+---
+- name: "Initial setup"
+  hosts: docker_swarm
+  become: yes
+  roles:
+    - ansible-requirements
+    - utf8-locale
+    - docker
+  tags:
+    - initial
+
 - name: "Enroll in IPA server"
   hosts: docker_swarm
   roles:
@@ -11,34 +22,8 @@
     - "vars/network.yml"
     - "vars/secrets.yml"
 
-- name: "Ensure data disks mounted"
-  hosts: docker_swarm
-  become: yes
-  roles:
-    - role: simple-disk
-      vars:
-        device: "/dev/vdb"
-        partition_size: "100%"
-        fstype: "ext4"
-        mount_path: "/mnt/data-disk"
-        mount_opts: "rw"
-
-- name: Setup NFS client and NFS mount requirements
-  hosts: docker_swarm
-  roles:
-    - role: nfs-client-requirements
-    - role: autofs-automount
-      vars:
-        src: nfs.vm.netsoc.co:/
-        mount: /storage
-        opts: fstype=nfs4,rw,vers=4.2,sec=krb5p,hard,bg
-  vars_files:
-    - "vars/idmap.yml"
-    - "vars/freeipa.yml"
-    - "vars/secrets.yml"
-
-- name: "Ensure nfs directories"
-  hosts: nfs
+- name: "Ensure directories"
+  hosts: docker_swarm_managers[0]
   become: yes
   tasks:
     - file:

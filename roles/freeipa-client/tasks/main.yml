@@ -5,21 +5,12 @@
   apt:
     name:
       - freeipa-client
-      - freeipa-admintools
     state: latest
-    #update_cache: yes
-
-# - name: "Check enrollment status"
-#   become: yes
-#   shell: |
-#     echo "{{ freeipa.admin_password }}" | kinit admin >/dev/null && ipa host-show {{ ansible_fqdn }}
-#   register: result
-#   ignore_errors: true
+    
 
 - name: "Unenroll from enrolled server"
   become: yes
-  shell: echo "no" | ipa-client-install --uninstall
-  #when: "('rc' in result and result.rc != 0) or (force is defined and force is true) or true"
+  shell: echo "no" | ipa-client-install --uninstall; rm -rf /var/lib/ipa-client/sysrestore.state
   ignore_errors: true
 
 - name: "Enroll server as a FreeIPA client"

@@ -1,5 +1,15 @@
+---
+- name: "Initial setup"
+  hosts: portal
+  roles:
+    - ansible-requirements
+    - docker
+    - utf8-locale
+  tags:
+    - initial
+
 - name: "Enroll in IPA server"
-  hosts: portal 
+  hosts: portal
   roles:
     - role: freeipa-client
       vars:
@@ -10,20 +20,8 @@
     - "vars/freeipa.yml"
     - "vars/network.yml"
     - "vars/secrets.yml"
-
-- name: Setup NFS client and NFS mount requirements
-  hosts: portal
-  roles:
-    - role: nfs-client-requirements
-    - role: autofs-automount
-      vars:
-        src: nfs.vm.netsoc.co:/
-        mount: /home/users
-        opts: fstype=nfs4,rw,vers=4.2,sec=krb5p,hard,bg
-  vars_files:
-    - "vars/idmap.yml"
-    - "vars/freeipa.yml"
-    - "vars/secrets.yml"
+  tags:
+    - ipa
 
 - name: Setup server MOTD
   hosts: portal
@@ -69,16 +67,7 @@
         name: sshd
         state: restarted
 
-- name: Install and enable auditd
-  tags:
-    - auditd
-  hosts: portal
-  roles: 
-    - auditd
-  vars:
-    mount: "/mnt/data-disk"
-
-- name: "Ensure Nginx Unit"
+- name: "Ensure Nginx Unit + Unit Proxy"
   hosts: portal
   become: yes
   tasks:

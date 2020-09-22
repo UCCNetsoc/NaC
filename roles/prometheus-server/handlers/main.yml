@@ -1,16 +1,19 @@
 - name: restart prometheus
+  become: yes
   docker_container:
     name: prometheus
     state: started
     restart: true
 
 - name: restart blackbox exporter
+  become: yes
   docker_container:
     name: blackbox_exporter
     state: started
     restart: true
 
 - name: restart pve exporter
+  become: yes
   docker_container:
     name: pve-exporter
     state: started
