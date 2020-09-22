@@ -135,11 +135,6 @@
                 loadBalancer:
                   servers:
                     - url: "http://prometheus.databases.vm.netsoc.co:9090"
-              user-websites:
-                loadBalancer:
-                  services:
-                    - url: "http://web0.vm.netsoc.co"
-                    - url: "http://web1.vm.netsoc.co"
               unused:
                 loadBalancer:
                   servers:
