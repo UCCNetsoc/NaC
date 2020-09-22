@@ -32,7 +32,6 @@
       condition: any
       max_attempts: 10
     networks:
-      - consul
       - traefik
 
     env:
