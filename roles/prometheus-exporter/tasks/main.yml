@@ -10,9 +10,14 @@
 
 - name: Cadvisor
   when: "'prometheus_docker' in group_names"
+  become: yes
   docker_container:
     name: cadvisor
     image: "google/cadvisor:v0.33.0"
+    command:
+      - "--docker_only"
+      - "--housekeeping_interval=15s"
+      - "--disable_metrics disk,tcp,udp"
     state: started
     restart_policy: on-failure
     ports:
@@ -26,6 +31,7 @@
 
 - name: IPMI Exporter
   when: "'prometheus_ipmi' in group_names"
+  become: yes
   docker_container:
     name: ipmi_exporter
     image: "uccnetsoc/ipmi_exporter"
@@ -39,6 +45,7 @@
 
 - name: Apache Prometheus Exporter
   when: "'prometheus_apache' in group_names"
+  become: yes
   docker_container:
     name: prometheus_apache
     image: "lusotycoon/apache-exporter:v0.8.0"
