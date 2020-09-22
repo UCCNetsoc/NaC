@@ -1,7 +1,7 @@
 - name: Ensure Vault Data directory
   become: yes
   file:
-    path: "{{ mount }}/vault/data"
+    path: "{{ mount }}/file"
     owner: root
     group: root
     mode: 0770
@@ -11,8 +11,8 @@
   run_once: true
   become: yes
   docker_secret:
-    name: vault_config.hcl
-    data: "{{ lookup('template', 'config.hcl') }}"
+    name: config.json
+    data: "{{ lookup('template', 'config.json') }}"
   ignore_errors: yes
   register: result
 
@@ -23,14 +23,14 @@
     state: absent
   when: result is failed
 
-- name: Retry setting Vault Config in Docker Swarm Secrets
+- name: Set Vault Config in Docker Swarm Secrets
   run_once: true
   become: yes
   when: result is failed
   docker_secret:
-    name: vault_config.hcl
-    data: "{{ lookup('template', 'config.hcl') }}"
-  ignore_errors:
+    name: vault_config.json
+    data: "{{ lookup('template', 'config.json') }}"
+  ignore_errors: yes
   register: result
 
 - name: Ensure Hashicorp Vault network
@@ -42,39 +42,39 @@
     attachable: yes
     appends: yes
 
-- name: Get possible current Vault instance status
-  run_once: true
-  uri:
-    url: "{{ hashivault_url }}/v1/sys/health"
-    return_content: yes
-    status_code: [200, 404, 501, 503, 502]
-  register: prev
+# - name: Get possible current Vault instance status
+#   run_once: true
+#   uri:
+#     url: "{{ hashivault_url }}/v1/sys/health"
+#     return_content: yes
+#     status_code: [200, 301, 404, 501, 503, 502]
+#   register: prev
 
-- name: Possible Vault instance status
-  debug:
-      msg: HTTP {{ prev.status }}
+# - name: Possible Vault instance status
+#   debug:
+#       msg: HTTP {{ prev.status }}
 
-- name: Push Consul Vault token
-  run_once: true
-  consul_acl_prefix:
-    scheme: https
-    host: consul.{{ dev_site }}
-    port: 443
-    name: Hashicorp Vault Token # why doesnt this get set? idk
-    token_type: management
-    token: "{{ consul.vault_token }}"
-    mgmt_token: "{{ consul.master_token }}"
-    rules:
-      - key_prefix: "hashicorp-vault/"
-        policy: write
-      - node_prefix: ""
-        policy: write
-      - service: "vault"
-        policy: write
-      - session_prefix: ""
-        policy: write
-      - agent_prefix: ""
-        policy: write
+# - name: Push Consul Vault token
+#   run_once: true
+#   consul_acl_prefix:
+#     scheme: https
+#     host: consul.{{ dev_site }}
+#     port: 443
+#     name: Hashicorp Vault Token # why doesnt this get set? idk
+#     token_type: management
+#     token: "{{ consul.vault_token }}"
+#     mgmt_token: "{{ consul.master_token }}"
+#     rules:
+#       - key_prefix: "hashicorp-vault/"
+#         policy: write
+#       - node_prefix: ""
+#         policy: write
+#       - service: "vault"
+#         policy: write
+#       - session_prefix: ""
+#         policy: write
+#       - agent_prefix: ""
+#         policy: write
 
 - name: Ensure Hashicorp Vault instance
   run_once: true
@@ -83,13 +83,13 @@
     state: present
     image: vault:1.4.0
     name: vault_server
-    command: docker-entrypoint.sh server -config=/run/secrets/vault_config.hcl
+    command: docker-entrypoint.sh server -config=/run/secrets/vault_config.json
     env:
       - SKIP_SETCAP=true
     hostname: vault
     secrets:
-      - secret_name: vault_config.hcl
-        filename: /run/secrets/vault_config.hcl
+      - secret_name: vault_config.json
+        filename: /run/secrets/vault_config.json
     mode: replicated
     replicas: 1
     placement:
@@ -112,7 +112,7 @@
       delay: 20s
       order: stop-first
     networks:
-      - consul
+      # - consul
       - vault
       - traefik
 

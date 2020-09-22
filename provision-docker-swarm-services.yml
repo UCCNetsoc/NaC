@@ -273,41 +273,41 @@
     - vars/wikijs.yml
     - vars/secrets.yml
 
-- name: Ensure Consul server directories for data
-  hosts: docker_swarm
-  become: yes
-  tasks:
-    - file:
-        path: '/etc/consul'
-        mode: 0770
-        owner: 1000
-        group: 1000
-        state: directory 
+# - name: Ensure Consul server directories for data
+#   hosts: docker_swarm
+#   become: yes
+#   tasks:
+#     - file:
+#         path: '/etc/consul'
+#         mode: 0770
+#         owner: 1000
+#         group: 1000
+#         state: directory 
 
-- name: Ensure Consul
-  hosts: docker_swarm_managers[0]
-  become: yes
-  vars_files:
-      - vars/consul.yml
-      - vars/secrets.yml
-  roles:
-    - role: consul
-      vars:
-        mount: '/etc/consul/'
-  tags: 
-    - consul
+# - name: Ensure Consul
+#   hosts: docker_swarm_managers[0]
+#   become: yes
+#   vars_files:
+#       - vars/consul.yml
+#       - vars/secrets.yml
+#   roles:
+#     - role: consul
+#       vars:
+#         mount: '/etc/consul/'
+#   tags: 
+#     - consul
 
-- name: Ensure Consul settings set
-  hosts: docker_swarm_managers[0]
-  become: yes
-  vars_files:
-    - vars/netsocbot.yml
-    - vars/consul.yml
-    - vars/secrets.yml
-  tasks:
-    - include: roles/netsocbot/tasks/consul_conf.yml
-  tags:
-    - consul
+# - name: Ensure Consul settings set
+#   hosts: docker_swarm_managers[0]
+#   become: yes
+#   vars_files:
+#     - vars/netsocbot.yml
+#     - vars/consul.yml
+#     - vars/secrets.yml
+#   tasks:
+#     - include: roles/netsocbot/tasks/consul_conf.yml
+#   tags:
+#     - consul
 
 - name: Deploy Netsoc Discord Bot
   hosts: docker_swarm_managers[0]
@@ -325,8 +325,10 @@
 - name: Ensure Hashicorp Vault
   hosts: docker_swarm_managers[0]
   become: yes
+  vars:
+    mount: "/mnt/data-disk/vault"
   vars_files:
-    - vars/consul.yml
+    # - vars/consul.yml
     - vars/vault.yml
     - vars/ldap.yml
     - vars/secrets.yml
