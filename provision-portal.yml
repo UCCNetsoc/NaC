@@ -123,4 +123,3 @@
   vars_files:
     - "vars/unit.yml"
     - "vars/secrets.yml"
-
