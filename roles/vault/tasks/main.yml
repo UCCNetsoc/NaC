@@ -1,3 +1,39 @@
+# - name: Ensure Vault directories
+#   become: yes
+
+#   file:
+#     recurse: yes
+#     path: "/storage/{{ item }}"
+#     owner: root
+#     group: root
+#     state: directory
+#     mode: 0600
+#   with_items:
+#     - "vault"
+#     - "vault/core"
+#     - "vault/file"
+
+- name: Ensure database for Vault
+  run_once: true
+  become: yes
+  mysql_db:
+    name: "{{ hashivault.mysql.database }}"
+    login_host: "{{ mysql_server }}"
+    login_password: "{{ mysql.infra.root_password }}"
+    state: present
+
+- name: Ensure HashiVault MySQL User
+  run_once: true
+  become: yes
+  mysql_user:
+    name: "{{ hashivault.mysql.user }}"
+    password: "{{ hashivault.mysql.password }}"
+    priv: "{{ hashivault.mysql.database}}.*:ALL"
+    host: "%"
+    login_host: "{{ mysql_server }}"
+    login_password: "{{ mysql.infra.root_password }}"
+    state: present
+
 - name: Ensure Vault Config in Docker Swarm Secrets
   run_once: true
   become: yes
@@ -14,14 +50,14 @@
     state: absent
   when: result is failed
 
-- name: Retry setting Vault Config in Docker Swarm Secrets
+- name: Reset Vault Config in Docker Swarm Secrets
   run_once: true
   become: yes
   when: result is failed
   docker_secret:
     name: vault_config.hcl
     data: "{{ lookup('template', 'config.hcl') }}"
-  ignore_errors:
+  ignore_errors: yes
   register: result
 
 - name: Ensure Hashicorp Vault network
@@ -38,34 +74,35 @@
   uri:
     url: "{{ hashivault_url }}/v1/sys/health"
     return_content: yes
-    status_code: [200, 404, 501, 503, 502]
+    status_code: [200, 301, 404, 501, 503, 502]
+  ignore_errors: true
   register: prev
 
 - name: Possible Vault instance status
   debug:
       msg: HTTP {{ prev.status }}
 
-- name: Push Consul Vault token
-  run_once: true
-  consul_acl_prefix:
-    scheme: https
-    host: consul.{{ dev_site }}
-    port: 443
-    name: Hashicorp Vault Token # why doesnt this get set? idk
-    token_type: management
-    token: "{{ consul.vault_token }}"
-    mgmt_token: "{{ consul.master_token }}"
-    rules:
-      - key_prefix: "hashicorp-vault/"
-        policy: write
-      - node_prefix: ""
-        policy: write
-      - service: "vault"
-        policy: write
-      - session_prefix: ""
-        policy: write
-      - agent_prefix: ""
-        policy: write
+# - name: Push Consul Vault token
+#   run_once: true
+#   consul_acl_prefix:
+#     scheme: https
+#     host: consul.{{ dev_site }}
+#     port: 443
+#     name: Hashicorp Vault Token # why doesnt this get set? idk
+#     token_type: management
+#     token: "{{ consul.vault_token }}"
+#     mgmt_token: "{{ consul.master_token }}"
+#     rules:
+#       - key_prefix: "hashicorp-vault/"
+#         policy: write
+#       - node_prefix: ""
+#         policy: write
+#       - service: "vault"
+#         policy: write
+#       - session_prefix: ""
+#         policy: write
+#       - agent_prefix: ""
+#         policy: write
 
 - name: Ensure Hashicorp Vault instance
   run_once: true
@@ -95,7 +132,7 @@
       traefik.docker.network: traefik
     restart_config:
       condition: on-failure
-      delay: 5s
+      delay: 1s
       max_attempts: 5
       window: 60s
     update_config:
@@ -103,7 +140,7 @@
       delay: 20s
       order: stop-first
     networks:
-      - consul
+      # - consul
       - vault
       - traefik
 
