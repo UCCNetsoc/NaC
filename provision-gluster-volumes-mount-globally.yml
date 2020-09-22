@@ -90,14 +90,12 @@
     - geerlingguy.glusterfs
   tags:
     - gluster
+    - gluster-mounts
 
 - name: Setup GlusterFS volumes on server machines
-  hosts: gluster_server
+  hosts: gluster_server[0]
   become: yes
-  tasks:
-    # - command: echo "y" | gluster volume stop {{ item.name }} || true
-    #   with_items: "{{ gluster_volumes }}"
-    
+  tasks:    
     - name: Configure Gluster volume
       become: yes
       gluster_volume:
@@ -126,6 +124,7 @@
     gluster_brick_dir: "/mnt/data-disk"
   tags:
     - gluster
+    - gluster-mounts
 
 # https://www.redhat.com/en/blog/hardening-gluster-installations-tls
 - name: "Setup TLS/SSL Private Key & Cert on all machines"
@@ -133,6 +132,7 @@
   become: yes
   tasks:
     - shell: |
+        rm -f /etc/ssl/glusterfs.key /etc/ssl/glusterfs.pem /etc/ssl/glusterfs.ca &&
         openssl genrsa -out /etc/ssl/glusterfs.key 4096 &&
         openssl req -new -x509 -key /etc/ssl/glusterfs.key -subj "/CN={{ ansible_fqdn }}" -out /etc/ssl/glusterfs.pem
       args:
@@ -146,6 +146,7 @@
         msg: "{{ host_pem }}"
   tags:
     - gluster
+    - gluster-mounts
 
 - name: "Setup self-signed CA on all machines"
   hosts: gluster
@@ -161,8 +162,11 @@
     - copy:
         content: "{{ ca }}"
         dest: "/etc/ssl/glusterfs.ca"
+    - shell:
+        rm -rf /var/lib/glusterd/secure-access
   tags:
     - gluster
+    - gluster-mounts
 
 
 - name: "Start TLS/SSL and mount volumes on all machines"
@@ -173,19 +177,12 @@
         echo "y" | gluster volume stop {{ item.name }} || true
         gluster volume set {{ item.name }} client.ssl on
         gluster volume set {{ item.name }} server.ssl on
-        gluster volume set {{ item.name }} auth.ssl-allow {{ groups[item.group] | join(',') }}
-        gluster volume set {{ item.name }} ssl.cipher-list 'HIGH:!SSLv2'
         gluster volume start {{ item.name }}
       when: "inventory_hostname == groups.gluster_server[0]"
       args:
         executable: /bin/bash
       with_items: "{{ gluster_volumes }}"
       run_once: true 
-    - shell:
-        touch /var/lib/glusterd/secure-access
-    - name: Ensure Gluster brick and mount directories exist.
-      file: "path={{ item.mount }} state=directory mode=0775"
-      with_items: "{{ gluster_volumes }}"
     - name: Ensure Gluster volume is mounted.
       mount:
         name: "{{ item.mount }}"
@@ -194,11 +191,14 @@
         opts: "defaults,_netdev"
         state: mounted
       with_items: "{{ gluster_volumes }}"
-      when: "inventory_hostname in item.group"
+      when: "inventory_hostname in groups[item.group]"
+    - shell:
+        touch /var/lib/glusterd/secure-access
   vars:
     gluster_volumes: 
       - { name: "storage", mount: "/storage", group: "gluster_client_allowed_mount_storage" }
       - { name: "homedirs", mount: "/home/users", group: "gluster_client_allowed_mount_homedirs" }
   tags:
     - gluster
+    - gluster-mounts
 

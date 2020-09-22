@@ -8,7 +8,6 @@
       when: "ansible_play_hosts_all.index(inventory_hostname) < 3"
       vars:
         vm:
-          protection: yes
           name: "gluster{{ ansible_play_hosts_all.index(inventory_hostname) }}.vm.netsoc.co"
           clone_qcow2: "https://cloud-images.ubuntu.com/releases/focal/release-20200907/ubuntu-20.04-server-cloudimg-amd64.img"
           clone_qcow2_hash: sha256:995771784f85305ef7e9b779f0f39dde6a0e59b50914c316a9ae8b039cb4c52e
@@ -74,58 +73,77 @@
                 nameservers: "{{ interfaces.glusterN.net0.nameservers }}"
                 optional: true
         wait_for_ssh_ip: "{{ interfaces.glusterN.net0.addresses[0] | ipmath(ansible_play_hosts_all.index(inventory_hostname))  }}"
-    # gluster VM
-    # - role: proxmox-infra-cloudinit-vm
-    #   when: "ansible_play_hosts_all.index(inventory_hostname) > 0"
-    #   vars:
-    #     vm:
-    #       recreate: yes
-    #       name: "gluster{{ 1+ansible_play_hosts_all.index(inventory_hostname) }}.vm.netsoc.co"
-    #       clone_qcow2: "https://cloud-images.ubuntu.com/releases/focal/release-20200907/ubuntu-20.04-server-cloudimg-amd64.img"
-    #       clone_qcow2_hash: sha256:995771784f85305ef7e9b779f0f39dde6a0e59b50914c316a9ae8b039cb4c52e
-    #       description: 
-    #         groups:
-    #           - vm
-    #           - gluster
-    #           - prometheus_base
-    #           - prometheus_docker
-    #           - ipaclients
-    #         host_vars:
-    #           ansible_ssh_private_key_file: "./keys/gluster/id_rsa"
-    #       net:
-    #         net0: "virtio,bridge=vmbr0,tag=30"
-    #       disks:
-    #         virtio0:
-    #           resize: "50G"
-    #         virtio1:
-    #           pool: local-lvm
-    #           definition: "50,format=raw"
-    #       cores: 4
-    #       memory: 4096
-    #     cloudinit:
-    #       drive_device: ide2
-    #       userdata: |
-    #         #cloud-config
-    #         users:
-    #           - name: netsoc
-    #             gecos: Netsoc Management User
-    #             primary_group: netsoc
-    #             sudo: ALL=(ALL) NOPASSWD:ALL
-    #             ssh_authorized_keys:
-    #               - "{{ lookup('file', './keys/gluster/id_rsa.pub') }}"
-    #         preserve_hostname: false
-    #         manage_etc_hosts: true
-    #         fqdn: gluster{{ 1+ansible_play_hosts_all.index(inventory_hostname) }}.vm.netsoc.co
-    #       networkconfig:
-    #         version: 2
-    #         ethernets:
-    #           ens18:
-    #             addresses:
-    #               - "{{ interfaces.glusterN.net0.addresses[0] | ipmath(1+ansible_play_hosts_all.index(inventory_hostname)) }}/24"
-    #             gateway4: "{{ interfaces.glusterN.net0.gateway4 }}"
-    #             nameservers: "{{ interfaces.glusterN.net0.nameservers }}"
-    #             optional: true
-    #     wait_for_ssh_ip: "{{ interfaces.glusterN.net0.addresses[0] | ipmath(1+ansible_play_hosts_all.index(inventory_hostname)) }}"
+   #  gluster VM
+    - role: proxmox-infra-cloudinit-vm
+      when: "ansible_play_hosts_all.index(inventory_hostname) > 0"
+      vars:
+        vm:
+          recreate: yes
+          name: "gluster{{ 1+ansible_play_hosts_all.index(inventory_hostname) }}.vm.netsoc.co"
+          clone_qcow2: "https://cloud-images.ubuntu.com/releases/focal/release-20200907/ubuntu-20.04-server-cloudimg-amd64.img"
+          clone_qcow2_hash: sha256:995771784f85305ef7e9b779f0f39dde6a0e59b50914c316a9ae8b039cb4c52e
+          description:
+            groups:
+              - vm
+              - gluster
+              - gluster_server
+              - gluster_client
+              - gluster_client_allowed_mount_storage
+              - gluster_client_allowed_mount_homedirs
+              - prometheus_base
+              - prometheus_docker
+              - ipaclients
+            host_vars:
+              ansible_ssh_private_key_file: "./keys/gluster_server/id_rsa"
+          net:
+            net0: "virtio,bridge=vmbr0,tag=30"
+          disks:
+            virtio0:
+              pool: local-lvm
+              definition: "25,format=raw"
+            virtio1:
+              pool: local-lvm
+              definition: "150,format=raw"
+          cores: 4
+          memory: 4096
+        cloudinit:
+          drive_device: ide2
+          userdata: |
+            #cloud-config
+            preserve_hostname: false
+            manage_etc_hosts: true
+            fqdn: gluster{{ 1+ansible_play_hosts_all.index(inventory_hostname) }}.vm.netsoc.co
+            packages:
+              - qemu-guest-agent
+            runcmd:
+              - [ systemctl, enable, qemu-guest-agent ]
+              - [ systemctl, start, qemu-guest-agent ]  
+            users:
+              - name: netsoc
+                gecos: Netsoc Management User
+                primary_group: netsoc
+                groups: netsoc
+                shell: /bin/bash
+                sudo: ALL=(ALL) NOPASSWD:ALL
+                ssh_authorized_keys:
+                  - "{{ lookup('file', './keys/gluster_server/id_rsa.pub') }}"
+            apt: 
+              preserve_sources_list: true
+              primary:
+                - arches: [default]
+                  uri: http://ie.archive.ubuntu.com/ubuntu/
+              security:
+                - uri: http://security.ubuntu.com/ubuntu
+          networkconfig:
+            version: 2
+            ethernets:
+              ens18:
+                addresses:
+                  - "{{ interfaces.glusterN.net0.addresses[0] | ipmath(1+ansible_play_hosts_all.index(inventory_hostname)) }}/24"
+                gateway4: "{{ interfaces.glusterN.net0.gateway4 }}"
+                nameservers: "{{ interfaces.glusterN.net0.nameservers }}"
+                optional: true
+        wait_for_ssh_ip: "{{ interfaces.glusterN.net0.addresses[0] | ipmath(1+ansible_play_hosts_all.index(inventory_hostname))  }}"
   vars_files:
     - vars/network.yml
     - vars/proxmox.yml
