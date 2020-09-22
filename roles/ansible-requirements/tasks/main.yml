@@ -1,17 +1,6 @@
 ---
 # tasks file for ansible-requirements
 
-- name: Wait for dpkg
-  script: wait_dpkg.sh
-
-# We can't use any ansible modules here because python might not yet be installed
-# We're stuck with command line stuff
-- name: Ensure Python 2.7
-  become: yes
-  raw: test -e /usr/bin/python || (apt -y update && apt install -y python)
-  register: result
-  changed_when: "result.rc != 0"
-
 - name: Ensure Python 3
   become: yes
   raw: test -e /usr/bin/python3 || (apt -y update && apt install -y python3)
@@ -23,19 +12,12 @@
 
 - name: "Ensure pip installed"
   become: yes
-  raw: "curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py; python3 get-pip.py"
-  
-
-# Uncomment when all servers are on 18.04 LTS
-# - name: "Ensure pip installed"
-#   become: yes
-#   apt:
-#     name:
-#       - python-pip
-#       - python-distutils-extra
-#       # - python3-pip
-#     state: latest
-#     update_cache: yes
+  apt:
+    name:
+      - python-distutils-extra
+      - python3-pip
+    state: latest
+    update_cache: yes
 
 - name: Ensure upgraded pip and ansible pip requirements
   become: yes
@@ -43,6 +25,6 @@
     name:
       - pip
       - jsondiff
-      - pymysql # needed for ansible mysql 
+      - pymysql
     state: latest
     extra_args: --upgrade

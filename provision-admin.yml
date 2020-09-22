@@ -1,8 +1,19 @@
-- hosts: auth
+---
+- name: "Initial setup"
+  hosts: admin
+  become: yes
+  roles:
+    - ansible-requirements
+    - utf8-locale
+    - docker
+  tags:
+    - initial
+
+- hosts: admin
   become: yes
   tasks:
-    # Because the Auth server also hosts the FreeIPA DNS server
-    # We configured it in create-auth.yml with cloudinit network config to use itself as it's DNS server
+    # Because the admin server also hosts the FreeIPA DNS server
+    # We configured it in create-admin.yml with cloudinit network config to use itself as it's DNS server
     # However we haven't created the FreeIPA installation yet so we need to use a temporary nameserver
     - shell: |
         systemctl stop systemd-resolved
@@ -13,7 +24,7 @@
         dest: /etc/resolv.conf
 
 - name: "Ensure IPA server disk mounted and IPA server created"
-  hosts: auth
+  hosts: admin
   become: yes
   roles:
     - role: simple-disk
@@ -26,7 +37,7 @@
     - role: freeipa-server-docker
       vars:
         mount:             "/mnt/data-disk/freeipa"
-        interface_address: "{{ interfaces.auth.net0.addresses[0] }}"
+        interface_address: "{{ ansible_default_ipv4.address }}"
         recursive_dns_trusted_network:
           - 10.0.0.0/8
           - 172.16.0.0/12
@@ -36,20 +47,21 @@
     - "vars/network.yml"
     - "vars/secrets.yml"
 
-- hosts: auth
+- hosts: admin
   become: yes
   tasks:
     # Restore DNS to point at FreeIcaPA localhost DNS
     # allows cloud-init to remain working 
    - copy:
         content: |
-          nameserver {{ interfaces.auth.net0.addresses[0] | ipmath(0) }}
+          nameserver {{ ansible_default_ipv4.address }}
         dest: /etc/resolv.conf
   vars_files:
     - "vars/network.yml"
 
 - name: "Enroll in IPA server"
-  hosts: auth 
+  hosts: admin 
+  become: yes
   roles:
     - role: freeipa-client
       vars:
@@ -60,9 +72,12 @@
     - "vars/freeipa.yml"
     - "vars/network.yml"
     - "vars/secrets.yml"
+  tags:
+    - ipa-enroll
 
 - name: "Setup Keycloak"
-  hosts: auth
+  hosts: admin
+  become: yes
   roles:
     - role: keycloak-docker
       vars:
@@ -71,5 +86,24 @@
     - "vars/keycloak.yml"
     - "vars/freeipa.yml"
     - "vars/secrets.yml"
+  tags:
+    - keycloak
 
 - import_playbook: "setup-internal-dns.yml"
+
+- hosts: admin
+  become: yes
+  roles:
+    - role: admin-api
+      vars:
+        bind_port: "{{ ansible_default_ipv4.address }}:1020"
+        mount: "/mnt/data-disk/admin-api"
+        homedir_mount: "/home/users"
+    - role: admin-ui
+      vars:
+        bind_port: "{{ ansible_default_ipv4.address }}:1021"
+  vars_files:
+    - "vars/admin.yml"
+    - "vars/secrets.yml"
+  tags:
+    - admin
