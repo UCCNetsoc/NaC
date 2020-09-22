@@ -39,6 +39,7 @@
       DISCORD_ROLES: "631196785913888768,720021252676518079"
       DISCORD_PUBLIC_SERVER: "{{ public_server }}"
       DISCORD_PUBLIC_CHANNEL: "{{ public_announcements }}"
+      DISCORD_PUBLIC_GENERAL: "{{ public_general }}"
       DISCORD_PUBLIC_WELCOME: "Welcome to the UCC Netsoc Discord server %s!,Hey %s! Welcome to the Netsoc Discord Server!,Welcome %s!"
       DISCORD_COMMITTEE_SERVER: "{{ committee_server }}"
       DISCORD_COMMITTEE_CHANNEL: "{{ private_events }}"
