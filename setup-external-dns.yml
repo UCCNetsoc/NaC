@@ -134,6 +134,7 @@
         - { type: CNAME, name: portal,                value: 80-443-swarm-ingress.netsoc.co }
         - { type: CNAME, name: tutorial,              value: 80-443-swarm-ingress.netsoc.co }
         - { type: CNAME, name: wiki,                  value: 80-443-swarm-ingress.netsoc.co }
+        - { type: CNAME, name: netsoc.co,             value: 80-443-swarm-ingress.netsoc.co }
 
         # ;; CNAME Records
         - { type: CNAME, name: admin, value: bigbertha.netsoc.co }
@@ -158,7 +159,6 @@
         - { type: CNAME, name: minecraft, value: feynman.netsoc.co }
         - { type: CNAME, name: mysql, value: bigbertha.netsoc.co }
         - { type: CNAME, name: "*", value: bigbertha.netsoc.co }
-        - { type: CNAME, name: netsoc.co, value: bigbertha.netsoc.co }
         - { type: CNAME, name: portainer, value: boole.netsoc.co }
         - { type: CNAME, name: prom, value: bigbertha.netsoc.co }
         - { type: CNAME, name: pterodactyl-daemon, value: lovelace.netsoc.co }
