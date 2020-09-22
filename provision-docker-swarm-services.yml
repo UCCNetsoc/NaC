@@ -283,6 +283,19 @@
   tags:
     - wetty
 
+- name: Deploy Netsoc Discord Bot
+  hosts: docker_swarm_managers[0]
+  become: yes
+  vars_files:
+    - vars/netsocbot.yml
+    - vars/email.yml
+    - vars/secrets.yml
+    - vars/mysql.yml
+  roles: 
+    - netsocbot
+  tags:
+    - bot
+
 # - name: Ensure Consul server directories for data
 #   hosts: docker_swarm
 #   become: yes
@@ -293,7 +306,6 @@
 #         owner: 1000
 #         group: 1000
 #         state: directory 
-
 # - name: Ensure Consul
 #   hosts: docker_swarm_managers[0]
 #   become: yes
@@ -318,19 +330,6 @@
 #     - include: roles/netsocbot/tasks/consul_conf.yml
 #   tags:
 #     - consul
-
-# - name: Deploy Netsoc Discord Bot
-#   hosts: docker_swarm_managers[0]
-#   become: yes
-#   vars_files:
-#     - vars/netsocbot.yml
-#     - vars/email.yml
-#     - vars/secrets.yml
-#     - vars/consul.yml
-#   roles: 
-#     - netsocbot
-#   tags:
-#     - bot
 
 # - name: Ensure Hashicorp Vault
 #   hosts: docker_swarm_managers[0]
