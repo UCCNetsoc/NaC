@@ -1,4 +1,26 @@
 ---
+
+- name: Ensure Discord Bot MySQL Database
+  run_once: true
+  become: yes
+  mysql_db:
+    name: "{{ netsocbot.mysql_database }}"
+    login_host: "{{ mysql_server }}"
+    login_password: "{{ mysql.infra.root_password }}"
+    state: present
+
+- name: Ensure Discord Bot MySQL User
+  run_once: true
+  become: yes
+  mysql_user:
+    name: "{{ netsocbot.mysql_user }}"
+    password: "{{ netsocbot.mysql_password }}"
+    priv: "{{ netsocbot.mysql_database}}.*:ALL"
+    host: "%"
+    login_host: "{{ mysql_server }}"
+    login_password: "{{ mysql.infra.root_password }}"
+    state: present
+
 - name: "Ensure Netsoc Discord Bot deployed"
   become: yes
   docker_swarm_service:
@@ -14,12 +36,15 @@
       - traefik
 
     env:
-      CONSUL_ADDRESS: consul_server:8500
       DISCORD_TOKEN: "{{ netsocbot.discord_token }}"
       DISCORD_ROLES: "631196785913888768,720021252676518079"
+      DISCORD_PUBLIC_SERVER: "{{ public_server }}"
+      DISCORD_PUBLIC_CHANNEL: "{{ public_announcements }}"
+      DISCORD_PUBLIC_WELCOME: "Welcome to the UCC Netsoc Discord server %s!,Hey %s! Welcome to the Netsoc Discord Server!,Welcome %s!"
+      DISCORD_COMMITTEE_SERVER: "{{ committee_server }}"
+      DISCORD_COMMITTEE_CHANNEL: "{{ private_events }}"
       BOT_PREFIX: "!"
       SENDGRID_TOKEN: "{{ sendgrid.apikey }}"
-      CONSUL_TOKEN: "{{ consul.bot_token }}"
       TWITTER_KEY: "{{ netsocbot.twitter_key }}"
       TWITTER_SECRET: "{{ netsocbot.twitter_secret }}"
       TWITTER_ACCESS_KEY: "{{ netsocbot.twitter_access_key }}"

@@ -323,7 +323,7 @@
     - vars/netsocbot.yml
     - vars/email.yml
     - vars/secrets.yml
-    - vars/consul.yml
+    - vars/mysql.yml
   roles: 
     - netsocbot
   tags:
