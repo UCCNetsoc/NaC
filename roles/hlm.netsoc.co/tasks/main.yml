@@ -16,7 +16,7 @@
       - version: '3.7'
         services:
           server:
-            image: docker.netsoc.co/public/hlm.netsoc.co
+            image: uccnetsoc/hlm
             networks:
               traefik:
             secrets:
