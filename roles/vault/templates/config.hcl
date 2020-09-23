@@ -14,8 +14,9 @@ listener "tcp" {
     tls_disable = 1
 }
 
-storage "consul" {
-    address = "consul_bootstrap:8500"
-    path = "hashicorp-vault/"
-    token = "{{ consul.vault_token }}"
+storage "mysql" {
+  username = "{{ hashivault.mysql.user }}"
+  password = "{{ hashivault.mysql.password }}"
+  database = "{{ hashivault.mysql.database }}"
+  address =  "{{ mysql_server }}:3306"
 }
