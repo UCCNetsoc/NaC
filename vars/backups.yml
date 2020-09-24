@@ -1,13 +1,9 @@
-onedrive: "{{ vault_onedrive }}"
-#   access_token 
-#   refresh_token
+gdrive: "{{ vault_gdrive }}"
 #   user_id
+#   client_id
+#   client_secret
+#   cache
 #   location
-
-backups: "{{ vault_backups }}"
-#   sign_key
-#   sign_key_passphrase
-#   encryption_key
 
 backup_hour: "3" # Backups everyday at 3am
 blacklist: 
