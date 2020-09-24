@@ -1,8 +1,9 @@
-- name: "Ensure backup job on proxmox backup host"
+---
+- name: Ensure backup job on proxmox backup host
   hosts: localhost
-  roles: backups
+  roles:
+    - backups
   vars_files:
-    - "vars/secrets.yml"
-    - "vars/webhooks.yml"
-    - "vars/backups.yml"
-
+    - 'vars/secrets.yml'
+    - 'vars/webhooks.yml'
+    - 'vars/backups.yml'
