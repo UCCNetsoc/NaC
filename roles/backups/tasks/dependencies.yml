@@ -1,10 +1,16 @@
 ---
-- name: "Ensure pydrive for duplicity"
+- name: 'Ensure pydrive for duplicity'
   become: yes
   pip:
     name: pydrive
 
-- name: "Ensure duplicity"
+- name: 'Ensure backups directory'
+  become: yes
+  file:
+    name: /backups
+    state: directory
+
+- name: 'Ensure duplicity'
   become: yes
   apt:
     name: duplicity

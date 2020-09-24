@@ -1,37 +1,43 @@
 ---
-- name: "Ensure duplicity config path; credentials"
+- name: 'Ensure duplicity config path'
   file:
-    path: "/root/.duplicity/credentials"
+    path: '/root/.duplicity'
+    state: directory
 
-- name: "Ensure duplicity config path; excludes"
+- name: 'Ensure duplicity config path; credentials'
   file:
-    path: "/root/.duplicity/excludes"
+    path: '/root/.duplicity/credentials'
+    state: touch
 
-- name: "Ensure duplicity config path; gdrive.cache"
+- name: 'Ensure duplicity config path; excludes'
   file:
-    path: "/root/gdrive.cache"
+    path: '/root/.duplicity/excludes'
+    state: touch
 
-- name: "Ensure duplicity OneDrive credentials"
+- name: 'Ensure duplicity config path; gdrive.cache'
+  file:
+    path: '/root/gdrive.cache'
+    state: touch
+
+- name: 'Ensure duplicity OneDrive credentials'
   copy:
     content: |
       client_config_backend: settings
       client_config:
-        client_id: {{ gdrive.client_id }}
-        client_secret: {{ gdrive.client_secret }}
+        client_id: "{{ gdrive.client_id }}"
+        client_secret: "{{ gdrive.client_secret }}"
       save_credentials: True
       save_credentials_backend: file
       save_credentials_file: gdrive.cache
       get_refresh_token: True
-    dest: "/root/.duplicity/credentials"
-    
+    dest: '/root/.duplicity/credentials'
 
-- name: "Ensure duplicity config"
+- name: 'Ensure duplicity config'
   copy:
-    content: {{ gdrive.cache }}
-    dest: "/root/gdrive.cache"
+    content: '{{ gdrive.cache }}'
+    dest: '/root/gdrive.cache'
 
-
-- name: "Ensure backup script on host"
+- name: 'Ensure backup script on host'
   copy:
     content: |
       #!/bin/bash
@@ -42,24 +48,25 @@
           [[ `echo $CONF | jq .virtio1` != "null" ]] && 
           echo "Backing up $VM" && MDIR="/backup/$(echo $CONF | jq -r .name)" && 
           mkdir -p $MDIR && vzdump --compress {{ compress }} $VM --mode snapshot --dumpdir $MDIR --exclude-path /boot ||
-            curl -H "Content-Type: application/json" -X POST -d '{"username": "$(hostname -s)", "content": "Error backing up VM $VM"}' {{ webhooks.discord }};
+            curl -H "Content-Type: application/json" -X POST -d "{\"username": \"$(hostname -s)\", \"content\": \"Error backing up VM $VM\"}" {{ webhooks.discord }};
         done;
-        GOOGLE_DRIVE_SETTINGS=~/.duplicity/credentials duplicity --exclude-filelist ~/.duplicity/excludes /tmp/pterodactyl gdocs://{{ gdrive.user_id }}/{{ gdrive.location }} --no-encryption || 
-          curl -H "Content-Type: application/json" -X POST -d '{"username": "$(hostname -s)", "content": "Error syncing with OneDrive. You may need to update the refresh token in ansible vault :/"}' {{ webhooks.discord }}; 
-        curl -H "Content-Type: application/json" -X POST -d '{"username": "$(hostname -s)", "content": "VM backups completed"}' {{ webhooks.discord }}
+        GOOGLE_DRIVE_SETTINGS=~/.duplicity/credentials duplicity --exclude-filelist ~/.duplicity/excludes /backups gdocs://{{ gdrive.user_id }}/{{ gdrive.location }} --no-encryption || 
+          curl -H "Content-Type: application/json" -X POST -d "{\"username\": \"$(hostname -s)\", \"content\": \"Error syncing with Google Drive. You may need to update the refresh token in ansible vault :/\"}" {{ webhooks.discord }}; 
+        curl -H "Content-Type: application/json" -X POST -d "{\"username\": \"$(hostname -s)\", \"content\": \"VM backups completed\"}" {{ webhooks.discord }}
         rm -rf /root/.duplicity # remove after termination
+        rm /root/gdrive.cache
     dest: /root/backup.sh
     mode: '0755'
 
-- name: "Ensure backup cron job on each host"
+- name: 'Ensure backup cron job on each host'
   cron:
-    user: "root"
-    name: "Run VZdump and duplicity"
-    hour: "{{ backup_hour }}"
-    minute: "0"
+    user: 'root'
+    name: 'Run VZdump and duplicity for {{ item }}'
+    hour: '{{ backup_hour }}'
+    minute: '0'
     job: >
       bash -c "
       scp -r -i /root/NaC/keys/{{ item }}/id_rsa /root/.duplicity netsoc@{{ item }}:/root/.duplicity &&
       ssh -i /root/NaC/keys/{{ item }}/id_rsa netsoc@{{ item }} 'bash -s' < /root/backup.sh" ||
       ssh -i /root/NaC/keys/{{ item }}/id_rsa netsoc@{{ item }} -p 2222 'bash -s' < /root/backup.sh"
-  loop: "{{ proxmox_hosts }}"
+  loop: "{{ groups['proxmox_hosts'] }}"
