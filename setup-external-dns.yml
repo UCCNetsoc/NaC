@@ -172,7 +172,7 @@
         # - { type: CNAME, name: wiki, value: bigbertha.netsoc.co }
         - { type: CNAME, name: www.*.evan, value: leela.netsoc.co }
         - { type: CNAME, name: www.*, value: bigbertha.netsoc.co }
-        - { type: CNAME, name: www, value: bigbertha.netsoc.co }
+        - { type: CNAME, name: www, value: netsoc.co }
         - { type: CNAME, name: www.warpcon.co, value: leela.netsoc.co }
 
         # MX
