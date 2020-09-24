@@ -9,53 +9,26 @@
 
 - name: "Ensure duplicity config path; gdrive.cache"
   file:
-    path: "/root/.duplicity/gdrive.cache"
+    path: "/root/gdrive.cache"
 
 - name: "Ensure duplicity OneDrive credentials"
   copy:
     content: |
-      {
-        "token_type": "bearer",
-        "expires_in": 36000,
-        "scope": [
-          "Files.Read",
-          "Files.ReadWrite",
-          "User.Read"
-        ],
-        "access_token": "{{ onedrive.access_token }}",
-        "refresh_token": "{{ onedrive.refresh_token }}",
-        "user_id": "{{ onedrive.user_id }}",
-        "expires_at": 1996659305.829954
-      }
+      client_config_backend: settings
+      client_config:
+        client_id: {{ gdrive.client_id }}
+        client_secret: {{ gdrive.client_secret }}
+      save_credentials: True
+      save_credentials_backend: file
+      save_credentials_file: gdrive.cache
+      get_refresh_token: True
+    dest: "/root/.duplicity/credentials"
     
 
 - name: "Ensure duplicity config"
   copy:
-    content: |
-      # Folder to backup
-      ROOT="/backup"
-      # Destination
-      DEST="onedrive://{{ onedrive.location }}"
-
-      # Password for ssh key
-      FTP_PASSWORD=""
-
-      INCLIST=( "*" )
-      EXCLIST=( "" )
-
-      #Passphrase for Signing key
-      PASSPHRASE="{{ backup.sign_key_passphrase }}"
-      # Encryption key
-      GPG_ENC_KEY="{{ backup.encryption_key }}"
-      # Signing key
-      GPG_SIGN_KEY="{{ backup.sign_key }}"
-
-      STATIC_OPTIONS="--full-if-older-than 14D --s3-use-new-style"
-
-      LOGDIR="/var/log/"
-      LOG_FILE="duplicity-$(date +%Y-%m-%d_%H-%M).txt"
-      LOG_FILE_OWNER="root:root"
-    dest: "/root/.duplicity/duplicity-backup.conf"
+    content: {{ gdrive.cache }}
+    dest: "/root/gdrive.cache"
 
 
 - name: "Ensure backup script on host"
@@ -71,7 +44,7 @@
           mkdir -p $MDIR && vzdump --compress {{ compress }} $VM --mode snapshot --dumpdir $MDIR --exclude-path /boot ||
             curl -H "Content-Type: application/json" -X POST -d '{"username": "$(hostname -s)", "content": "Error backing up VM $VM"}' {{ webhooks.discord }};
         done;
-        duplicity-backup.sh --config /root/.dupliticy/duplicity-backup.conf --full || 
+        GOOGLE_DRIVE_SETTINGS=~/.duplicity/credentials duplicity --exclude-filelist ~/.duplicity/excludes /tmp/pterodactyl gdocs://{{ gdrive.user_id }}/{{ gdrive.location }} --no-encryption || 
           curl -H "Content-Type: application/json" -X POST -d '{"username": "$(hostname -s)", "content": "Error syncing with OneDrive. You may need to update the refresh token in ansible vault :/"}' {{ webhooks.discord }}; 
         curl -H "Content-Type: application/json" -X POST -d '{"username": "$(hostname -s)", "content": "VM backups completed"}' {{ webhooks.discord }}
         rm -rf /root/.duplicity # remove after termination
