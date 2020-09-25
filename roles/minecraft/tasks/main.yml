@@ -48,7 +48,7 @@
       TYPE: "PAPER"
       INIT_MEMORY: 1G
       MAX_MEMORY: 5G
-      VERSION: "1.16.2"
+      VERSION: "1.16.3"
       JVM_XX_OPTS: "-Xtune:virtualized -Xgc:concurrentScavenge -Xgc:dnssExpectedTimeRatioMaximum=3 -Xgc:scvNoAdaptiveTenure -Xdisableexplicitgc"
     ports:
       - "25565:25565"
