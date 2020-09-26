@@ -3,6 +3,7 @@
   become: yes
   apt:
     name: python-pip
+
 - name: 'Ensure pydrive for duplicity'
   become: yes
   pip:
