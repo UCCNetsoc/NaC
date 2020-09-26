@@ -13,7 +13,7 @@
 - name: 'Ensure backups directory'
   become: yes
   file:
-    name: /backups
+    name: '{{ backup.directory }}'
     state: directory
 
 - name: 'Ensure duplicity'

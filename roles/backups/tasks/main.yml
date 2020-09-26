@@ -48,7 +48,7 @@
           [[ `echo $CONF | jq .virtio1` != "null" ]] && 
           echo "Backing up $VM" && MDIR="{{ backup.directory }}/$(echo $CONF | jq -r .name)" && 
           mkdir -p $MDIR && vzdump --compress {{ compress }} $VM --mode {{ mode }} --dumpdir $MDIR --exclude-path /boot ||
-            curl -H "Content-Type: application/json" -X POST -d "{\"username": \"$(hostname -s)\", \"content\": \"Error backing up VM $VM\"}" {{ webhooks.discord }};
+            curl -H "Content-Type: application/json" -X POST -d "{\"username\": \"$(hostname -s)\", \"content\": \"Error backing up VM $VM\"}" {{ webhooks.discord }};
         done;
         GOOGLE_DRIVE_SETTINGS=~/.duplicity/credentials duplicity --exclude-filelist ~/.duplicity/excludes {{ backup.directory }} gdocs://{{ gdrive.user_id }}/{{ gdrive.location }} --no-encryption || 
           curl -H "Content-Type: application/json" -X POST -d "{\"username\": \"$(hostname -s)\", \"content\": \"Error syncing with Google Drive. You may need to update the refresh token in ansible vault :/\"}" {{ webhooks.discord }}; 
@@ -57,6 +57,19 @@
         rm /root/gdrive.cache
     dest: /root/backup.sh
     mode: '0755'
+
+- name: 'Ensure backup cron job on control host'
+  cron:
+    user: 'root'
+    name: 'Run VZdump and duplicity for control host'
+    hour: '{{ backup.hour }}'
+    minute: '{{ backup.minute }}'
+    job: >
+      bash -c "
+      scp -r -i {{ nac }}/keys/{{ control.name }}/id_rsa -P {{ control.port }} /root/.duplicity root@{{ control.host }}:/root/.duplicity &&
+      scp -i {{ nac }}/keys/{{ control.name }}/id_rsa -P {{ control.port }} /root/backup.sh root@{{ control.host }}:/root/backup.sh &&
+      ssh -i {{ nac }}/keys/{{ control.name }}/id_rsa root@{{ control.host }} -p {{ control.port }} /root/backup.sh
+      "
 
 - name: 'Ensure backup cron job on each host'
   cron:
@@ -67,10 +80,14 @@
     job: >
       bash -c "
       scp -r -i {{ nac }}/keys/{{ control.name }}/id_rsa -P {{ control.port }} /root/.duplicity root@{{ control.host }}:/root/.duplicity &&
+      scp -i {{ nac }}/keys/{{ control.name }}/id_rsa -P {{ control.port }} /root/backup.sh root@{{ control.host }}:/root/backup.sh &&
       ssh -i {{ nac }}/keys/{{ control.name }}/id_rsa root@{{ control.host }} -p {{ control.port }} '
         scp -r /root/.duplicity root@{{ item }}:/root/.duplicity &&
-        ssh -i {{ nac }}/keys/{{ item }}/id_rsa root@{{ item }} \'bash -s\' < /root/backup.sh &&
-        /root/backup.sh
-      '"
+        scp /root/backup.sh root@{{ item }}:/root/backup.sh &&
+        ssh -i {{ nac }}/keys/{{ item }}/id_rsa root@{{ item }} /root/backup.sh &&
+        rm -rf /root/.duplicity &&
+        rm /root/gdrive.cache
+        '
+      "
   when: item != control.name
   loop: "{{ groups['proxmox_hosts'] }}"
