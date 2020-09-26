@@ -5,7 +5,10 @@ gdrive: '{{ vault_gdrive }}'
 #   cache
 #   location
 
-backup_hour: '3' # Backups everyday at 3am
+backup:
+  hour: '3' # Backups everyday at 3am
+  minute: '0'
+  directory: '/backups'
 blacklist:
   - 'router.vm.netsoc.co'
 compress: 'lzo'
