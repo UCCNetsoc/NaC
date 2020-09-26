@@ -42,19 +42,19 @@
     content: |
       #!/bin/bash
       for VM in $(qm list --full | 
-      awk '/vm.netsoc.co/ { if ($2 ~ !/"{{ blacklist | join('|') }}"/) { printf "%s\n\n", $1; } }') ;
+      awk '/vm.netsoc.co/ { if ($2 !~ /"{{ blacklist | join('|') }}"/) { printf "%s\n\n", $1; } }') ;
         do CONF=`pvesh get /nodes/$(hostname -s)/qemu/$VM/config --output-format=json` &&
           [[ `echo $CONF | jq .virtio0` != "null" ]] && [[ `echo $CONF | jq .virtio0` != *"backup=0"* ]] && pvesh set /nodes/$(hostname -s)/qemu/$VM/config -virtio0 `echo $CONF | jq -r .virtio0`,backup=0 && sleep 5;
           [[ `echo $CONF | jq .virtio1` != "null" ]] && 
           echo "Backing up $VM" && MDIR="{{ backup.directory }}/$(echo $CONF | jq -r .name)" && 
-          mkdir -p $MDIR && vzdump --compress {{ compress }} $VM --mode {{ mode }} --dumpdir $MDIR --exclude-path /boot ||
-            curl -H "Content-Type: application/json" -X POST -d "{\"username\": \"$(hostname -s)\", \"content\": \"Error backing up VM $VM\"}" {{ webhooks.discord }};
+          mkdir -p $MDIR && (vzdump --compress {{ compress }} $VM --mode {{ mode }} --dumpdir $MDIR --exclude-path /boot ||
+            curl -H "Content-Type: application/json" -X POST -d "{\"username\": \"$(hostname -s)\", \"content\": \"Error backing up VM $VM\"}" {{ webhooks.discord }});
         done;
-        GOOGLE_DRIVE_SETTINGS=~/.duplicity/credentials duplicity --exclude-filelist ~/.duplicity/excludes {{ backup.directory }} gdocs://{{ gdrive.user_id }}/{{ gdrive.location }} --no-encryption || 
-          curl -H "Content-Type: application/json" -X POST -d "{\"username\": \"$(hostname -s)\", \"content\": \"Error syncing with Google Drive. You may need to update the refresh token in ansible vault :/\"}" {{ webhooks.discord }}; 
-        curl -H "Content-Type: application/json" -X POST -d "{\"username\": \"$(hostname -s)\", \"content\": \"VM backups completed\"}" {{ webhooks.discord }}
-        rm -rf /root/.duplicity # remove after termination
-        rm /root/gdrive.cache
+      GOOGLE_DRIVE_SETTINGS=~/.duplicity/credentials duplicity --exclude-filelist ~/.duplicity/excludes {{ backup.directory }} gdocs://{{ gdrive.user_id }}/{{ gdrive.location }} --no-encryption || 
+        curl -H "Content-Type: application/json" -X POST -d "{\"username\": \"$(hostname -s)\", \"content\": \"Error syncing with Google Drive. You may need to update the refresh token in ansible vault :/\"}" {{ webhooks.discord }}; 
+      curl -H "Content-Type: application/json" -X POST -d "{\"username\": \"$(hostname -s)\", \"content\": \"VM backups completed\"}" {{ webhooks.discord }}
+      rm -rf /root/.duplicity # remove after termination
+      rm /root/gdrive.cache
     dest: /root/backup.sh
     mode: '0755'
 
