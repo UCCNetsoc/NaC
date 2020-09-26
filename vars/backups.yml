@@ -10,3 +10,8 @@ blacklist:
   - 'router.vm.netsoc.co'
 compress: 'lzo'
 nac: '/root/NaC'
+mode: snapshot
+control:
+  host: 'feynman.netsoc.co'
+  name: 'feynman'
+  port: '2222'

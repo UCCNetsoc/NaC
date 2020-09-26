@@ -1,7 +1,12 @@
 ---
+- name: 'Ensure pip2'
+  become: yes
+  apt:
+    name: python-pip
 - name: 'Ensure pydrive for duplicity'
   become: yes
   pip:
+    executable: /usr/bin/pip2
     name: pydrive
 
 - name: 'Ensure backups directory'

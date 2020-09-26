@@ -28,7 +28,7 @@
         client_secret: "{{ gdrive.client_secret }}"
       save_credentials: True
       save_credentials_backend: file
-      save_credentials_file: gdrive.cache
+      save_credentials_file: /root/gdrive.cache
       get_refresh_token: True
     dest: '/root/.duplicity/credentials'
 
@@ -46,8 +46,8 @@
         do CONF=`pvesh get /nodes/$(hostname -s)/qemu/$VM/config --output-format=json` &&
           [[ `echo $CONF | jq .virtio0` != "null" ]] && [[ `echo $CONF | jq .virtio0` != *"backup=0"* ]] && pvesh set /nodes/$(hostname -s)/qemu/$VM/config -virtio0 `echo $CONF | jq -r .virtio0`,backup=0 && sleep 5;
           [[ `echo $CONF | jq .virtio1` != "null" ]] && 
-          echo "Backing up $VM" && MDIR="/backup/$(echo $CONF | jq -r .name)" && 
-          mkdir -p $MDIR && vzdump --compress {{ compress }} $VM --mode snapshot --dumpdir $MDIR --exclude-path /boot ||
+          echo "Backing up $VM" && MDIR="/backups/$(echo $CONF | jq -r .name)" && 
+          mkdir -p $MDIR && vzdump --compress {{ compress }} $VM --mode {{ mode }} --dumpdir $MDIR --exclude-path /boot ||
             curl -H "Content-Type: application/json" -X POST -d "{\"username": \"$(hostname -s)\", \"content\": \"Error backing up VM $VM\"}" {{ webhooks.discord }};
         done;
         GOOGLE_DRIVE_SETTINGS=~/.duplicity/credentials duplicity --exclude-filelist ~/.duplicity/excludes /backups gdocs://{{ gdrive.user_id }}/{{ gdrive.location }} --no-encryption || 
@@ -66,7 +66,11 @@
     minute: '0'
     job: >
       bash -c "
-      scp -r -i {{ nac }}/keys/{{ item }}/id_rsa /root/.duplicity netsoc@{{ item }}:/root/.duplicity &&
-      ssh -i {{ nac }}/keys/{{ item }}/id_rsa netsoc@{{ item }} 'bash -s' < /root/backup.sh" ||
-      ssh -i {{ nac }}/keys/{{ item }}/id_rsa netsoc@{{ item }} -p 2222 'bash -s' < /root/backup.sh"
+      scp -r -i {{ nac }}/keys/{{ control.name }}/id_rsa -P {{ control.port }} /root/.duplicity root@{{ control.host }}:/root/.duplicity &&
+      ssh -i {{ nac }}/keys/{{ control.name }}/id_rsa root@{{ control.host }} -p {{ control.port }} '
+        scp -r /root/.duplicity root@{{ item }}:/root/.duplicity &&
+        ssh -i {{ nac }}/keys/{{ item }}/id_rsa root@{{ item }} \'bash -s\' < /root/backup.sh &&
+        /root/backup.sh
+      '"
+  when: item != control.name
   loop: "{{ groups['proxmox_hosts'] }}"
