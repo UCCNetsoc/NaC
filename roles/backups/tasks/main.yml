@@ -16,7 +16,7 @@
 
 - name: 'Ensure duplicity config path; gdrive.cache'
   file:
-    path: '/root/gdrive.cache'
+    path: '/root/.duplicity/gdrive.cache'
     state: touch
 
 - name: 'Ensure duplicity OneDrive credentials'
@@ -28,7 +28,7 @@
         client_secret: "{{ gdrive.client_secret }}"
       save_credentials: True
       save_credentials_backend: file
-      save_credentials_file: /root/gdrive.cache
+      save_credentials_file: /root/.duplicity/gdrive.cache
       get_refresh_token: True
     dest: '/root/.duplicity/credentials'
 
@@ -50,7 +50,7 @@
           mkdir -p $MDIR && (vzdump --compress {{ compress }} $VM --mode {{ mode }} --dumpdir $MDIR --exclude-path /boot ||
             curl -H "Content-Type: application/json" -X POST -d "{\"username\": \"$(hostname -s)\", \"content\": \"Error backing up VM $VM\"}" {{ webhooks.discord }});
         done;
-      GOOGLE_DRIVE_SETTINGS=~/.duplicity/credentials duplicity --exclude-filelist ~/.duplicity/excludes {{ backup.directory }} gdocs://{{ gdrive.user_id }}/{{ gdrive.location }} --no-encryption || 
+      GOOGLE_DRIVE_SETTINGS=~/.duplicity/credentials duplicity --exclude-filelist ~/.duplicity/excludes {{ backup.directory }} gdocs://{{ gdrive.user_id }}/{{ gdrive.location }}/$(hostname -s) --no-encryption || 
         curl -H "Content-Type: application/json" -X POST -d "{\"username\": \"$(hostname -s)\", \"content\": \"Error syncing with Google Drive. You may need to update the refresh token in ansible vault :/\"}" {{ webhooks.discord }}; 
       curl -H "Content-Type: application/json" -X POST -d "{\"username\": \"$(hostname -s)\", \"content\": \"VM backups completed\"}" {{ webhooks.discord }}
       rm -rf /root/.duplicity # remove after termination
