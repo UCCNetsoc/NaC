@@ -1,0 +1,30 @@
+---
+- name: 'Ensure pip2'
+  become: yes
+  apt:
+    name: python-pip
+
+- name: 'Pin httplib2<0.16.0 to ensure duplicity works'
+  pip:
+    executable: /usr/bin/pip2
+    name: httplib2
+    version: '0.14.0'
+
+- name: 'Ensure pydrive for duplicity'
+  become: yes
+  pip:
+    executable: /usr/bin/pip2
+    name: pydrive
+
+- name: 'Ensure backups directory'
+  become: yes
+  file:
+    name: '{{ backup.directory }}'
+    state: directory
+
+- name: 'Ensure duplicity'
+  become: yes
+  apt:
+    name: duplicity
+    state: latest
+    update_cache: yes

@@ -1,0 +1,20 @@
+gdrive: '{{ vault_gdrive }}'
+#   user_id
+#   client_id
+#   client_secret
+#   cache
+#   location
+
+backup:
+  hour: 3 # Backups everyday start at 3am
+  minute: 0
+  directory: '/backups'
+blacklist:
+  - 'router.vm.netsoc.co'
+compress: 'lzo'
+nac: '/root/NaC'
+mode: snapshot
+control:
+  host: 'feynman.netsoc.co'
+  name: 'feynman'
+  port: '2222'
