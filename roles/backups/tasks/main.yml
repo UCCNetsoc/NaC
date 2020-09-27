@@ -35,7 +35,7 @@
 - name: 'Ensure duplicity config'
   copy:
     content: '{{ gdrive.cache }}'
-    dest: '/root/gdrive.cache'
+    dest: '/root/.duplicity/gdrive.cache'
 
 - name: 'Ensure backup script on host'
   copy:
@@ -74,18 +74,20 @@
   cron:
     user: 'root'
     name: 'Run VZdump and duplicity for {{ item }}'
-    hour: '{{ backup.hour }}'
+    hour: '{{ backup.hour + index }}'
     minute: '{{ backup.minute }}'
     job: >
       bash -c "
       scp -r -i {{ nac }}/keys/{{ control.name }}/id_rsa -P {{ control.port }} /root/.duplicity root@{{ control.host }}:/root/.duplicity &&
       scp -i {{ nac }}/keys/{{ control.name }}/id_rsa -P {{ control.port }} /root/backup.sh root@{{ control.host }}:/root/backup.sh &&
-      ssh -i {{ nac }}/keys/{{ control.name }}/id_rsa root@{{ control.host }} -p {{ control.port }} '
-        scp -r /root/.duplicity root@{{ item }}:/root/.duplicity &&
-        scp /root/backup.sh root@{{ item }}:/root/backup.sh &&
-        ssh -i {{ nac }}/keys/{{ item }}/id_rsa root@{{ item }} /root/backup.sh &&
-        rm -rf /root/.duplicity
-        '
+      ssh -i {{ nac }}/keys/{{ control.name }}/id_rsa root@{{ control.host }} -p {{ control.port }} \"
+      scp -r /root/.duplicity root@{{ item }}:/root/.duplicity &&
+      scp /root/backup.sh root@{{ item }}:/root/backup.sh &&
+      ssh root@{{ item }} /root/backup.sh &&
+      rm -rf /root/.duplicity
+      \"
       "
   when: item != control.name
   loop: "{{ groups['proxmox_hosts'] }}"
+  loop_control:
+    index_var: index
