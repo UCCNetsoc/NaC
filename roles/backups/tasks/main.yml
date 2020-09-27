@@ -54,7 +54,6 @@
         curl -H "Content-Type: application/json" -X POST -d "{\"username\": \"$(hostname -s)\", \"content\": \"Error syncing with Google Drive. You may need to update the refresh token in ansible vault :/\"}" {{ webhooks.discord }}; 
       curl -H "Content-Type: application/json" -X POST -d "{\"username\": \"$(hostname -s)\", \"content\": \"VM backups completed\"}" {{ webhooks.discord }}
       rm -rf /root/.duplicity # remove after termination
-      rm /root/gdrive.cache
     dest: /root/backup.sh
     mode: '0755'
 
@@ -85,8 +84,7 @@
         scp -r /root/.duplicity root@{{ item }}:/root/.duplicity &&
         scp /root/backup.sh root@{{ item }}:/root/backup.sh &&
         ssh -i {{ nac }}/keys/{{ item }}/id_rsa root@{{ item }} /root/backup.sh &&
-        rm -rf /root/.duplicity &&
-        rm /root/gdrive.cache
+        rm -rf /root/.duplicity
         '
       "
   when: item != control.name
