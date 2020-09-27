@@ -68,7 +68,7 @@
       scp -r -i {{ nac }}/keys/{{ control.name }}/id_rsa -P {{ control.port }} /root/.duplicity root@{{ control.host }}:/root/.duplicity &&
       scp -i {{ nac }}/keys/{{ control.name }}/id_rsa -P {{ control.port }} /root/backup.sh root@{{ control.host }}:/root/backup.sh &&
       ssh -i {{ nac }}/keys/{{ control.name }}/id_rsa root@{{ control.host }} -p {{ control.port }} /root/backup.sh
-      "
+      " >> /var/log/backup-{{ control.name }}.log
 
 - name: 'Ensure backup cron job on each host'
   cron:
@@ -86,7 +86,7 @@
       ssh root@{{ item }} /root/backup.sh &&
       rm -rf /root/.duplicity
       \"
-      "
+      " >> /var/log/backup-{{ item }}.log
   when: item != control.name
   loop: "{{ groups['proxmox_hosts'] }}"
   loop_control:
