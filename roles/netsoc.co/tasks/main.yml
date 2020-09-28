@@ -25,7 +25,10 @@
                 - "traefik.http.middlewares.rk-redirect.redirectregex.replacement=https://{{ co_site }}/rk/$${1}"
                 - "traefik.http.middlewares.rk-redirect.redirectregex.permanent=true"
                 - "traefik.http.middlewares.rk-strip.stripprefix.prefixes=/rk"
-                - "traefik.http.routers.netsoc_co.middlewares=rk-redirect@docker,rk-strip@docker"
+                - "traefik.http.middlewares.www-redirect.redirectregex.regex=^https://www.{{ co_site }}/(.*)"
+                - "traefik.http.middlewares.www-redirect.redirectregex.replacement=https://{{ co_site }}/$${1}"
+                - "traefik.http.middlewares.www-redirect.redirectregex.permanent=true"
+                - "traefik.http.routers.netsoc_co.middlewares=rk-redirect@docker,rk-strip@docker,www-redirect@docker"
                 - "traefik.docker.network=traefik"
               restart_policy:
                 condition: any
