@@ -123,3 +123,17 @@
   vars_files:
     - "vars/unit.yml"
     - "vars/secrets.yml"
+
+- name: "Ensure SSH Password Auth is enabled"
+  hosts: portal
+  become: yes
+  tasks:
+    - name: "Edit sshd_config"
+      replace:
+        path: /etc/ssh/sshd_config
+        regexp: '^PasswordAuthentication\s+no'
+        replace: 'PasswordAuthentication yes'
+    - name: "Restart sshd"
+      systemd:
+        name: sshd
+        state: reloaded
