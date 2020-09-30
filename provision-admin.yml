@@ -94,11 +94,11 @@
 - hosts: admin
   become: yes
   roles:
-#     - role: admin-api
-#       vars:
-#         bind_port: "{{ ansible_default_ipv4.address }}:1020"
-#         mount: "/mnt/data-disk/admin-api"
-#         homedir_mount: "/home/users"
+    - role: admin-api
+      vars:
+        bind_port: "{{ ansible_default_ipv4.address }}:1020"
+        mount: "/mnt/data-disk/admin-api"
+        homedir_mount: "/home/users"
     - role: admin-ui
       vars:
         bind_port: "{{ ansible_default_ipv4.address }}:1021"
