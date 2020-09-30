@@ -20,6 +20,7 @@
     name: admin-api
     image: uccnetsoc/admin-api:latest
     entrypoint: /start.sh 
+    restart: yes
     pull: yes
     ports:
       - "{{ bind_port }}:80"
