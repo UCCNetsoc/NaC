@@ -6,7 +6,8 @@ gdrive: '{{ vault_gdrive }}'
 #   location
 
 backup:
-  hour: 3 # Backups everyday start at 3am
+  weekday: 4 # Day of the week that the job should run ( 0-6 for Sunday-Saturday, *, etc ).
+  hour: 3 
   minute: 0
   directory: '/backups'
 blacklist:
