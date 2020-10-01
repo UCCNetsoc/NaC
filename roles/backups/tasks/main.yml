@@ -61,6 +61,7 @@
   cron:
     user: 'root'
     name: 'Run VZdump and duplicity for control host'
+    weekday: '{{ backup.weekday }}'
     hour: '{{ backup.hour }}'
     minute: '{{ backup.minute }}'
     job: >
@@ -74,6 +75,7 @@
   cron:
     user: 'root'
     name: 'Run VZdump and duplicity for {{ item }}'
+    weekday: '{{ backup.weekday }}'
     hour: '{{ backup.hour + index }}'
     minute: '{{ backup.minute }}'
     job: >
