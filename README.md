@@ -1,4 +1,5 @@
-# Netsoc Ansible
+<img src="https://github.com/UCCNetsoc/wiki/raw/master/assets/logo-service-nac.svg" width="360"/>
+
 
 ## I'm a new SysAdmin, what the heck do I do?
 
