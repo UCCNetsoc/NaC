@@ -42,6 +42,13 @@
         state: present
       with_items: "{{ sysadmins }}"
 
+    - name: Enable SSH-Agent Forwarding
+      become: yes
+      replace:
+        path: /etc/ssh/sshd_config
+        regexp: '^.*AllowAgentForwarding.*$'
+        replace: 'AllowAgentForwarding yes'
+
     - name: Add SysAdmins to sudo
       lineinfile:
         path: /etc/sudoers
