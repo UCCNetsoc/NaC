@@ -41,7 +41,7 @@
     image: itzg/minecraft-server:openj9
     name: minecraft-{{ item }}
     state: started
-    restart_policy: on-failure
+    restart_policy: unless-stopped
     memory: 6.5G
     env:
       EULA: "TRUE"
