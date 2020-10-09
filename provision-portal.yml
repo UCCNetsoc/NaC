@@ -131,7 +131,7 @@
     - name: "Edit sshd_config"
       replace:
         path: /etc/ssh/sshd_config
-        regexp: '^PasswordAuthentication\s+no'
+        regexp: '^.*PasswordAuthentication.*$'
         replace: 'PasswordAuthentication yes'
     - name: "Restart sshd"
       systemd:
