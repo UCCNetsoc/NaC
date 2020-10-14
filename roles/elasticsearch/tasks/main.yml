@@ -10,8 +10,6 @@
   become: yes
   file:
     path: /storage/docker/elasticsearch
-    owner: netsoc
-    group: netsoc
     mode: 0777
     state: directory
 
