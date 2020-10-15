@@ -1,0 +1,129 @@
+---
+- name: Ensure Loki config file
+  file:
+    path: /storage/docker/loki/config.yaml
+    mode: 0777
+    recurse: yes
+    state: file
+    content: |
+      auth_enabled: false
+      server:
+        http_listen_port: 3100
+
+      ingester:
+        lifecycler:
+          address: 127.0.0.1
+          ring:
+            kvstore:
+              store: inmemory
+            replication_factor: 1
+          final_sleep: 0s
+        chunk_idle_period: 5m
+        chunk_retain_period: 30s
+        max_transfer_retries: 0
+
+      schema_config:
+        configs:
+          - from: 2018-04-15
+            store: boltdb
+            object_store: filesystem
+            schema: v11
+            index:
+              prefix: index_
+              period: 168h
+
+      storage_config:
+        boltdb:
+          directory: /tmp/loki/index
+
+        filesystem:
+          directory: /tmp/loki/chunks
+
+      limits_config:
+        enforce_metric_name: false
+        reject_old_samples: true
+        reject_old_samples_max_age: 168h
+
+      chunk_store_config:
+        max_look_back_period: 0s
+
+      table_manager:
+        retention_deletes_enabled: false
+        retention_period: 0s
+
+- name: Ensure fluentd config file
+  file:
+    path: /storage/docker/fludentd/loki.yaml
+    mode: 0777
+    recurse: yes
+    state: file
+    content: |
+      <match loki.**>
+        @type loki
+        url "#{ENV['LOKI_URL']}"
+        extra_labels {"job":"fluentd"}
+        <buffer>
+          flush_interval 10s
+          flush_at_shutdown true
+        </buffer>
+      </match>
+
+- name: Ensure Loki network
+  docker_network:
+    name: loki
+    driver: overlay
+    attachable: yes
+    appends: yes
+
+- name: Ensure Grafana Loki & fluentd
+  docker_stack:
+    state: present
+    name: loki
+    compose:
+      - version: '3.5'
+        networks:
+          traefik:
+            external: true
+          loki:
+            external: true
+        services:
+          loki:
+            command: -config.file=/loki/config.yaml
+            image: grafana/loki:1.6.0
+            container_name: loki
+            volumes:
+              - /storage/docker/loki:/loki
+            networks:
+              - loki
+            deploy:
+              mode: global
+              restart-policy:
+                condition: any
+                delay: 5s
+                max_attempts: 5
+          fluentd:
+            image: grafana/fluent-plugin-loki:master
+            command:
+              - "fluentd"
+              - "-v"
+              - "-p"
+              - "/fluentd/plugins"
+            environment:
+              LOKI_URL: http://loki:3100
+            deploy:
+              mode: global
+            configs:
+              - source: loki_config
+                target: /fluentd/etc/loki/loki.conf
+            networks:
+              - loki
+            volumes:
+              - host_logs:/var/log
+              # Needed for journald log ingestion:
+              - /etc/machine-id:/etc/machine-id
+              - /dev/log:/dev/log
+              - /var/run/systemd/journal/:/var/run/systemd/journal/
+              - /storage/docker/fluentd:/fluentd/etc/loki
+            logging:
+              options:
+                tag: infra.monitoring

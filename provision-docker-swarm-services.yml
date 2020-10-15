@@ -398,5 +398,6 @@
   hosts: docker_swarm_managers[0]
   become: yes
   roles:
-    - elasticsearch
-
+    - loki
+  tags:
+    - logging
