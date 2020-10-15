@@ -33,7 +33,10 @@
       max_attempts: 10
     networks:
       - traefik
-
+    logging:
+      driver: fluentd
+      options:
+        tag: loki.discord-bot
     env:
       DISCORD_TOKEN: "{{ netsocbot.discord_token }}"
       DISCORD_ROLES: "631196785913888768,720021252676518079"

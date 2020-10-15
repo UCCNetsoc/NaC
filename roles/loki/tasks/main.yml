@@ -58,6 +58,19 @@
     recurse: yes
     state: file
     content: |
+      <filter loki.**>
+        @type parser
+        format json # apache2, nginx, etc...
+        key_name log
+        reserve_data true
+      </filter>
+      <filter loki.**>
+        @type concat
+        key log
+        stream_identity_key container_id
+        multiline_start_regexp /^-e:2:in `\/'/
+        multiline_end_regexp /^-e:4:in/
+      </filter>
       <match loki.**>
         @type loki
         url "#{ENV['LOKI_URL']}"

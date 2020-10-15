@@ -11,6 +11,10 @@
             image: uccnetsoc/netsoc.co:latest
             networks:
               traefik:
+            logging:
+              driver: fluentd
+              options:
+                tag: loki.website
             deploy:
               mode: replicated
               replicas: 1
