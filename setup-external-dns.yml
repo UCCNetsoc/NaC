@@ -4,6 +4,104 @@
   connection: local
   tasks:
     - set_fact:
+        records:
+          "netsoc.dev":
+            # A
+            - { type: A,      name: "bigbertha",      value: "84.39.234.50" }
+            - { type: A,      name: "boole",          value: "84.39.234.54" }
+            - { type: A,      name: "feynman",        value: "84.39.234.53" }
+            - { type: A,      name: "leela",          value: "84.39.234.51" }
+            - { type: A,      name: "lovelace",       value: "84.39.234.52" }
+
+            - { type: A,      name: 80-443-swarm-ingress,  value: "84.39.234.53" }
+
+            # CNAMEs
+            - { type: CNAME,  name: "netsoc.dev",       value: "traefik.netsoc.dev" }
+            - { type: CNAME,  name: grafana,            value: "bigbertha.netsoc.dev" }
+
+            - { type: CNAME,  name: traefik,               value: 80-443-swarm-ingress.netsoc.dev }
+            - { type: CNAME,  name: "*",        value: traefik.netsoc.dev              }
+            - { type: CNAME,  name: "www.*",      value: traefik.netsoc.dev              }
+            - { type: CNAME,  name: ipa,                   value: traefik.netsoc.dev              }
+            - { type: CNAME,  name: ci,                    value: traefik.netsoc.dev              }
+            - { type: CNAME,  name: keycloak,              value: traefik.netsoc.dev              }
+            - { type: CNAME,  name: portainer,             value: traefik.netsoc.dev              }
+            - { type: CNAME,  name: prometheus,            value: traefik.netsoc.dev              }
+          "netsoc.co":
+            # A
+            - { type: A,      name: "bigbertha",      value: "84.39.234.50" }
+            - { type: A,      name: "boole",          value: "84.39.234.54" }
+            - { type: A,      name: "feynman",        value: "84.39.234.53" }
+            - { type: A,      name: "leela",          value: "84.39.234.51" }
+            - { type: A,      name: "lovelace",       value: "84.39.234.52" }
+            - { type: A,      name: "elon",           value: "143.239.87.40" }
+            - { type: A,      name: "tesla",          value: "143.239.87.41" }
+
+            - { type: A,      name: "ns1",            value: "84.39.234.50" }   # Legacy
+            - { type: A,      name: "ns2",            value: "84.39.234.52" }
+
+            # New - post proxmoxification
+            - { type: A,     name: 80-443-swarm-ingress,  value: "84.39.234.53" }
+            - { type: CNAME, name: portal,                value: 80-443-swarm-ingress.netsoc.co }
+            - { type: CNAME, name: tutorial,              value: 80-443-swarm-ingress.netsoc.co }
+            - { type: CNAME, name: blog,                  value: 80-443-swarm-ingress.netsoc.co }
+            - { type: CNAME, name: wiki,                  value: 80-443-swarm-ingress.netsoc.co }
+            - { type: CNAME, name: netsoc.co,             value: 80-443-swarm-ingress.netsoc.co }
+
+            # ;; CNAME Records
+            - { type: CNAME, name: admin, value: bigbertha.netsoc.co }
+            - { type: CNAME, name: alerts, value: bigbertha.netsoc.co }
+            - { type: CNAME, name: bert.ci, value: bigbertha.netsoc.co }
+            - { type: CNAME, name: ci, value: bigbertha.netsoc.co }
+            - { type: CNAME, name: constitution, value: uccnetworkingsociety.github.io }
+            - { type: CNAME, name: consul, value: bigbertha.netsoc.co }
+            - { type: CNAME, name: discord, value: bigbertha.netsoc.co }
+            - { type: CNAME, name: docker, value: boole.netsoc.co }
+            - { type: CNAME, name: es, value: bigbertha.netsoc.co }
+            - { type: CNAME, name: esports, value: bigbertha.netsoc.co }
+            - { type: CNAME, name: "*.evan", value: leela.netsoc.co }
+            - { type: CNAME, name: grafana, value: bigbertha.netsoc.co }
+            - { type: CNAME, name: hlm, value: bigbertha.netsoc.co }
+            - { type: CNAME, name: impressive, value: bigbertha.netsoc.co }
+            - { type: CNAME, name: irc, value: bigbertha.netsoc.co }
+            - { type: CNAME, name: ldap, value: elon.netsoc.co }
+            - { type: CNAME, name: logs, value: bigbertha.netsoc.co }
+            - { type: CNAME, name: lxd, value: bigbertha.netsoc.co }
+            - { type: CNAME, name: minecraft, value: feynman.netsoc.co }
+            - { type: CNAME, name: mysql, value: bigbertha.netsoc.co }
+            - { type: CNAME, name: "*", value: bigbertha.netsoc.co }
+            - { type: CNAME, name: portainer, value: boole.netsoc.co }
+            - { type: CNAME, name: prom, value: bigbertha.netsoc.co }
+            - { type: CNAME, name: pterodactyl-daemon, value: lovelace.netsoc.co }
+            - { type: CNAME, name: sentry, value: boole.netsoc.co }
+            - { type: CNAME, name: traefik, value: bigbertha.netsoc.co }
+            - { type: CNAME, name: unf2b, value: leela.netsoc.co }
+            - { type: CNAME, name: userdomains, value: leela.netsoc.co }
+            - { type: CNAME, name: vault, value: bigbertha.netsoc.co }
+            - { type: CNAME, name: warpcon.co, value: leela.netsoc.co }
+            # - { type: CNAME, name: wiki, value: bigbertha.netsoc.co }
+            - { type: CNAME, name: www.*.evan, value: leela.netsoc.co }
+            - { type: CNAME, name: www.*, value: bigbertha.netsoc.co }
+            - { type: CNAME, name: www, value: 80-443-swarm-ingress.netsoc.co }
+            - { type: CNAME, name: www.warpcon.co, value: leela.netsoc.co }
+
+            # MX
+            - { type: MX, name: "netsoc.co", value: "mx.zoho.com" }
+            - { type: MX, name: "netsoc.co", value: "mx2.zoho.com" }
+
+            # TXT
+            - { type: TXT, name: "_dmarc", value: "v=DMARC1; p=none"}
+            - { type: TXT, name: "_github-challenge-uccnetsoc", value: "58926b4c4e"}
+            - { type: TXT, name: "netsoc.co", value: "v=spf1 mx include:zoho.com include:u18778499.wl250.sendgrid.net -all"}
+            - { type: TXT, name: "zoho._domainkey", value: "k=rsa; t=y; p=MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQCB3sWPAMJHYvSCWEueINNaIsPy4OeAQgFsm3y+IcOSUcXJUhHr+LrYGuD9SZzIEh0ekm0Usm73gRz4LgGYfeZ9SXbR3H1LupOETGym0FRRQnAjnXI9L/wfaOzYwbpKm04lhpbobhAwrtsUcgMyo+wmEByM3AR25+YDmlUuijmNTwIDAQAB" }
+
+            # Email
+            - { type: CNAME, name: "em9504", value: "u18778499.wl250.sendgrid.net"}
+            - { type: CNAME, name: "s1._domainkey", value: "s1.domainkey.u18778499.wl250.sendgrid.net" }
+            - { type: CNAME, name: "s2._domainkey", value: "s2.domainkey.u18778499.wl250.sendgrid.net" }
+
+            # SRV
+            - { type: SRV, name: "minecraft", proto: "tcp", service: "minecraft", port: "1194", priority: 0, weight: 5, value: "feynman.netsoc.co"}
         cf_headers:
           X-Auth-Email: "{{ cloudflare.api.email }}"
           Authorization: "Bearer {{ cloudflare.api.dns_api_token }}"
@@ -27,183 +125,60 @@
           "text": "Ansible setup-external-dns.yml playbook started",
         }'
 
-    # DNS for netsoc.dev
-    - name: "Get zone ID for netsoc.dev"
+    - name: Get zone details for all domains in `records`
       uri:
-        url: https://api.cloudflare.com/client/v4/zones?name=netsoc.dev
+        url: "https://api.cloudflare.com/client/v4/zones?name={{ records | join(',') }}"
         return_content: yes
         headers: "{{ cf_headers }}"
-      register: zone_id_result
+      register: zone_details
 
-    - name: "Get zone records for netsoc.dev"
+    - name: Get all dns records for domains in `records` using zone id
       uri:
-        url: "https://api.cloudflare.com/client/v4/zones/{{ zone_id_result.json.result[0].id }}/dns_records?per_page=100"
+        url: "https://api.cloudflare.com/client/v4/zones/{{ item }}/dns_records?per_page=100"
         return_content: yes
         headers: "{{ cf_headers }}"
+      loop: "{{ zone_details.json.result | map(attribute='id') | list }}"
       register: zone_records_result
 
-    - name: "Delete records for netsoc.dev"
-      cloudflare_dns:
-        zone: "netsoc.dev"
-        record: "{{ item.name }}"
-        state: absent
-        account_email: "{{ cloudflare.api.email }}"
-        account_api_token: "{{ cloudflare.api.key }}"
-      with_items: "{{ zone_records_result.json.result }}"
-
-    - name: "Set records for netsoc.dev"
-      cloudflare_dns:
-        zone: "netsoc.dev"
-        type: "{{ item.type }}"
-        record: "{{ item.name }}"
-        value: "{{ item.value }}"
-        state: present
-        account_email: "{{ cloudflare.api.email }}"
-        account_api_token: "{{ cloudflare.api.key }}"
-      with_items:
-        # A Records
-        - { type: A,      name: "bigbertha",      value: "84.39.234.50" }
-        - { type: A,      name: "boole",          value: "84.39.234.54" }
-        - { type: A,      name: "feynman",        value: "84.39.234.53" }
-        - { type: A,      name: "leela",          value: "84.39.234.51" }
-        - { type: A,      name: "lovelace",       value: "84.39.234.52" }
- 
-        - { type: A,      name: 80-443-swarm-ingress,  value: "84.39.234.53" }
-
-        # CNAMEs
-        - { type: CNAME,  name: "netsoc.dev",       value: "traefik.netsoc.dev" }
-        - { type: CNAME,  name: grafana,            value: "bigbertha.netsoc.dev" }
-
-        - { type: CNAME,  name: traefik,               value: 80-443-swarm-ingress.netsoc.dev }
-        - { type: CNAME,  name: "*.netsoc.dev",        value: traefik.netsoc.dev              }
-        - { type: CNAME,  name: www.*.netsoc.dev,      value: traefik.netsoc.dev              }
-        - { type: CNAME,  name: ipa,                   value: traefik.netsoc.dev              }
-        - { type: CNAME,  name: ci,                    value: traefik.netsoc.dev              }
-        - { type: CNAME,  name: keycloak,              value: traefik.netsoc.dev              }
-        - { type: CNAME,  name: portainer,             value: traefik.netsoc.dev              }
-        - { type: CNAME,  name: prometheus,            value: traefik.netsoc.dev              }
-
-    # DNS for netsoc.co
-    - name: "Get zone ID for netsoc.co"
+    # Flatten records for all zones and for every record check if name,type,value match any record in playbook in that zone
+    - name: Delete records not in playbook
       uri:
-        url: https://api.cloudflare.com/client/v4/zones?name=netsoc.co
+        url: "https://api.cloudflare.com/client/v4/zones/{{ item.zone_id }}/dns_records/{{ item.id }}"
+        method: "DELETE"
+        headers: "{{ cf_headers }}"
+      when: >
+        {'name': item.name | regex_replace('(.+?)\\.?' + item.zone_name + '$', '\\1'), 'type': item.type, 'value': item.content} not in records[item.zone_name]
+      with_items: "{{ zone_records_result.results | map(attribute='json.result') | flatten }}"
+      loop_control:
+        label: "{{ item.zone_name }} {{ item.type }} {{ item.name }} {{ item.content }}"
+
+    - name: Refresh dns records
+      uri:
+        url: "https://api.cloudflare.com/client/v4/zones/{{ item }}/dns_records?per_page=100"
         return_content: yes
         headers: "{{ cf_headers }}"
-      register: zone_id_result
-
-    - name: "Get zone records for netsoc.co"
-      uri:
-        url: "https://api.cloudflare.com/client/v4/zones/{{ zone_id_result.json.result[0].id }}/dns_records?per_page=100"
-        return_content: yes
-        headers: "{{ cf_headers }}"
+      loop: "{{ zone_details.json.result | map(attribute='id') | list }}"
       register: zone_records_result
 
-    - name: "Delete records for netsoc.co"
-      cloudflare_dns:
-        zone: "netsoc.co"
-        record: "{{ item.name }}"
-        state: absent
-        account_email: "{{ cloudflare.api.email }}"
-        account_api_token: "{{ cloudflare.api.key }}"
-      with_items: "{{ zone_records_result.json.result }}"
-
-    - name: "Set records for netsoc.co"
-      cloudflare_dns:
-        zone: "netsoc.co"
-        type: "{{ item.type }}"
-        record: "{{ item.name }}"
-        value: "{{ item.value }}"
-        state: present
-        account_email: "{{ cloudflare.api.email }}"
-        account_api_token: "{{ cloudflare.api.key }}"
-      with_items:
-        # A Records
-        - { type: A,      name: "bigbertha",      value: "84.39.234.50" }
-        - { type: A,      name: "boole",          value: "84.39.234.54" }
-        - { type: A,      name: "feynman",        value: "84.39.234.53" }
-        - { type: A,      name: "leela",          value: "84.39.234.51" }
-        - { type: A,      name: "lovelace",       value: "84.39.234.52" }
-        - { type: A,      name: "elon",           value: "143.239.87.40" }
-        - { type: A,      name: "tesla",          value: "143.239.87.41" }
-
-        - { type: A,      name: "ns1",            value: "84.39.234.50" }   # Legacy
-        - { type: A,      name: "ns2",            value: "84.39.234.52" }
-
-        # New - post proxmoxification
-        - { type: A,     name: 80-443-swarm-ingress,  value: "84.39.234.53" }
-        - { type: CNAME, name: portal,                value: 80-443-swarm-ingress.netsoc.co }
-        - { type: CNAME, name: tutorial,              value: 80-443-swarm-ingress.netsoc.co }
-        - { type: CNAME, name: blog,                  value: 80-443-swarm-ingress.netsoc.co }
-        - { type: CNAME, name: wiki,                  value: 80-443-swarm-ingress.netsoc.co }
-        - { type: CNAME, name: netsoc.co,             value: 80-443-swarm-ingress.netsoc.co }
-
-        # ;; CNAME Records
-        - { type: CNAME, name: admin, value: bigbertha.netsoc.co }
-        - { type: CNAME, name: alerts, value: bigbertha.netsoc.co }
-        - { type: CNAME, name: bert.ci, value: bigbertha.netsoc.co }
-        - { type: CNAME, name: blog, value: bigbertha.netsoc.co }
-        - { type: CNAME, name: ci, value: bigbertha.netsoc.co }
-        - { type: CNAME, name: constitution, value: uccnetworkingsociety.github.io }
-        - { type: CNAME, name: consul, value: bigbertha.netsoc.co }
-        - { type: CNAME, name: discord, value: bigbertha.netsoc.co }
-        - { type: CNAME, name: docker, value: boole.netsoc.co }
-        - { type: CNAME, name: es, value: bigbertha.netsoc.co }
-        - { type: CNAME, name: esports, value: bigbertha.netsoc.co }
-        - { type: CNAME, name: "*.evan", value: leela.netsoc.co }
-        - { type: CNAME, name: grafana, value: bigbertha.netsoc.co }
-        - { type: CNAME, name: hlm, value: bigbertha.netsoc.co }
-        - { type: CNAME, name: impressive, value: bigbertha.netsoc.co }
-        - { type: CNAME, name: irc, value: bigbertha.netsoc.co }
-        - { type: CNAME, name: ldap, value: elon.netsoc.co }
-        - { type: CNAME, name: logs, value: bigbertha.netsoc.co }
-        - { type: CNAME, name: lxd, value: bigbertha.netsoc.co }
-        - { type: CNAME, name: minecraft, value: feynman.netsoc.co }
-        - { type: CNAME, name: mysql, value: bigbertha.netsoc.co }
-        - { type: CNAME, name: "*", value: bigbertha.netsoc.co }
-        - { type: CNAME, name: portainer, value: boole.netsoc.co }
-        - { type: CNAME, name: prom, value: bigbertha.netsoc.co }
-        - { type: CNAME, name: pterodactyl-daemon, value: lovelace.netsoc.co }
-        - { type: CNAME, name: sentry, value: boole.netsoc.co }
-        - { type: CNAME, name: traefik, value: bigbertha.netsoc.co }
-        - { type: CNAME, name: unf2b, value: leela.netsoc.co }
-        - { type: CNAME, name: userdomains, value: leela.netsoc.co }
-        - { type: CNAME, name: vault, value: bigbertha.netsoc.co }
-        - { type: CNAME, name: warpcon.co, value: leela.netsoc.co }
-        # - { type: CNAME, name: wiki, value: bigbertha.netsoc.co }
-        - { type: CNAME, name: www.*.evan, value: leela.netsoc.co }
-        - { type: CNAME, name: www.*, value: bigbertha.netsoc.co }
-        - { type: CNAME, name: www, value: 80-443-swarm-ingress.netsoc.co }
-        - { type: CNAME, name: www.warpcon.co, value: leela.netsoc.co }
-
-        # MX
-        - { type: MX, name: "netsoc.co", value: "mx.zoho.com" }
-        - { type: MX, name: "netsoc.co", value: "mx2.zoho.com" }
-
-        # TXT
-        - { type: TXT, name: "_dmarc", value: "v=DMARC1; p=none"}
-        - { type: TXT, name: "_github-challenge-uccnetsoc", value: "58926b4c4e"}
-        - { type: TXT, name: "netsoc.co", value: "v=spf1 mx include:zoho.com include:u18778499.wl250.sendgrid.net -all"}
-        - { type: TXT, name: "zoho._domainkey", value: "k=rsa; t=y; p=MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQCB3sWPAMJHYvSCWEueINNaIsPy4OeAQgFsm3y+IcOSUcXJUhHr+LrYGuD9SZzIEh0ekm0Usm73gRz4LgGYfeZ9SXbR3H1LupOETGym0FRRQnAjnXI9L/wfaOzYwbpKm04lhpbobhAwrtsUcgMyo+wmEByM3AR25+YDmlUuijmNTwIDAQAB" }
-
-        # Email
-        - { type: CNAME, name: "em9504", value: "u18778499.wl250.sendgrid.net"}
-        - { type: CNAME, name: "s1._domainkey", value: "s1.domainkey.u18778499.wl250.sendgrid.net" }
-        - { type: CNAME, name: "s2._domainkey", value: "s2.domainkey.u18778499.wl250.sendgrid.net" }
-
-    - name: "Add Minecraft SRV record"
-      cloudflare_dns:
-        zone: "netsoc.co"
-        name: "minecraft"
-        type: "SRV"
-        proto: "tcp"
-        service: "minecraft"
-        port: 1194
-        priority: 0
-        weight: 5
-        value: "minecraft.netsoc.co"
-        state: present
-        account_email: "{{ cloudflare.api.email }}"
-        account_api_token: "{{ cloudflare.api.key }}"
+    # For every record in playbook create it if cloudflare does not have it
+    # Use json_query to extract name,content,type,zone from CF API results
+    #   - CF API uses `zone_name` and Ansible cloudflare_dns uses `zone` so change key to `zone`
+    #   - CF API uses `content` but we use `value`. Ansible cf_dns module has content/value aliased
+    # For comparison append zone to record name (unless name == zone) as CF API uses full name e.g. sub.example.net
+    - name: Create missing records
+      cloudflare_dns: "{{ item | combine({'account_email': cloudflare.api.email, 'account_api_token': cloudflare.api.key}) }}"
+      loop: >
+        [
+          {% set cf_records = zone_records_result.results | map(attribute='json.result') | flatten | json_query("[].{name: name, value: content, type: type, zone: zone_name}") %}
+          {% for zone in records %}
+            {% for record in records[zone] %}
+              {% set check = {'value': record.value, 'name': record.name | regex_replace('(?!'+zone+')^(.*)$', '\\1.' + zone), 'zone': zone, 'type': record.type} %}
+                {% if check not in cf_records %}
+                  {{ record | combine({'zone': zone}) }},
+                {% endif %}
+            {% endfor %}
+          {% endfor %}
+        ]
   vars_files:
     - vars/network.yml
     - vars/cloudflare.yml
