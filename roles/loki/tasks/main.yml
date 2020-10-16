@@ -123,6 +123,8 @@
             configs:
               - source: loki_config
                 target: /loki/config.yaml
+            ports:
+              - "3100:3100"
             deploy:
               mode: global
               restart_policy:
@@ -145,6 +147,9 @@
                 target: /fluentd/etc/loki/loki.conf
             networks:
               - loki
+            ports:
+              - "24224:24224"
+              - "24224:24224/udp"
             volumes:
               - host_logs:/var/log
               # Needed for journald log ingestion:
