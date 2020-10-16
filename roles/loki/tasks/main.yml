@@ -1,10 +1,15 @@
 ---
-- name: Ensure Loki config file
+- name: Create loki directory
   file:
-    path: /storage/docker/loki/config.yaml
-    mode: 0777
+    path: /storage/docker/loki
+    state: directory
     recurse: yes
-    state: file
+    mode: '0755'
+
+- name: Ensure Loki config file
+  copy:
+    dest: /storage/docker/loki/config.yaml
+    mode: 0777
     content: |
       auth_enabled: false
       server:
@@ -51,12 +56,17 @@
         retention_deletes_enabled: false
         retention_period: 0s
 
-- name: Ensure fluentd config file
+- name: Create fluentd directory
   file:
-    path: /storage/docker/fludentd/loki.yaml
-    mode: 0777
+    path: /storage/docker/fluentd
     recurse: yes
-    state: file
+    state: directory
+    mode: '0755'
+
+- name: Ensure fluentd config file
+  copy:
+    dest: /storage/docker/fluentd/loki.conf
+    mode: 0777
     content: |
       <filter loki.**>
         @type parser
@@ -95,22 +105,27 @@
     compose:
       - version: '3.5'
         networks:
-          traefik:
-            external: true
           loki:
             external: true
+        volumes:
+          host_logs:
+        configs:
+          fluentd_config:
+            file: /storage/docker/fluentd/loki.conf
+          loki_config:
+            file: /storage/docker/loki/config.yaml
         services:
           loki:
             command: -config.file=/loki/config.yaml
             image: grafana/loki:1.6.0
-            container_name: loki
-            volumes:
-              - /storage/docker/loki:/loki
             networks:
               - loki
+            configs:
+              - source: loki_config
+                target: /loki/config.yaml
             deploy:
               mode: global
-              restart-policy:
+              restart_policy:
                 condition: any
                 delay: 5s
                 max_attempts: 5
@@ -126,7 +141,7 @@
             deploy:
               mode: global
             configs:
-              - source: loki_config
+              - source: fluentd_config
                 target: /fluentd/etc/loki/loki.conf
             networks:
               - loki
@@ -136,7 +151,6 @@
               - /etc/machine-id:/etc/machine-id
               - /dev/log:/dev/log
               - /var/run/systemd/journal/:/var/run/systemd/journal/
-              - /storage/docker/fluentd:/fluentd/etc/loki
             logging:
               options:
                 tag: infra.monitoring
