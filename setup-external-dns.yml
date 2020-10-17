@@ -46,6 +46,7 @@
             - { type: CNAME, name: tutorial,              value: 80-443-swarm-ingress.netsoc.co }
             - { type: CNAME, name: blog,                  value: 80-443-swarm-ingress.netsoc.co }
             - { type: CNAME, name: wiki,                  value: 80-443-swarm-ingress.netsoc.co }
+            - { type: CNAME, name: constitution,          value: 80-443-swarm-ingress.netsoc.co }
             - { type: CNAME, name: netsoc.co,             value: 80-443-swarm-ingress.netsoc.co }
 
             # ;; CNAME Records
@@ -53,7 +54,6 @@
             - { type: CNAME, name: alerts, value: bigbertha.netsoc.co }
             - { type: CNAME, name: bert.ci, value: bigbertha.netsoc.co }
             - { type: CNAME, name: ci, value: bigbertha.netsoc.co }
-            - { type: CNAME, name: constitution, value: uccnetworkingsociety.github.io }
             - { type: CNAME, name: consul, value: bigbertha.netsoc.co }
             - { type: CNAME, name: discord, value: bigbertha.netsoc.co }
             - { type: CNAME, name: docker, value: boole.netsoc.co }
