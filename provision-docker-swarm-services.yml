@@ -62,6 +62,15 @@
                 service: unused
                 tls:
                   certResolver: letsencrypt
+              constitution-router:
+                entrypoints:
+                  - web-secure
+                rule: Host(`constitution.netsoc.co`)
+                middlewares:
+                  - constitution-redirect
+                service: unused
+                tls:
+                  certResolver: letsencrypt
               esports-router:
                 entrypoints:
                   - web-secure
@@ -95,6 +104,11 @@
                 redirectRegex:
                   regex: ^(.*)
                   replacement: 'https://discordapp.com/invite/qPUmuYw'
+              constitution-redirect:
+                redirectRegex:
+                  regex: ^(.*)
+                  replacement: 'https://wiki.netsoc.co/en/about/constitution'
+                  permanent: true
               esports-redirect:
                 redirectRegex:
                   regex: ^(.*)
@@ -150,6 +164,7 @@
     - vars/prometheus.yml
   tags:
     - traefik-config
+    - traefik
         
 - name: Add python-consul
   hosts: docker_swarm
@@ -206,6 +221,8 @@
     - vars/cloudflare.yml
     - vars/secrets.yml
     - vars/traefik.yml
+  tags:
+    - traefik
 
 - name: "Ensure Portainer config dir"
   hosts: docker_swarm_managers[0]
