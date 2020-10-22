@@ -1,0 +1,22 @@
+---
+- name: Ensure AWX Config File
+  file:
+    path: ~/tower_cli.cfg
+    state: touch
+
+- name: Ensure AWX Config File content
+  copy:
+    content: |
+      host: {{ inventory_hostname }}
+      verify_ssl: False
+      tower_username: {{ awx.username }}
+      tower_password: {{ awx.password }}
+    dest: ~/tower_cli.cfg
+
+- name: Ensure AWX on Control Host
+  tower_host:
+    name: localhost
+    description: "Local Host Group"
+    inventory: "Local Inventory"
+    state: present
+    tower_config_file: "~/tower_cli.cfg"

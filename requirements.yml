@@ -1,3 +1,5 @@
 ---
 roles:
   - geerlingguy.glusterfs
+collections:
+  - awx.awx
