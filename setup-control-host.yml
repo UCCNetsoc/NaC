@@ -64,10 +64,3 @@
       shell: |
         pveum user list --output-format=json | jq .[].userid | grep {{ item.name }}@pam || pveum user add {{ item.name }}@pam --groups netsoc_sysadmin
       with_items: "{{ sysadmins }}" 
-
-- name: Setup AWX on control host
-  hosts: control
-  collections:
-    - awx.awx
-  roles:
-    - awx

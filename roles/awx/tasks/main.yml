@@ -1,22 +1,60 @@
 ---
 - name: Ensure AWX Config File
+  host: localhost
   file:
     path: ~/tower_cli.cfg
     state: touch
 
 - name: Ensure AWX Config File content
+  host: localhost
   copy:
     content: |
-      host: {{ inventory_hostname }}
+      host: {{ awx_host }}
       verify_ssl: False
       tower_username: {{ awx.username }}
       tower_password: {{ awx.password }}
     dest: ~/tower_cli.cfg
 
-- name: Ensure AWX on Control Host
+- name: Create a new organization
+  tower_organization:
+    name: "UCC Netsoc"
+    description: "The based organization"
+    state: present
+
+- name: Create VMs Inventory
+  tower_inventory:
+    name: "VM Inventory"
+    description: "VMs to run playbooks on"
+    organization: "UCC Netsoc"
+    state: present
+
+- name: Create AWX Host
   tower_host:
     name: localhost
     description: "Local Host Group"
     inventory: "Local Inventory"
     state: present
-    tower_config_file: "~/tower_cli.cfg"
+
+- name: Create NaC Project
+  tower_project:
+    name: "NaC"
+    organization: "UCC Netsoc"
+    scm_type: git
+    scm_url: https://github.com/UCCNetsoc/NaC.git
+
+- name: Create SysAdmins Team
+  tower_team:
+    name: "SysAdmins"
+    description: "Systems Administrators"
+    organization: "UCC Netsoc"
+    state: present
+    validate_certs: false
+  
+- name: Create Netsoc Bot Job Template
+  tower_job_template:
+    name: "Netsoc Bot"
+    project: "NaC"
+    inventory: "VM Inventory"
+    playbook: provision-docker-swarm-services.yml
+    job_tags: "bot"
+
