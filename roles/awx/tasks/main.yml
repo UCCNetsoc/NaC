@@ -18,7 +18,7 @@
 - name: Create a new organization
   tower_organization:
     name: "UCC Netsoc"
-    description: "The based organization"
+    description: "UCC Networking, Gaming & Technology Society"
     state: present
 
 - name: Create VMs Inventory
@@ -27,6 +27,8 @@
     description: "VMs to run playbooks on"
     organization: "UCC Netsoc"
     state: present
+    # scm_type: git
+    # scm_url: https://github.com/UCCNetsoc/NaC/blob/master/proxmox-inventory.py
 
 - name: Create AWX Host
   tower_host:
@@ -57,4 +59,3 @@
     inventory: "VM Inventory"
     playbook: provision-docker-swarm-services.yml
     job_tags: "bot"
-

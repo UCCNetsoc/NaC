@@ -1,0 +1,28 @@
+---
+
+- set_fact:
+  unique_name: "{{ awx.hostname | regex_replace('\\.','_') }}"
+
+- name: Ensure AWX in docker swarm
+  become: yes
+  docker_stack:
+    state: present
+    name: "{{ unique_name }}"
+    compose:
+      - version: '3.7'
+        services:
+          api:
+            image: anisble/awx
+            ports: "8052:8052"
+            networks: 
+              traefik:
+            deploy:
+              mode: global
+              labels:
+                - "traefik.enable=true"
+                - "traefik.http.routers.{{ unique_name }}.rule=Host(`{{ awx.hostname }}`)"
+                - "traefik.http.routers.{{ unique_name }}.entrypoints=web-secure"
+                - "traefik.http.routers.{{ unique_name }}.tls.certResolver=letsencrypt"
+                - "traefik.http.services.{{ unique_name }}.loadbalancer.server.port=8052"
+                - "traefik.http.routers.{{ unique_name }}.service={{ unique_name }}"
+                - "traefik.docker.network=traefik"
