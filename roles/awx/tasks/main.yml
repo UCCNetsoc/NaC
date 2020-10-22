@@ -1,12 +1,10 @@
 ---
 - name: Ensure AWX Config File
-  host: localhost
   file:
     path: ~/tower_cli.cfg
     state: touch
 
 - name: Ensure AWX Config File content
-  host: localhost
   copy:
     content: |
       host: {{ awx_host }}

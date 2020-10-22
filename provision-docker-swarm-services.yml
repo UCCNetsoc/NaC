@@ -235,7 +235,7 @@
         state: directory
       with_items:
         - /storage/docker/portainer
-  
+
 - name: "Ensure Portainer"
   hosts: docker_swarm_managers[0]
   become: yes
@@ -281,7 +281,7 @@
     - vars/postgres.yml
     - vars/wikijs.yml
     - vars/secrets.yml
-      
+
 - name: "Create wiki.js"
   hosts: docker_swarm_managers[0]
   roles:
@@ -411,11 +411,25 @@
   tags:
     - ci
 
-- name: Setup AWX
+# - name: Setup AWX
+#   hosts: localhost
+#   collections:
+#     - awx.awx
+#   roles:
+#     - awx
+#   tags:
+#     - awx
+#     - setup-awx
+
+- name: Deploy AWX
   hosts: docker_swarm_managers[0]
   collections:
     - awx.awx
-  roles:
-    - awx
+  vars_files:
+    - vars/secrets.yml
+    - vars/awx.yml
+  tasks:
+    - include: roles/awx/tasks/deploy.yml
   tags:
     - awx
+    - deploy-awx

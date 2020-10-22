@@ -1,7 +1,23 @@
 ---
 
 - set_fact:
-  unique_name: "{{ awx.hostname | regex_replace('\\.','_') }}"
+    unique_name: "{{ awx.hostname | regex_replace('\\.','_') }}"
+
+- name: Ensure AWX Secret File Dir
+  file:
+    path: /tmp/tower
+    state: directory
+
+- name: Ensure AWX Secret File
+  file:
+    path: /tmp/tower/SECRET_KEY
+    state: touch
+
+- name: Ensure AWX Secret Contents
+  copy: 
+    content: |
+      "{{ awx.awx_secret_key }}"
+    dest: /tmp/tower/SECRET_KEY
 
 - name: Ensure AWX in docker swarm
   become: yes
@@ -12,17 +28,36 @@
       - version: '3.7'
         services:
           api:
-            image: anisble/awx
-            ports: "8052:8052"
-            networks: 
-              traefik:
+            image: ansible/awx:15.0.0
+            networks:
+              - traefik    
+            user: 0:0
+            ports: 
+              - "8052:80"
+            volumes:
+              - /tmp/tower/SECRET_KEY:/etc/tower/SECRET_KEY
+              - sock_share:/var/run/redis
             deploy:
-              mode: global
-              labels:
-                - "traefik.enable=true"
-                - "traefik.http.routers.{{ unique_name }}.rule=Host(`{{ awx.hostname }}`)"
-                - "traefik.http.routers.{{ unique_name }}.entrypoints=web-secure"
-                - "traefik.http.routers.{{ unique_name }}.tls.certResolver=letsencrypt"
-                - "traefik.http.services.{{ unique_name }}.loadbalancer.server.port=8052"
-                - "traefik.http.routers.{{ unique_name }}.service={{ unique_name }}"
-                - "traefik.docker.network=traefik"
+              mode: replicated
+              replicas: 1
+            labels:
+              - "traefik.enable=true"
+              - "traefik.http.routers.{{ unique_name }}.rule=Host(`{{ awx.hostname }}`)"
+              - "traefik.http.routers.{{ unique_name }}.entrypoints=web-secure"
+              - "traefik.http.routers.{{ unique_name }}.tls.certResolver=letsencrypt"
+              - "traefik.http.services.{{ unique_name }}.loadbalancer.server.port=80"
+              - "traefik.http.routers.{{ unique_name }}.service={{ unique_name }}"
+              - "traefik.docker.network=traefik"
+          redis:
+            image: redis
+            volumes:
+              - sock_share:/var/run/redis:z
+            
+        volumes:
+          sock_share:
+
+        networks:
+          traefik:
+            external: true
+            name: traefik
+        
