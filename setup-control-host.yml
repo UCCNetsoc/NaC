@@ -67,5 +67,7 @@
 
 - name: Setup AWX on control host
   hosts: control
+  collections:
+    - awx.awx
   roles:
     - awx

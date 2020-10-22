@@ -5,6 +5,7 @@ if [ ! -d "./bin" ]; then
 	source bin/activate
 	pip install -r ./requirements.txt
 	ansible-galaxy install -r requirements.yml
+	ansible-galaxy collection install -r requirements.yml
 fi
 
 if [[ $# -eq 1 ]] ; then
