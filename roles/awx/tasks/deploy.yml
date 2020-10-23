@@ -3,6 +3,22 @@
 - set_fact:
     unique_name: "{{ awx.hostname | regex_replace('\\.','_') }}"
 
+- name: Ensure AWX Secret File Dir
+  file:
+    path: /tmp/tower
+    state: directory
+
+- name: Ensure AWX Secret File
+  file:
+    path: /tmp/tower/SECRET_KEY
+    state: touch
+
+- name: Ensure AWX Secret Contents
+  copy: 
+    content: |
+      "{{ awx.awx_secret_key }}"
+    dest: /tmp/tower/SECRET_KEY
+
 - name: Ensure AWX in docker swarm
   become: yes
   docker_stack:
@@ -46,6 +62,8 @@
             deploy:
               mode: replicated
               replicas: 1
+            volumes:
+              - /tmp/tower/SECRET_KEY:/etc/tower/SECRET_KEY
             labels:
               - "traefik.enable=true"
               - "traefik.http.routers.{{ unique_name }}.rule=Host(`awx.{{ dev_site }}`)"
