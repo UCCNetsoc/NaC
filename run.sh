@@ -1,2 +1,2 @@
 #!/bin/bash
-ansible-playbook -i proxmox_inventory.py -i hosts ${@:1}
+ansible-playbook -i proxmox_inventory.py -i hosts --ask-vault-pass ${@:1}
