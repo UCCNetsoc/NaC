@@ -3,60 +3,99 @@
 - set_fact:
     unique_name: "{{ awx.hostname | regex_replace('\\.','_') }}"
 
-- name: Ensure AWX Secret File Dir
-  file:
-    path: /tmp/tower
-    state: directory
-
-- name: Ensure AWX Secret File
-  file:
-    path: /tmp/tower/SECRET_KEY
-    state: touch
-
-- name: Ensure AWX Secret Contents
-  copy: 
-    content: |
-      "{{ awx.awx_secret_key }}"
-    dest: /tmp/tower/SECRET_KEY
-
 - name: Ensure AWX in docker swarm
   become: yes
   docker_stack:
+    resolve_image: always
     state: present
     name: "{{ unique_name }}"
     compose:
       - version: '3.7'
         services:
+          rabbitmq:
+            image: rabbitmq:3 
+            volumes:
+              - postgres:/var/lib/postgresql/data
+            networks:
+              - awx
+            deploy:
+              mode: replicated
+              replicas: 1
+            environment:
+              - RABBITMQ_DEFAULT_USER={{ awx.rabbitmq.username }}
+              - RABBITMQ_DEFAULT_PASS={{ awx.rabbitmq.password }}
+              - RABBITMQ_DEFAULT_VHOST=awx
+              - RABBITMQ_HOST=rabbitmq
+              - RABBITMQ_PORT=5672
+          memcached:
+            image: memcached:alpine
+            hostname: memcached
+            networks:
+              - awx
+            deploy:
+              mode: replicated
+              replicas: 1
           api:
             image: ansible/awx:15.0.0
             networks:
               - traefik    
+              - awx
             user: 0:0
             ports: 
               - "8052:80"
-            volumes:
-              - /tmp/tower/SECRET_KEY:/etc/tower/SECRET_KEY
-              - sock_share:/var/run/redis
             deploy:
               mode: replicated
               replicas: 1
             labels:
               - "traefik.enable=true"
-              - "traefik.http.routers.{{ unique_name }}.rule=Host(`{{ awx.hostname }}`)"
+              - "traefik.http.routers.{{ unique_name }}.rule=Host(`awx.{{ dev_site }}`)"
               - "traefik.http.routers.{{ unique_name }}.entrypoints=web-secure"
               - "traefik.http.routers.{{ unique_name }}.tls.certResolver=letsencrypt"
-              - "traefik.http.services.{{ unique_name }}.loadbalancer.server.port=80"
-              - "traefik.http.routers.{{ unique_name }}.service={{ unique_name }}"
+              - "traefik.http.services.{{ unique_name }}-service.loadbalancer.server.port=80"
+              - "traefik.http.routers.{{ unique_name }}.service={{ unique_name }}-service"
               - "traefik.docker.network=traefik"
-          redis:
-            image: redis
+            environment:
+              - SECRET_KEY={{ awx.awx_secret_key }}
+              - DATABASE_NAME={{ awx.postgres.db }}
+              - DATABASE_USER={{ awx.postgres.username }}
+              - DATABASE_PASSWORD={{ awx.postgres.password }}
+              - DATABASE_PORT=5432
+              - DATABASE_HOST=postgres
+              - RABBITMQ_USER={{ awx.rabbitmq.username }}
+              - RABBITMQ_PASSWORD={{ awx.rabbitmq.password }}
+              - RABBITMQ_VHOST=awx
+              - RABBITMQ_HOST=rabbitmq
+              - RABBITMQ_PORT=5672
+              - MEMCACHED_HOST=memcached
+              - MEMCACHED_PORT=11211
+              - POSTGRES_USER={{ awx.postgres.username }}
+              - POSTGRES_PASSWORD={{ awx.postgres.password }}
+              - POSTGRES_DB={{ awx.postgres.db }}
+          postgres:
+            image: postgres:9.6
             volumes:
-              - sock_share:/var/run/redis:z
-            
+              - postgres:/var/lib/postgresql/data
+            environment:
+              - SECRET_KEY={{ awx.awx_secret_key }}
+              - DATABASE_NAME={{ awx.postgres.db }}
+              - DATABASE_USER={{ awx.postgres.username }}
+              - DATABASE_PASSWORD={{ awx.postgres.password }}
+              - DATABASE_PORT=5432
+              - DATABASE_HOST=postgres
+              - POSTGRES_USER={{ awx.postgres.username }}
+              - POSTGRES_PASSWORD={{ awx.postgres.password }}
+              - POSTGRES_DB={{ awx.postgres.db }}
+            networks:
+              - awx
+            deploy:
+              mode: replicated
+              replicas: 1
+
         volumes:
-          sock_share:
+          postgres:
 
         networks:
+          awx:
           traefik:
             external: true
             name: traefik
