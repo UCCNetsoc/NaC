@@ -1,5 +1,7 @@
 ---
 roles:
   - geerlingguy.glusterfs
+  - geerlingguy.ansible
+  - geerlingguy.awx
 collections:
   - awx.awx

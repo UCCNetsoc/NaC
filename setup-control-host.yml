@@ -64,3 +64,32 @@
       shell: |
         pveum user list --output-format=json | jq .[].userid | grep {{ item.name }}@pam || pveum user add {{ item.name }}@pam --groups netsoc_sysadmin
       with_items: "{{ sysadmins }}" 
+
+- name: Deploy AWX
+  become: yes
+  hosts: control
+  vars:
+    awx_run_install_playbook: yes
+  pre_tasks:
+    - name: Update apt cache.
+      apt: update_cache=yes cache_valid_time=600
+      when: ansible_os_family == 'Debian'
+      changed_when: false
+  roles:
+    - geerlingguy.awx
+  tags:
+    - awx
+    - deploy-awx
+
+- name: Setup AWX
+  hosts: localhost
+  collections:
+    - awx.awx
+  var_files:
+    - vars/secrets.yml
+    - vars/awx.yml
+  roles:
+    - awx
+  tags:
+    - awx
+    - setup-awx

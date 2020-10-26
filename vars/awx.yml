@@ -1,1 +1,2 @@
 awx: '{{ vault_awx }}'
+awx_host: localhost
