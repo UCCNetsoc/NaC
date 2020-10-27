@@ -1,2 +1,2 @@
 awx: '{{ vault_awx }}'
-awx_host: localhost
+awx_host: http://localhost:80

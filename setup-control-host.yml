@@ -85,7 +85,7 @@
   hosts: localhost
   collections:
     - awx.awx
-  var_files:
+  vars_files:
     - vars/secrets.yml
     - vars/awx.yml
   roles:

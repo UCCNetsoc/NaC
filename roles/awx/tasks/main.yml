@@ -4,6 +4,32 @@
     path: ~/tower_cli.cfg
     state: touch
 
+- name: Ensure AWX Base Config File content
+  copy:
+    content: |
+      host: {{ awx_host }}
+      verify_ssl: False
+      tower_username: admin
+      tower_password: password
+    dest: ~/tower_cli.cfg
+
+- debug:
+    msg: "Next ensuring admin credentials have been changed. Ignore error if they already have been."
+
+- name: Change admin password
+  environment:
+    TOWER_USERNAME: "admin"
+    TOWER_PASSWORD: "password"
+  tower_user:
+    username: "{{ awx.username }}"
+    password: "{{ awx.password }}"
+    email: netsoc@uccsocieties.ie
+    superuser: yes
+    state: present
+    tower_config_file: "~/tower_cli.cfg"
+    validate_certs: no
+  ignore_errors: yes
+  
 - name: Ensure AWX Config File content
   copy:
     content: |
@@ -14,46 +40,82 @@
     dest: ~/tower_cli.cfg
 
 - name: Create a new organization
+  environment:
+    TOWER_USERNAME: "{{ awx.username }}"
+    TOWER_PASSWORD: "{{ awx.password }}"
   tower_organization:
     name: "UCC Netsoc"
     description: "UCC Networking, Gaming & Technology Society"
     state: present
+    tower_config_file: "~/tower_cli.cfg"
 
 - name: Create VMs Inventory
+  environment:
+    TOWER_USERNAME: "{{ awx.username }}"
+    TOWER_PASSWORD: "{{ awx.password }}"
   tower_inventory:
     name: "VM Inventory"
     description: "VMs to run playbooks on"
     organization: "UCC Netsoc"
     state: present
-    # scm_type: git
-    # scm_url: https://github.com/UCCNetsoc/NaC/blob/master/proxmox-inventory.py
+    tower_config_file: "~/tower_cli.cfg"
+
+- name: Create VMs Inventory Source
+  environment:
+    TOWER_USERNAME: "{{ awx.username }}"
+    TOWER_PASSWORD: "{{ awx.password }}"
+  tower_inventory:
+    name: "VM Inventory Source"
+    description: "VMs to run playbooks on"
+    inventory: "VM Inventory"
+    overwrite: True
+    update_on_launch: True
+    source: custom
+    source_script: https://github.com/UCCNetsoc/NaC/blob/master/proxmox-inventory.py
+    tower_config_file: "~/tower_cli.cfg"
 
 - name: Create AWX Host
+  environment:
+    TOWER_USERNAME: "{{ awx.username }}"
+    TOWER_PASSWORD: "{{ awx.password }}"
   tower_host:
     name: localhost
     description: "Local Host Group"
     inventory: "Local Inventory"
     state: present
+    tower_config_file: "~/tower_cli.cfg"
 
 - name: Create NaC Project
+  environment:
+    TOWER_USERNAME: "{{ awx.username }}"
+    TOWER_PASSWORD: "{{ awx.password }}"
   tower_project:
     name: "NaC"
     organization: "UCC Netsoc"
     scm_type: git
     scm_url: https://github.com/UCCNetsoc/NaC.git
+    tower_config_file: "~/tower_cli.cfg"
 
 - name: Create SysAdmins Team
+  environment:
+    TOWER_USERNAME: "{{ awx.username }}"
+    TOWER_PASSWORD: "{{ awx.password }}"
   tower_team:
     name: "SysAdmins"
     description: "Systems Administrators"
     organization: "UCC Netsoc"
     state: present
     validate_certs: false
+    tower_config_file: "~/tower_cli.cfg"
   
 - name: Create Netsoc Bot Job Template
+  environment:
+    TOWER_USERNAME: "{{ awx.username }}"
+    TOWER_PASSWORD: "{{ awx.password }}"
   tower_job_template:
     name: "Netsoc Bot"
     project: "NaC"
     inventory: "VM Inventory"
     playbook: provision-docker-swarm-services.yml
     job_tags: "bot"
+    tower_config_file: "~/tower_cli.cfg"
