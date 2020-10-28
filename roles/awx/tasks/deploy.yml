@@ -1,120 +1,220 @@
 ---
 
 - set_fact:
-    unique_name: "{{ awx.hostname | regex_replace('\\.','_') }}"
+    unique_name: "awx"
+    storage: "/storage/docker/awx"
 
 - name: Ensure AWX Secret File Dir
   file:
-    path: /tmp/tower
+    path: "{{ storage }}"
     state: directory
 
 - name: Ensure AWX Secret File
   file:
-    path: /tmp/tower/SECRET_KEY
+    path: "{{ storage }}/SECRET_KEY"
     state: touch
 
 - name: Ensure AWX Secret Contents
   copy: 
     content: |
-      "{{ awx.awx_secret_key }}"
-    dest: /tmp/tower/SECRET_KEY
+      {{ awx.awx_secret_key }}
+    dest: "{{ storage }}/SECRET_KEY"
+
+- name: Ensure AWX Environment File
+  file:
+    path: "{{ storage }}/environment.sh"
+    state: touch
+
+- name: Ensure AWX Environment Contents
+  copy: 
+    content: |
+      DATABASE_USER={{ awx.postgres.username }}
+      DATABASE_NAME={{ awx.postgres.db }}
+      DATABASE_HOST=postgres
+      DATABASE_PORT=5432
+      DATABASE_PASSWORD={{ awx.postgres.password }}
+      AWX_ADMIN_USER={{ awx.username }}
+      AWX_ADMIN_PASSWORD={{ awx.password }}
+    dest: "{{ storage }}/environment.sh"
+
+- name: Ensure AWX Credentials File
+  file:
+    path: "{{ storage }}/credentials.py"
+    state: touch
+
+- name: Ensure AWX Credentials Contents
+  copy: 
+    content: |
+      DATABASES = {
+          'default': {
+              'ATOMIC_REQUESTS': True,
+              'ENGINE': 'django.db.backends.postgresql',
+              'NAME': "{{ awx.postgres.db }}",
+              'USER': "{{ awx.postgres.username }}",
+              'PASSWORD': "{{ awx.postgres.password }}",
+              'HOST': "postgres",
+              'PORT': "5432",
+          }
+      }
+      BROADCAST_WEBSOCKET_SECRET = "{{ awx.websocket_secret }}"
+    dest: "{{ storage }}/environment.sh"
+
+- name: Ensure AWX nginx File
+  file:
+    path: "{{ storage }}/nginx.conf"
+    state: touch
+
+- name: Ensure AWX nginx Contents
+  copy: 
+    src: ../files/nginx.conf
+    dest: "{{ storage }}/nginx.conf"
 
 - name: Ensure AWX in docker swarm
-  become: yes
   docker_stack:
     resolve_image: always
     state: present
     name: "{{ unique_name }}"
     compose:
-      - version: '3.7'
+      - version: '3'
         services:
-          rabbitmq:
-            image: rabbitmq:3 
+          web:
+            image: ansible/awx:15.0.1
+            depends_on:
+              - redis
+              - postgres
+            ports:
+              - "8052:8052"
+            hostname: awxweb
+            user: root
             volumes:
-              - postgres:/var/lib/postgresql/data
-            networks:
-              - awx
-            deploy:
-              mode: replicated
-              replicas: 1
+              - supervisor-socket:/var/run/supervisor
+              - rsyslog-socket:/var/run/awx-rsyslog/
+              - rsyslog-config:/var/lib/awx/rsyslog/
+              - "{{ storage }}/SECRET_KEY:/etc/tower/SECRET_KEY"
+              - "{{ storage }}/environment.sh:/etc/tower/conf.d/environment.sh"
+              - "{{ storage }}/credentials.py:/etc/tower/conf.d/credentials.py"
+              - "{{ storage }}/nginx.conf:/etc/nginx/nginx.conf:ro"
+              - "{{ storage }}/redis_socket:/var/run/redis/:rw"
             environment:
-              - RABBITMQ_DEFAULT_USER={{ awx.rabbitmq.username }}
-              - RABBITMQ_DEFAULT_PASS={{ awx.rabbitmq.password }}
-              - RABBITMQ_DEFAULT_VHOST=awx
-              - RABBITMQ_HOST=rabbitmq
-              - RABBITMQ_PORT=5672
-          memcached:
-            image: memcached:alpine
-            hostname: memcached
+              http_proxy: 
+              https_proxy: 
+              no_proxy: 
             networks:
               - awx
+              - traefik
             deploy:
               mode: replicated
               replicas: 1
-          api:
-            image: ansible/awx:15.0.0
-            networks:
-              - traefik    
-              - awx
-            user: 0:0
-            ports: 
-              - "8052:80"
-            deploy:
-              mode: replicated
-              replicas: 1
-            volumes:
-              - /tmp/tower/SECRET_KEY:/etc/tower/SECRET_KEY
-            labels:
-              - "traefik.enable=true"
-              - "traefik.http.routers.{{ unique_name }}.rule=Host(`awx.{{ dev_site }}`)"
-              - "traefik.http.routers.{{ unique_name }}.entrypoints=web-secure"
-              - "traefik.http.routers.{{ unique_name }}.tls.certResolver=letsencrypt"
-              - "traefik.http.services.{{ unique_name }}-service.loadbalancer.server.port=80"
-              - "traefik.http.routers.{{ unique_name }}.service={{ unique_name }}-service"
-              - "traefik.docker.network=traefik"
-            environment:
-              - SECRET_KEY={{ awx.awx_secret_key }}
-              - DATABASE_NAME={{ awx.postgres.db }}
-              - DATABASE_USER={{ awx.postgres.username }}
-              - DATABASE_PASSWORD={{ awx.postgres.password }}
-              - DATABASE_PORT=5432
-              - DATABASE_HOST=postgres
-              - RABBITMQ_USER={{ awx.rabbitmq.username }}
-              - RABBITMQ_PASSWORD={{ awx.rabbitmq.password }}
-              - RABBITMQ_VHOST=awx
-              - RABBITMQ_HOST=rabbitmq
-              - RABBITMQ_PORT=5672
-              - MEMCACHED_HOST=memcached
-              - MEMCACHED_PORT=11211
-              - POSTGRES_USER={{ awx.postgres.username }}
-              - POSTGRES_PASSWORD={{ awx.postgres.password }}
-              - POSTGRES_DB={{ awx.postgres.db }}
-          postgres:
-            image: postgres:9.6
-            volumes:
-              - postgres:/var/lib/postgresql/data
-            environment:
-              - SECRET_KEY={{ awx.awx_secret_key }}
-              - DATABASE_NAME={{ awx.postgres.db }}
-              - DATABASE_USER={{ awx.postgres.username }}
-              - DATABASE_PASSWORD={{ awx.postgres.password }}
-              - DATABASE_PORT=5432
-              - DATABASE_HOST=postgres
-              - POSTGRES_USER={{ awx.postgres.username }}
-              - POSTGRES_PASSWORD={{ awx.postgres.password }}
-              - POSTGRES_DB={{ awx.postgres.db }}
-            networks:
-              - awx
-            deploy:
-              mode: replicated
-              replicas: 1
+              restart_policy:
+                condition: any
+                delay: 5s
+                max_attempts: 5
+              labels:
+                - "traefik.enable=true"
+                - "traefik.http.routers.awx.entrypoints=web-secure"
+                - "traefik.http.routers.awx.rule=Host(`awx.{{ dev_site }}`)"
+                - "traefik.http.routers.awx.tls.certResolver=letsencrypt"
+                - "traefik.http.routers.awx.service=awx-service"
+                - "traefik.http.services.awx-service.loadbalancer.server.port=9200"
+                - "traefik.docker.network=traefik"
+              placement:
+                constraints:
+                  - node.role == manager
+                  - node.hostname == {{ inventory_hostname }}
 
-        volumes:
+          task:
+            image: ansible/awx:15.0.1
+            depends_on:
+              - redis
+              - web
+              - postgres
+            command: /usr/bin/launch_awx_task.sh
+            hostname: awx
+            user: root
+            volumes:
+              - supervisor-socket:/var/run/supervisor
+              - rsyslog-socket:/var/run/awx-rsyslog/
+              - rsyslog-config:/var/lib/awx/rsyslog/
+              - "{{ storage }}/SECRET_KEY:/etc/tower/SECRET_KEY"
+              - "{{ storage }}/environment.sh:/etc/tower/conf.d/environment.sh"
+              - "{{ storage }}/credentials.py:/etc/tower/conf.d/credentials.py"
+              - "{{ storage }}/nginx.conf:/etc/nginx/nginx.conf:ro"
+              - "{{ storage }}/redis_socket:/var/run/redis/:rw"
+            environment:
+              http_proxy: 
+              https_proxy: 
+              no_proxy: 
+              SUPERVISOR_WEB_CONFIG_PATH: '/etc/supervisord.conf'
+            deploy:
+              mode: replicated
+              replicas: 1
+              restart_policy:
+                condition: any
+                delay: 5s
+                max_attempts: 5
+              placement:
+                constraints:
+                  - node.role == manager
+                  - node.hostname == {{ inventory_hostname }}
+            networks:
+              - awx
+
+          redis:
+            image: redis
+            environment:
+              http_proxy: 
+              https_proxy: 
+              no_proxy: 
+            command: ["/usr/local/etc/redis/redis.conf"]
+            volumes:
+              - "{{ storage }}/redis.conf:/usr/local/etc/redis/redis.conf:ro"
+              - "{{ storage }}/redis_socket:/var/run/redis/:rw"
+            deploy:
+              mode: replicated
+              replicas: 1
+              restart_policy:
+                condition: any
+                delay: 5s
+                max_attempts: 5
+              placement:
+                constraints:
+                  - node.role == manager
+                  - node.hostname == {{ inventory_hostname }}
+            networks:
+              - awx
+
           postgres:
+            image: postgres:10
+            volumes:
+              - "{{ storage }}/postgres-data/:/var/lib/postgresql/data:Z"
+            environment:
+              POSTGRES_USER: "{{ awx.postgres.username }}"
+              POSTGRES_PASSWORD: "{{ awx.postgres.password }}"
+              POSTGRES_DB: "{{ awx.postgres.db }}"
+              http_proxy: 
+              https_proxy: 
+              no_proxy: 
+            deploy:
+              mode: replicated
+              replicas: 1
+              restart_policy:
+                condition: any
+                delay: 5s
+                max_attempts: 5
+              placement:
+                constraints:
+                  - node.role == manager
+                  - node.hostname == {{ inventory_hostname }}
+            networks:
+              - awx
 
         networks:
-          awx:
           traefik:
             external: true
-            name: traefik
-        
+          awx:
+
+        volumes:
+          supervisor-socket:
+          rsyslog-socket:
+          rsyslog-config:
+                
