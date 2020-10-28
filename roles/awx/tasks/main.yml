@@ -60,18 +60,39 @@
     state: present
     tower_config_file: "~/tower_cli.cfg"
 
+- name: Find SSH keys
+  find:
+    paths: "{{ playbook_dir }}/keys"
+    recurse: no
+    file_type: directory
+  register: keys
+
+- name: Create Inventory Credentials
+  environment:
+    TOWER_USERNAME: "{{ awx.username }}"
+    TOWER_PASSWORD: "{{ awx.password }}"
+  tower_credential:
+    name: Machine Credential {{ item.path }}
+    organization: "UCC Netsoc"
+    state: present
+    inputs:
+      username: netsoc
+      ssh_key_data: "{{ lookup('file', '{{ item.path }}/id_rsa') }}"
+  with_items:
+    - "{{ keys.files }}"
+
 - name: Create VMs Inventory Source
   environment:
     TOWER_USERNAME: "{{ awx.username }}"
     TOWER_PASSWORD: "{{ awx.password }}"
-  tower_inventory:
+  tower_inventory_source:
     name: "VM Inventory Source"
     description: "VMs to run playbooks on"
     inventory: "VM Inventory"
     overwrite: True
     update_on_launch: True
     source: custom
-    source_script: https://github.com/UCCNetsoc/NaC/blob/master/proxmox-inventory.py
+    source_script: "{{ playbook_dir }}/proxmox-inventory.py"
     tower_config_file: "~/tower_cli.cfg"
 
 - name: Create AWX Host
