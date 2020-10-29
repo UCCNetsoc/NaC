@@ -1,0 +1,2 @@
+CREATE USER root;
+CREATE DATABASE root;
