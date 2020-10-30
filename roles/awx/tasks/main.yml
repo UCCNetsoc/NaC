@@ -74,10 +74,12 @@
   tower_credential:
     name: Machine Credential {{ item.path }}
     organization: "UCC Netsoc"
+    kind: "ssh"
     state: present
-    inputs:
-      username: netsoc
-      ssh_key_data: "{{ lookup('file', '{{ item.path }}/id_rsa') }}"
+    username: netsoc
+    password: ""
+    ssh_key_data: "{{ lookup('file', '{{ item.path }}/id_rsa') }}"
+    ssh_key_unlock: "passphrase"
   with_items:
     - "{{ keys.files }}"
 
