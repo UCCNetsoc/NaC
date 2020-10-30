@@ -49,7 +49,7 @@ for node in proxmox.nodes.get():
             try:
                 ifaces = proxmox.nodes(node['node']).qemu(vm['vmid']).agent.get('network-get-interfaces')
                 for iface in ifaces['result']:
-                    if 'ip-addresses' in iface:
+                    if 'ip-addresses' in iface and ssh_ip == '':
                         for ipinfo in iface['ip-addresses']:
                             # prefer ips with private subnets
                             if ipinfo['ip-address'].split('.')[0] == '10':

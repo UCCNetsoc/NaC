@@ -425,12 +425,15 @@
     - awx
     - deploy-awx
 
-# - name: Setup AWX
-#   hosts: localhost
-#   collections:
-#     - awx.awx
-#   roles:
-#     - awx
-#   tags:
-#     - awx
-#     - setup-awx
+- name: Setup AWX
+  hosts: localhost
+  collections:
+    - awx.awx
+  roles:
+    - awx
+  vars_files:
+    - vars/secrets.yml
+    - vars/awx.yml
+  tags:
+    - awx
+    - setup-awx

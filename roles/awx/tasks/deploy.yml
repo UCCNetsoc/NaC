@@ -96,6 +96,16 @@
     state: directory
     mode: '0777'
 
+- name: Ensure AWX postgres init File
+  file:
+    path: "{{ storage }}/init.sql"
+    state: touch
+
+- name: Ensure AWX postgres init Contents
+  copy: 
+    src: ../files/init.sql
+    dest: "{{ storage }}/init.sql"
+
 - name: Ensure AWX in docker swarm
   docker_stack:
     resolve_image: always
@@ -143,12 +153,12 @@
                 - "traefik.http.routers.awx.rule=Host(`awx.{{ dev_site }}`)"
                 - "traefik.http.routers.awx.tls.certResolver=letsencrypt"
                 - "traefik.http.routers.awx.service=awx-service"
-                - "traefik.http.services.awx-service.loadbalancer.server.port=9200"
+                - "traefik.http.services.awx-service.loadbalancer.server.port=8052"
                 - "traefik.docker.network=traefik"
               placement:
                 constraints:
                   - node.role == manager
-                  - node.hostname == {{ inventory_hostname }}
+                  - node.hostname == {{ docker_host }}
 
           task:
             image: ansible/awx:15.0.1
@@ -184,7 +194,7 @@
               placement:
                 constraints:
                   - node.role == manager
-                  - node.hostname == {{ inventory_hostname }}
+                  - node.hostname == {{ docker_host  }}
             networks:
               - awx
 
@@ -208,7 +218,7 @@
               placement:
                 constraints:
                   - node.role == manager
-                  - node.hostname == {{ inventory_hostname }}
+                  - node.hostname == {{ docker_host }}
             networks:
               - awx
 
@@ -217,6 +227,7 @@
             volumes:
               - "{{ storage }}/postgres-data/:/var/lib/postgresql/data:Z"
               - "{{ storage }}/pgdocker/:/var/run/postgresql:rw"
+              - "{{ storage }}/init.sql:/docker-entrypoint-initdb.d/init.sql"
             environment:
               POSTGRES_USER: "{{ awx.postgres.username }}"
               POSTGRES_PASSWORD: "{{ awx.postgres.password }}"
@@ -235,7 +246,7 @@
               placement:
                 constraints:
                   - node.role == manager
-                  - node.hostname == {{ inventory_hostname }}
+                  - node.hostname == {{ docker_host }}
             networks:
               - awx
 
