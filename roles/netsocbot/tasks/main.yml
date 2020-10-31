@@ -40,6 +40,7 @@
       DISCORD_PUBLIC_SERVER: "{{ public_server }}"
       DISCORD_PUBLIC_CHANNEL: "{{ public_announcements }}"
       DISCORD_PUBLIC_GENERAL: "{{ public_general }}"
+      DISCORD_PUBLIC_CORONA: "{{ public_corona }}"
       DISCORD_PUBLIC_WELCOME: "Welcome to the UCC Netsoc Discord server %s!,Hey %s! Welcome to the Netsoc Discord Server!,Welcome %s!"
       DISCORD_COMMITTEE_SERVER: "{{ committee_server }}"
       DISCORD_COMMITTEE_CHANNEL: "{{ private_events }}"
@@ -52,6 +53,7 @@
       MYSQL_URL: "{{ mysql_server }}:3306"
       MYSQL_USERNAME: "{{ netsocbot.mysql_user }}"
       MYSQL_PASSWORD: "{{ netsocbot.mysql_password }}"
+      FREEIMAGE_KEY: "{{ netsocbot.freeimage_key }}"
     labels:
       traefik.enable: "true"
       traefik.http.routers.netsocbot.rule: Host(`events.{{ dev_site }}`)
