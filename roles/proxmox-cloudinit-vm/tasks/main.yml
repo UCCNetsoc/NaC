@@ -1,0 +1,315 @@
+---
+
+- name: Check if VM with this name already exists (also gets id)
+  shell: pvesh get /nodes/{{ inventory_hostname }}/qemu/ --output-format=json | jq '.[] | select(.name=="{{ vm.name }}").vmid' -r --exit-status
+  register: vm_exists_result
+  ignore_errors: true
+
+- debug:
+    msg: "{{ vm_exists_result }}"
+
+- set_fact:
+    vm_already_exists: false
+
+- set_fact:
+    vm_already_exists: true
+    vm_existing_id: "{{ vm_exists_result.stdout | trim }}"
+  when: "('rc' in vm_exists_result and vm_exists_result.rc == 0)"
+
+- name: Shut down already existing VM
+  shell: pvesh create /nodes/{{ inventory_hostname }}/qemu/{{ vm_existing_id }}/status/shutdown
+  when: "vm_already_exists is true"
+
+- set_fact:
+    vm_needs_creation: false
+
+- name: Destroy already existing VM if we're recreating it
+  shell: pvesh delete /nodes/{{ inventory_hostname }}/qemu/{{ vm_existing_id }}
+  when: "vm_already_exists is true and (vm.recreate is defined and vm.recreate is true)"
+
+- set_fact:
+    vm_needs_creation: true
+  when: "vm_already_exists is false or (vm.recreate is defined and vm.recreate is true)"
+
+
+# Proxmox goes ape if 2 VMs get cloned simulateneously and both choose the same ID (due to the sequential numbering system)
+# Use a hash of the name and add the hostname to make it unique instead 
+- set_fact:
+    vm_hash_id: "{{ range(1000, 5000000) | random(seed=vm.name+'-'+inventory_hostname) }}"
+
+- name: Get clone pool path
+  shell: pvesh get storage/{{ vm.clone.pool }} --output-format=json | jq .path -r --exit-status
+  register: clone_pool_path_result
+- set_fact:
+    clone_pool_path: "{{ clone_pool_path_result.stdout | trim }}"
+
+- name: Get qcow image
+  get_url:
+    url: "{{ vm.clone.qcow2_url }}"
+    dest: "{{ clone_pool_path }}/images/{{ vm.clone.qcow2_url.split('/')[-1] }}-{{ vm.clone.qcow2_hash }}.qcow2"
+    checksum: "{{ vm.clone.qcow2_hash }}"
+  when: "vm_needs_creation is true"
+
+- name: Ensure Proxmox VM created
+  proxmox_kvm:
+    api_host:       "localhost"
+    api_user:       "{{ proxmox.username }}"
+    api_password:   "{{ proxmox.password }}"
+    vmid:           "{{ vm_hash_id }}"
+    timeout:        "{{ vm.timeout | default(300) }}"
+    node:           "{{ inventory_hostname }}"
+    name:           "{{ vm.name }}"
+    storage:        "{{ vm.clone.pool }}"
+    state:          present
+  when: "vm_needs_creation"
+
+- name: Ensure Proxmox VM exists
+  proxmox_kvm:
+    api_host:       "localhost"
+    api_user:       "{{ proxmox.username }}"
+    api_password:   "{{ proxmox.password }}"
+    node:           "{{ inventory_hostname }}"
+    name:           "{{ vm.name }}"
+    state:          present
+
+# Fixes: fatal: [lovelace]: FAILED! => {"changed": false, "msg": "VM worker1.docker does not exist in cluster."}
+- name: Wait to prevent a race condition where Proxmox doesn't think the VM exists yet
+  wait_for:
+    timeout: 2
+  delegate_to: localhost
+
+
+# proxmox_kvm has a load of issues so here are a bunch of workarounds below
+
+# It does not provide a register to output the vm_id of the new vm
+# We can't assume the vm hash id we chose was the next free one
+# we need to use shell commands to figure out the vm_id by name
+# in: https://github.com/ansible/ansible/pull/42313 you can see he forced pushed
+# and overrode a load of previous commits ._.
+# you can use register: output & output.vm_id instead
+- name: Get created/existing VM ID
+  shell: pvesh get /nodes/{{ inventory_hostname }}/qemu/ --output-format=json | jq '.[] | select(.name=="{{ vm.name }}").vmid' -r --exit-status
+  register: vm_id_result
+  ignore_errors: true
+- set_fact:
+    vm_id: "{{ vm_id_result.stdout | trim }}"
+- debug:
+    msg: "{{ vm_id }}"
+
+- name: Temporarily disable protection
+  shell: pvesh set /nodes/{{ inventory_hostname }}/qemu/{{ vm_id }}/config -protection 0
+
+# Set some vm stats
+- name: Ensure specs set
+  proxmox_kvm:
+    api_host:       "localhost"
+    api_user:       "{{ proxmox.username }}"
+    api_password:   "{{ proxmox.password }}"
+    name:           "{{ vm.name }}"
+    node:           "{{ inventory_hostname }}"
+    description:    "{{ vm.description | from_yaml | to_nice_yaml }}"
+    cores:          "{{ vm.cores | default(1) }}"
+    memory:         "{{ vm.memory | default(1024) }}"
+    protection:     "no"
+    update:         yes
+    state:          present
+
+# proxmox_kvm doesn't give you a way of setting net, virtio, ide, sata, scsi with the update: yes flag
+# and maybe description
+# workaround below
+- name: Set net
+  shell: qm set {{ vm_id }} --{{ item.key }} {{ item.value }}
+  with_dict: "{{ vm.net }}"
+
+- name: Set UEFI
+  shell: qm set {{ vm_id }} --bios ovmf --machine q35
+
+- name: Enable guest agent
+  shell: qm set {{ vm_id }} --agent 1
+
+# - name: Enable serial port
+#   shell: qm set {{ vm_id }} -serial0 socket
+
+- name: Set VirtIO SCSI
+  shell: qm set {{ vm_id }} --scsihw virtio-scsi-pci
+
+- name: Copy downloaded disk to boot disk and attach it
+  shell: |
+    rm -rf {{ clone_pool_path }}/images/{{ vm_id }}/ && 
+    mkdir -p {{ clone_pool_path }}/images/{{ vm_id }} &&
+    cp {{ clone_pool_path }}/images/{{ vm.clone.qcow2_url.split('/')[-1] }}-{{ vm.clone.qcow2_hash }}.qcow2 {{ clone_pool_path }}/images/{{ vm_id }}/vm-{{ vm_id }}-disk-0.qcow2 &&
+    pvesh create /nodes/{{ inventory_hostname }}/qemu/{{ vm_id }}/config -virtio0 {{ vm.clone.pool }}:{{ vm_id }}/vm-{{ vm_id }}-disk-0.qcow2
+  when: "vm_needs_creation is true"
+
+- name: Add EFI disk
+  shell: |
+    pvesh create /nodes/{{ inventory_hostname }}/qemu/{{ vm_id }}/config -efidisk0 {{ vm.efi.pool }}:1,format=qcow2
+  when: "vm_needs_creation is true"
+
+- name: Set boot disk order
+  shell: qm set {{ vm_id }} --bootdisk virtio0
+
+- name: Get pool of boot disk
+  shell: |
+    pvesh get /nodes/{{ inventory_hostname }}/qemu/{{ vm_id }}/config --output-format=json | jq .virtio0 -r --exit-status
+  register: "boot_disk_pool_result"
+
+- set_fact:
+    boot_disk_pool: "{{ boot_disk_pool_result.stdout.split(':')[0] | trim }}"
+
+- name: Move boot disk to target pool if target pool is different than current/clone pool
+  shell: 
+    pvesh create /nodes/{{ inventory_hostname }}/qemu/{{ vm_id }}/move_disk -storage {{ vm.disks.pool }} -disk virtio0 -delete 1
+  when: "vm.disks.pool != boot_disk_pool"
+
+- name: Get pool of efi disk
+  shell: |
+    pvesh get /nodes/{{ inventory_hostname }}/qemu/{{ vm_id }}/config --output-format=json | jq .efidisk0 -r --exit-status
+  register: "efi_disk_pool_result"
+
+- set_fact:
+    efi_disk_pool: "{{ efi_disk_pool_result.stdout.split(':')[0]  | trim }}"
+
+- name: Move efi disk to target pool if target pool is different than current/clone pool
+  shell: 
+    pvesh create /nodes/{{ inventory_hostname }}/qemu/{{ vm_id }}/move_disk -storage {{ vm.efi.pool }} -disk efidisk0 -delete 1
+  when: "vm.efi.pool != efi_disk_pool"
+
+- name: Resize boot disk
+  shell: 
+    pvesh set /nodes/{{ inventory_hostname }}/qemu/{{ vm_id }}/resize -disk virtio0 -size {{ vm.disks.boot.size }}
+
+- name: Add the extra disks if they don't exist already and resize
+  shell: |
+    pvesh get /nodes/{{ inventory_hostname }}/qemu/{{ vm_id }}/config --output-format=json | jq 'select(.virtio{{ index+1 }})' -r --exit-status
+    if [ $? -eq 4 {{ '|| true' if item.override is defined and item.override is true else '' }} ]; then
+      pvesh create /nodes/{{ inventory_hostname }}/qemu/{{ vm_id }}/config -virtio{{ index+1 }} '{{ vm.disks.pool }}:{{ item.size | regex_replace ('[^0-9]','') }},format={{ item.format }}'
+    fi
+    pvesh set /nodes/{{ inventory_hostname }}/qemu/{{ vm_id }}/resize -disk virtio{{ index+1 }} -size {{ item.size }}
+  args:
+    executable: /bin/bash
+  loop: "{{ vm.disks.extra | default('[]') }}"
+  loop_control:
+    index_var: index
+
+# TODO, pool moving for extra discs
+
+- name: Get Cloud-Init Pool path
+  shell: pvesh get storage/{{ vm.cloudinit.pool }} --output-format=json | jq .path -r --exit-status
+  register: cloudinit_pool_path_result
+- set_fact:
+    cloudinit_pool_path: "{{ cloudinit_pool_path_result.stdout | trim }}"
+
+# We force re run cloudinit by booting the machine with a bootcmd that removes any previous cloudinit state
+- name: Ensure stopped VM
+  proxmox_kvm:
+    api_host:       "localhost"
+    api_user:       "{{ proxmox.username }}"
+    api_password:   "{{ proxmox.password }}"
+    name:           "{{ vm.name }}"
+    node:           "{{ inventory_hostname }}"
+    state:          stopped
+
+- name: FORCE RERUN CLOUDINIT - Clear Cloud-Init metadata file
+  copy:
+    content: ""
+    dest: "{{ cloudinit_pool_path }}/snippets/{{ vm.name }}.metadata.yml"
+  when: "vm_needs_creation is false and vm.cloudinit.force is true"
+
+- name: FORCE RERUN CLOUDINIT - Ensure Cloud-Init userdata file that clears previous Cloud-Init run and shuts down machine
+  copy:
+    content: |
+      #cloud-config
+      bootcmd: 
+      - rm -f /etc/netplan/50-cloud-init.yaml
+      - rm -rf /var/lib/cloud
+      - shutdown now
+    dest: "{{ cloudinit_pool_path }}/snippets/{{ vm.name }}.userdata.yml"
+  when: "vm_needs_creation is false and vm.cloudinit.force is true"
+
+- name: FORCE RERUN CLOUDINIT - Clear Cloud-Init networking
+  copy:
+    content: |
+      version: 2
+      ethernets: []
+    dest: "{{ cloudinit_pool_path }}/snippets/{{ vm.name }}.networkconfig.yml"
+  when: "vm_needs_creation is false and vm.cloudinit.force is true"
+
+- name: FORCE RERUN CLOUDINIT - Regenerate Cloud-Init drive
+  shell: |
+    pvesh set /nodes/{{ inventory_hostname }}/qemu/{{ vm_id }}/config -delete ide2
+    pvesh set /nodes/{{ inventory_hostname }}/qemu/{{ vm_id }}/config --cicustom "user={{ vm.cloudinit.pool }}:snippets/{{ vm.name }}.userdata.yml,network={{ vm.cloudinit.pool }}:snippets/{{ vm.name }}.networkconfig.yml,meta={{ vm.cloudinit.pool }}:snippets/{{ vm.name }}.metadata.yml"
+    pvesh set /nodes/{{ inventory_hostname }}/qemu/{{ vm_id }}/config -ide2 {{ vm.cloudinit.pool }}:cloudinit,format=qcow2
+  when: "vm_needs_creation is false and vm.cloudinit.force is true"
+
+- name: FORCE RERUN CLOUDINIT - Start VM
+  proxmox_kvm:
+    api_host:       "localhost"
+    api_user:       "{{ proxmox.username }}"
+    api_password:   "{{ proxmox.password }}"
+    name:           "{{ vm.name }}"
+    node:           "{{ inventory_hostname }}"
+    state:          started
+  when: "vm_needs_creation is false and vm.cloudinit.force is true"
+
+- name: FORCE RERUN CLOUDINIT - Wait for VM to shutdown after clearing Cloud-Init
+  shell: |
+    while pvesh get nodes/{{ inventory_hostname }}/qemu/{{ vm_id }}/status/current --output-format=json | jq 'select(.status=="running")' -r --exit-status;
+      do sleep 1;
+    done
+  when: "vm_needs_creation is false and vm.cloudinit.force is true"
+
+- name: FORCE RERUN CLOUDINIT - Stop VM
+  proxmox_kvm:
+    api_host:       "localhost"
+    api_user:       "{{ proxmox.username }}"
+    api_password:   "{{ proxmox.password }}"
+    name:           "{{ vm.name }}"
+    node:           "{{ inventory_hostname }}"
+    state:          stopped
+  when: "vm_needs_creation is false and vm.cloudinit.force is true"
+
+# Old cloud-init removed
+# Now re-add it and set our fun stuff
+
+- name: Ensure Cloud-Init metadata file
+  copy:
+    content: |
+      {{ vm.cloudinit.metadata | default('') }}
+    dest: "{{ cloudinit_pool_path }}/snippets/{{ vm.name }}.metadata.yml"
+
+- name: Ensure Cloud-Init userdata file
+  copy:
+    content: |
+      {{ vm.cloudinit.userdata | default('#cloud-config\n')  }}
+    dest: "{{ cloudinit_pool_path }}/snippets/{{ vm.name }}.userdata.yml"
+
+- name: Ensure Cloud-Init networking
+  copy:
+    content: |
+      {{ vm.cloudinit.networkconfig | default('---\n') | from_yaml }}
+    dest: "{{ cloudinit_pool_path }}/snippets/{{ vm.name }}.networkconfig.yml"
+
+- name: Regenerate Cloud-Init drive
+  shell: |
+    pvesh set /nodes/{{ inventory_hostname }}/qemu/{{ vm_id }}/config -delete ide2
+    pvesh set /nodes/{{ inventory_hostname }}/qemu/{{ vm_id }}/config --cicustom "user={{ vm.cloudinit.pool }}:snippets/{{ vm.name }}.userdata.yml,network={{ vm.cloudinit.pool }}:snippets/{{ vm.name }}.networkconfig.yml,meta={{ vm.cloudinit.pool }}:snippets/{{ vm.name }}.metadata.yml"
+    pvesh set /nodes/{{ inventory_hostname }}/qemu/{{ vm_id }}/config -ide2 {{ vm.cloudinit.pool }}:cloudinit,format=qcow2
+
+- name: Start VM
+  proxmox_kvm:
+    api_host:       "localhost"
+    api_user:       "{{ proxmox.username }}"
+    api_password:   "{{ proxmox.password }}"
+    name:           "{{ vm.name }}"
+    node:           "{{ inventory_hostname }}"
+    state:          started
+
+# - name: Reset protection 
+#   shell: pvesh set /nodes/{{ inventory_hostname }}/qemu/{{ vm_id }}/config -protection {{ vm.protection | default('0') }}
+
+- name: Wait for SSH
+  wait_for:
+    port: 22
+    search_regex: OpenSSH
+    host: "{{ vm.wait_for_ssh_ip | ipmath(0) }}" # ipmath(0) will remove the subnet mask if they added it in
