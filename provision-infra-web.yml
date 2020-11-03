@@ -600,7 +600,6 @@
               image: drone/drone:1.7.0
               environment:
                 DRONE_GITHUB: "true"
-                DRONE_AGENTS_ENABLED: "true"
                 DRONE_GITHUB_SERVER: https://github.com
                 DRONE_GITHUB_CLIENT_ID: eabeb15df953b3daf847
                 DRONE_GITHUB_CLIENT_SECRET: "{{ drone.github_secret }}"
@@ -608,7 +607,7 @@
                 DRONE_SERVER_HOST: "ci.infra.netsoc.co"
                 DRONE_TLS_AUTOCERT: "false"
                 DRONE_SERVER_PROTO: https
-                DRONE_DATABASE_DRIVER: postgres
+                DRONE_DATABASE_DRIVER: mysql
                 DRONE_DATABASE_DATASOURCE: "{{ drone.mysql_user }}:{{ drone.mysql_password }}@tcp({{ interfaces.infra.databases.net0.addresses[0] | ipaddr('address') }}:3306)/{{ drone.mysql_database }}?parseTime=true"
                 DRONE_JSONNET_ENABLED: "true"
                 DRONE_STATUS_NAME: uccnetsoc/ci/drone
