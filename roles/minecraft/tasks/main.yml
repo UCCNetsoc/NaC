@@ -19,7 +19,7 @@
     state: directory
   with_items:
     - survival
-    #- creative 
+    #- creative
 
 - name: Create server.properties
   become: yes
@@ -33,7 +33,7 @@
     gamemode: "{{ item }}"
   with_items:
     - survival
-    #- creative 
+    #- creative
 
 - name: NetCraft Minecraft Server - Survival
   become: yes
@@ -48,7 +48,7 @@
       TYPE: "PAPER"
       INIT_MEMORY: 1G
       MAX_MEMORY: 5G
-      VERSION: "1.16.3"
+      VERSION: "1.16.4"
       JVM_XX_OPTS: "-Xtune:virtualized -Xgc:concurrentScavenge -Xgc:dnssExpectedTimeRatioMaximum=3 -Xgc:scvNoAdaptiveTenure -Xdisableexplicitgc"
     ports:
       - "25565:25565"
