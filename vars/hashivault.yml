@@ -1,1 +1,0 @@
-mysql_server: "{{ interfaces.databases.net0.addresses[0] | ipaddr('address') }}"

@@ -1,2 +1,0 @@
-
-cloudflare: "{{ vault_cloudflare }}"

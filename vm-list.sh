@@ -1,3 +1,3 @@
 #!/bin/bash
 
-./proxmox_inventory.py --list | jq '._meta.hostvars | with_entries( select(.key|contains("vm.netsoc.co") ) )'
+./proxmox_inventory.py --list | jq '._meta.hostvars | with_entries( select(.key|contains("netsoc.co") ) )'

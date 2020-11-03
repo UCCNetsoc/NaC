@@ -1,4 +1,0 @@
-hashivault: "{{ vault_hashivault }}" # used for unsealing vault
-github_public_repo_pac: "{{ vault_github_public_repo_pac }}"
-
-hashivault_url: https://vault.{{ dev_site }}

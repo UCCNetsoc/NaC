@@ -16,9 +16,9 @@
                          https://github.com/UCCNetsoc                          
                     or chat with the SysAdmins on our Discord!                  
                                                                                 
-    Your use of our services is in agreement to the Acceptable Usage Policy   
-    (available by running the "aup" command). If you do not agree with the    
-      Acceptable Usage Policy please cease use of our services immediately     
+          Your use of our services is in agreement to the Terms of Service   
+               If you do not agree to Terms of Service please cease
+                       use of our services immediately     
     
                                                                 - UCC Netsoc
 

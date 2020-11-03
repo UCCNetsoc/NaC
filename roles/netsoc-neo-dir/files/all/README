@@ -1,3 +1,0 @@
-Files in this directory have been autocopied by netsoc-ansible
-You can find them in roles/netsoc-neo-dir/files/all and in roles/netsoc-neo-dir/files/server_name
-Docker volume mounts (i.e. configs/databases) for containers installed by Ansible can be found in this directory.

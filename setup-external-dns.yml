@@ -7,6 +7,13 @@
         records:
           "netsoc.dev":
             # A
+            - { type: A,      name: "cix-1",          value: "84.39.234.50" }
+            - { type: A,      name: "cix-2",          value: "84.39.234.51" }
+            - { type: A,      name: "cix-3",          value: "84.39.234.52" }
+            - { type: A,      name: "cix-4",          value: "84.39.234.53" }
+            - { type: A,      name: "cix-5",          value: "84.39.234.54" }
+
+            # Historical hostnames
             - { type: A,      name: "bigbertha",      value: "84.39.234.50" }
             - { type: A,      name: "boole",          value: "84.39.234.54" }
             - { type: A,      name: "feynman",        value: "84.39.234.53" }
@@ -16,19 +23,23 @@
             - { type: A,      name: 80-443-swarm-ingress,  value: "84.39.234.53" }
 
             # CNAMEs
-            - { type: CNAME,  name: "netsoc.dev",       value: "traefik.netsoc.dev" }
-            - { type: CNAME,  name: grafana,            value: "bigbertha.netsoc.dev" }
+            - { type: CNAME,  name: "netsoc.dev",     value: "traefik.netsoc.dev" }
+            - { type: CNAME,  name: grafana,          value: "bigbertha.netsoc.dev" }
 
-            - { type: CNAME,  name: traefik,               value: 80-443-swarm-ingress.netsoc.dev }
-            - { type: CNAME,  name: "*",        value: traefik.netsoc.dev              }
-            - { type: CNAME,  name: "www.*",      value: traefik.netsoc.dev              }
-            - { type: CNAME,  name: ipa,                   value: traefik.netsoc.dev              }
-            - { type: CNAME,  name: ci,                    value: traefik.netsoc.dev              }
-            - { type: CNAME,  name: keycloak,              value: traefik.netsoc.dev              }
-            - { type: CNAME,  name: portainer,             value: traefik.netsoc.dev              }
-            - { type: CNAME,  name: prometheus,            value: traefik.netsoc.dev              }
+            - { type: CNAME,  name: traefik,          value: 80-443-swarm-ingress.netsoc.dev }
+            - { type: CNAME,  name: events,           value: "cix-2.netsoc.co"  }
+            
           "netsoc.co":
             # A
+            - { type: A,      name: "cix-0",          value: "84.39.234.50" }
+            - { type: A,      name: "cix-1",          value: "84.39.234.51" }
+            - { type: A,      name: "cix-2",          value: "84.39.234.52" }
+            - { type: A,      name: "cix-3",          value: "84.39.234.53" }
+            - { type: A,      name: "cix-4",          value: "84.39.234.54" }
+            - { type: A,      name: "ucc-0",          value: "143.239.87.40" }
+            - { type: A,      name: "ucc-1",          value: "143.239.87.41" }
+
+            # Historical hostnames
             - { type: A,      name: "bigbertha",      value: "84.39.234.50" }
             - { type: A,      name: "boole",          value: "84.39.234.54" }
             - { type: A,      name: "feynman",        value: "84.39.234.53" }
@@ -37,28 +48,43 @@
             - { type: A,      name: "elon",           value: "143.239.87.40" }
             - { type: A,      name: "tesla",          value: "143.239.87.41" }
 
-            - { type: A,      name: "ns1",            value: "84.39.234.50" }   # Legacy
-            - { type: A,      name: "ns2",            value: "84.39.234.52" }
-
             # New - post proxmoxification
-            - { type: A,     name: 80-443-swarm-ingress,  value: "84.39.234.53" }
-            - { type: CNAME, name: portal,                value: 80-443-swarm-ingress.netsoc.co }
-            - { type: CNAME, name: tutorial,              value: 80-443-swarm-ingress.netsoc.co }
-            - { type: CNAME, name: blog,                  value: 80-443-swarm-ingress.netsoc.co }
-            - { type: CNAME, name: wiki,                  value: 80-443-swarm-ingress.netsoc.co }
-            - { type: CNAME, name: constitution,          value: 80-443-swarm-ingress.netsoc.co }
-            - { type: CNAME, name: netsoc.co,             value: 80-443-swarm-ingress.netsoc.co }
+            - { type: A,        name: 80-443-swarm-ingress,  value: "84.39.234.53" }
+            - { type: CNAME,    name: minecraft,             value: "cix-3.netsoc.co"      }
 
-            # ;; CNAME Records
+            # proxmox control host
+            - { type: CNAME,    name: control.infra,         value: "cix-3.netsoc.co"      }
+
+            # web
+            - { type: CNAME,    name: web.infra,             value: "cix-2.netsoc.co"      }
+
+            - { type: CNAME,    name: ipa.infra,             value: "web.infra.netsoc.co"  }
+            - { type: CNAME,    name: keycloak.infra,        value: "web.infra.netsoc.co"  }
+            - { type: CNAME,    name: traefik.infra,         value: "web.infra.netsoc.co"  }
+            - { type: CNAME,    name: prometheus.infra,      value: "web.infra.netsoc.co"  }
+            - { type: CNAME,    name: ci.infra,              value: "web.infra.netsoc.co"  }
+
+            - { type: CNAME,    name: wiki,                  value: "web.infra.netsoc.co"  }
+            - { type: CNAME,    name: netsoc.co,             value: "web.infra.netsoc.co"  }
+            - { type: CNAME,    name: www,                   value: "web.infra.netsoc.co"  }
+            - { type: CNAME,    name: mentorships,           value: "web.infra.netsoc.co"  }
+            - { type: CNAME,    name: tutorial,              value: "web.infra.netsoc.co"  }
+            - { type: CNAME,    name: constitution,          value: "web.infra.netsoc.co"  }
+            - { type: CNAME,    name: portal,                value: "web.infra.netsoc.co"  }
+            - { type: CNAME,    name: blog,                  value: "web.infra.netsoc.co"  }
+            - { type: CNAME,    name: discord,               value: "web.infra.netsoc.co"  }
+            - { type: CNAME,    name: esports,               value: "web.infra.netsoc.co"  }
+            - { type: CNAME,    name: cloud,                 value: "web.infra.netsoc.co"  }
+            - { type: CNAME,    name: api,                   value: "web.infra.netsoc.co"  }
+
+            # Historical CNAME Records
             - { type: CNAME, name: admin, value: bigbertha.netsoc.co }
             - { type: CNAME, name: alerts, value: bigbertha.netsoc.co }
             - { type: CNAME, name: bert.ci, value: bigbertha.netsoc.co }
             - { type: CNAME, name: ci, value: bigbertha.netsoc.co }
             - { type: CNAME, name: consul, value: bigbertha.netsoc.co }
-            - { type: CNAME, name: discord, value: bigbertha.netsoc.co }
             - { type: CNAME, name: docker, value: boole.netsoc.co }
             - { type: CNAME, name: es, value: bigbertha.netsoc.co }
-            - { type: CNAME, name: esports, value: bigbertha.netsoc.co }
             - { type: CNAME, name: "*.evan", value: leela.netsoc.co }
             - { type: CNAME, name: grafana, value: bigbertha.netsoc.co }
             - { type: CNAME, name: hlm, value: bigbertha.netsoc.co }
@@ -72,17 +98,14 @@
             - { type: CNAME, name: "*", value: bigbertha.netsoc.co }
             - { type: CNAME, name: portainer, value: boole.netsoc.co }
             - { type: CNAME, name: prom, value: bigbertha.netsoc.co }
-            - { type: CNAME, name: pterodactyl-daemon, value: lovelace.netsoc.co }
             - { type: CNAME, name: sentry, value: boole.netsoc.co }
             - { type: CNAME, name: traefik, value: bigbertha.netsoc.co }
             - { type: CNAME, name: unf2b, value: leela.netsoc.co }
             - { type: CNAME, name: userdomains, value: leela.netsoc.co }
             - { type: CNAME, name: vault, value: bigbertha.netsoc.co }
             - { type: CNAME, name: warpcon.co, value: leela.netsoc.co }
-            # - { type: CNAME, name: wiki, value: bigbertha.netsoc.co }
             - { type: CNAME, name: www.*.evan, value: leela.netsoc.co }
             - { type: CNAME, name: www.*, value: bigbertha.netsoc.co }
-            - { type: CNAME, name: www, value: 80-443-swarm-ingress.netsoc.co }
             - { type: CNAME, name: www.warpcon.co, value: leela.netsoc.co }
 
             # MX
@@ -181,6 +204,5 @@
         ]
   vars_files:
     - vars/network.yml
-    - vars/cloudflare.yml
-    - vars/monitoring.yml
+    - vars/secrets_mapping.yml
     - vars/secrets.yml

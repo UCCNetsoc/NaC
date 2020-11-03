@@ -1,0 +1,125 @@
+---
+- name: "INITIAL SETUP"
+  hosts: databases.infra.netsoc.co
+  become: yes
+  roles:
+    - ansible-requirements
+    - utf8-locale
+    - docker
+  tasks:
+    - name: "Make /netsoc only readable by root"
+      file:
+        path: "/netsoc"
+        owner: root
+        group: root
+        mode: '1770'
+  tags:
+    - initial
+
+- name: "Enroll in IPA server"
+  hosts: databases.infra.netsoc.co
+  become: yes
+  roles:
+    - role: ipa-client-enroll
+      vars:
+        client:
+          addresses: 
+            - "{{ ansible_default_ipv4.address }}"
+  vars_files:
+    - "vars/network.yml"
+    - "vars/secrets_mapping.yml"
+    - "vars/secrets.yml"
+  tags:
+    - ipa-client-enroll
+
+- name: "DATABASES - MySQL/PG"
+  hosts: databases.infra.netsoc.co
+  become: yes
+  tasks:    
+    - name: MYSQL/PG/PROM - Ensure directories exist
+      file:
+        path: "/netsoc/{{ item }}"
+        owner: root
+        group: root
+        # Needs to be 775 as this folder is accessed internally by a dirsrv user
+        # https://github.com/freeipa/freeipa-container/issues/281
+        mode: '0755'
+        state: directory
+      with_items:
+        - mysql
+        - pg
+
+    - name: PG - Install psycopg2 (needed for ansible pg driver)
+      apt:
+        name: python3-psycopg2
+        state: present
+
+    - name: MYSQL/PG - Remember Compose definition
+      set_fact:
+        definition: 
+          version: "3.5"
+          services:
+            mysql:
+              hostname: "mysql.databases.infra.netsoc.co"
+              image: mysql:8.0.20
+              restart: on-failure
+              environment:
+                MYSQL_ROOT_PASSWORD: "{{ mysql.infra.root_password }}"
+              volumes:
+                - "/netsoc/mysql:/var/lib/mysql"
+              ports:
+                - "3306:3306"
+            pg:
+              hostname: "pg.databases.netsoc.co"
+              image: postgres:12.3
+              restart: on-failure
+              environment:
+                POSTGRES_PASSWORD: "{{ postgres.infra.postgres_password }}"
+              volumes:
+                - "/netsoc/pg:/var/lib/postgresql/data"
+              ports:
+                - "5432:5432"
+
+    - name: MYSQL/PG - Setup services
+      docker_compose:
+        project_name: databases
+        recreate: smart
+        remove_orphans: yes
+        state: present
+        definition: "{{ definition }}"
+  vars_files:
+    - "vars/network.yml"
+    - "vars/secrets_mapping.yml"
+    - "vars/secrets.yml"
+  tags:
+    - provision
+
+- name: "DATABASES - Prometheus"
+  hosts: databases.infra.netsoc.co
+  become: yes
+  tasks:    
+    - name: PROM - Ensure directories exist
+      file:
+        path: "/netsoc/{{ item }}"
+        owner: root
+        group: root
+        # Needs to be 775 as this folder is accessed internally by a dirsrv user
+        # https://github.com/freeipa/freeipa-container/issues/281
+        mode: '0755'
+        state: directory
+      with_items:
+        - prometheus
+        - blackbox_exporter
+        - pve
+  roles:
+    - role: prometheus-server
+      vars:
+        prometheus_dir: "/netsoc/prometheus"
+        blackbox_exporter_dir: "/netsoc/blackbox_exporter"
+        pve_dir: "/netsoc/pve"
+  vars_files:
+    - "vars/network.yml"
+    - "vars/secrets_mapping.yml"
+    - "vars/secrets.yml"
+  tags:
+    - provision

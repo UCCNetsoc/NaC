@@ -47,14 +47,19 @@ for node in proxmox.nodes.get():
         if vm['status'] == 'running':
             # Request the IPs that the VM is exposing via it's guest agent
             try:
+                config = proxmox.nodes(node['node']).qemu(f"{vm['vmid']}/config").get()
+                try:
+                    macaddress = config["net0"].split("=")[1].split(',')[0]
+                except Exception as e:
+                    macaddress = None
+
                 ifaces = proxmox.nodes(node['node']).qemu(vm['vmid']).agent.get('network-get-interfaces')
                 for iface in ifaces['result']:
-                    if 'ip-addresses' in iface:
-                        for ipinfo in iface['ip-addresses']:
-                            # prefer ips with private subnets
-                            if ipinfo['ip-address'].split('.')[0] == '10':
-                                ssh_ip = ipinfo['ip-address']
-                                break
+                    if 'hardware-address' in iface and iface['hardware-address'] == macaddress:
+                        
+                        if 'ip-addresses' in iface and len(iface['ip-addresses']) > 0:
+                            ssh_ip = iface['ip-addresses'][0]['ip-address']
+                            break
 
             except ResourceException:
                 # If the agent isn't running on the machine, ignore that machine
@@ -66,6 +71,8 @@ for node in proxmox.nodes.get():
                 "ansible_host": ssh_ip
             }
             
+            ssh_ip = ''
+
             # Parse yaml from vm description
             if 'description' in vm_config:
                 desc_config = yaml.safe_load(vm_config['description'])

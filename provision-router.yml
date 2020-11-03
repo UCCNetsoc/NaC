@@ -1,361 +1,364 @@
-- name: "Provision router"
-  hosts: router
-  vars_files:
-    - vars/network.yml
-  tasks:
-    - set_fact:
-        config_path: "/tmp/router-config-{{ 100000000000 | random }}.boot"
-    # Base config, don't touch this without talking to canty pls
-    - copy:
-        dest: "{{ config_path }}"
-        content: |
-          firewall {
-            all-ping enable
-            broadcast-ping disable
-            config-trap disable
-            ipv6-receive-redirects disable
-            ipv6-src-route disable
-            ip-src-route disable
-            log-martians enable
-            name infra-user {
-              default-action accept
-            }
-            name infra-wan {
-              default-action accept
-            }
-            name user-infra {
-              default-action accept
-            }
-            name user-wan {
-              default-action accept
-            }
-            name vmhost-wan {
-              default-action accept
-            }
-            name wan-infra {
-              default-action accept
-            }
-            name wan-user {
-              default-action accept
-            }
-            name wan-vmhost {
-              default-action accept
-            }
-            receive-redirects disable
-            send-redirects enable
-            source-validation disable
-            syn-cookies enable
-            twa-hazards-protection disable
-          }
-          interfaces {
-            ethernet eth0 {
-              vif 10 {
-                address 10.0.0.99/24
-                address 84.39.234.53/29
-                address 84.39.234.52/29
-              }
-              vif 20 {
-                address 10.0.20.1/24
-              }
-              vif 30 {
-                address 10.0.30.1/24
-              }
-              vif 40 {
-                address 10.0.40.1/24
-              }
-              vif 90 {
-                address 10.0.90.1/24
-              }
-            }
-            loopback lo {
-            }
-          }
-          nat {
-            destination {
-              rule 800 {
-                destination {
-                  address 84.39.234.53
-                  port 80,443
-                }
-                inbound-interface eth0.10
-                protocol tcp
-                translation {
-                  address {{ interfaces.managerN.net0.addresses[0] | ipaddr('address') }}
-                }
-              }
-              rule 801 {
-                destination {
-                  address 84.39.234.53
-                  port 80,443
-                }
-                inbound-interface eth0.30
-                protocol tcp
-                translation {
-                  address {{ interfaces.managerN.net0.addresses[0] | ipaddr('address') }}
-                }
-              }
-              rule 802 {
-                destination {
-                  address 84.39.234.52
-                  port 22
-                }
-                inbound-interface eth0.10
-                protocol tcp
-                translation {
-                  address {{ interfaces.portal.net0.addresses[0] | ipaddr('address') }}
-                }
-              }
-              rule 803 {
-                destination {
-                  address 84.39.234.52
-                  port 22
-                }
-                inbound-interface eth0.30
-                protocol tcp
-                translation {
-                  address {{ interfaces.portal.net0.addresses[0] | ipaddr('address') }}
-                }
-              }
-              rule 900 {
-                destination {
-                  address 84.39.234.53
-                  port 8006
-                }
-                inbound-interface eth0.10
-                protocol tcp
-                translation {
-                  address 10.0.20.53
-                }
-              }
-              rule 901 {
-                destination {
-                  address 84.39.234.53
-                  port 2222
-                }
-                inbound-interface eth0.10
-                protocol tcp
-                translation {
-                  address 10.0.20.53
-                  port 22
-                }
-              }
-              rule 902 {
-                destination {
-                  address 84.39.234.53
-                  port 8007
-                }
-                inbound-interface eth0.10
-                protocol tcp
-                translation {
-                  address 10.0.20.52
-                  port 8006
-                }
-              }
-              rule 903 {
-                destination {
-                  address 84.39.234.53
-                  port 2223
-                }
-                inbound-interface eth0.10
-                protocol tcp
-                translation {
-                  address 10.0.20.52
-                  port 22
-                }
-              }
-              rule 904 {
-                destination {
-                  address 84.39.234.53
-                  port 1194
-                }
-                inbound-interface eth0.10
-                protocol tcp
-                translation {
-                  address {{ interfaces.games.net0.addresses[0] | ipaddr('address') }}
-                  port 1194
-                }
-              }
-            }
-            source {
-              rule 10 {
-                outbound-interface eth0.30
-                source {
-                  address 10.0.30.0/24
-                }
-                destination {
-                  address 10.0.30.0/24
-                }
-                translation {
-                  address masquerade
-                }
-              }
-              rule 100 {
-                outbound-interface eth0.10
-                source {
-                  address 10.0.20.0/24
-                }
-                translation {
-                  address masquerade
-                }
-              }
-              rule 101 {
-                outbound-interface eth0.10
-                source {
-                  address 10.0.40.0/24
-                }
-                translation {
-                  address 84.39.234.53
-                }
-              }
-              rule 102 {
-                outbound-interface eth0.10
-                source {
-                  address 10.0.30.0/24
-                }
-                translation {
-                  address 84.39.234.53
-                }
-              }
-              rule 901 {
-                outbound-interface eth0.10
-                source {
-                  address 10.0.200.0/24
-                }
-                translation {
-                  address 84.39.234.53
-                }
-              }
-            }
-          } 
-          protocols {
-            static {
-              route 0.0.0.0/0 {
-                next-hop 84.39.234.49 {
-                  distance 1
-                }
-              }
-            }
-          }
-          service {
-            ssh {
-              listen-address 10.0.90.1
-              port 22
-            }
-          }
-          system {
-            config-management {
-              commit-revisions 100
-            }
-            console {
-              device ttyS0 {
-                speed 115200
-              }
-            }
-            host-name router.vm.netsoc.co
-            login {
-              user vyos {
-                authentication {
-                  encrypted-password '$6$Z3O/fMz9g4zCWys$DiujfJa4GEAlgj8C0WQlAmTTdlqCWFLkMLq5Bq1aBTGusQeyhS7H5K6sLINHmx1qg1BYyF36oPtoCEz/ZZiVJ.'
-                  plaintext-password ""
-                }
-                level admin
-              }
-            }
-            ntp {
-              server 0.pool.ntp.org {
-              }
-              server 1.pool.ntp.org {
-              }
-              server 2.pool.ntp.org {
-              }
-            }
-            syslog {
-              global {
-                facility all {
-                  level info
-                }
-                facility protocols {
-                  level debug
-                }
-              }
-            }
-            time-zone UTC
-          }
-          zone-policy {
-            zone infra {
-              default-action drop
-              description "Infrastructure traffic"
-              from user {
-                firewall {
-                  name user-infra
-                }
-              }
-              from wan {
-                firewall {
-                  name wan-infra
-                }
-              }
-              interface eth0.30
-            }
-            zone mgmt {
-              default-action drop
-              description "Management traffic"
-              interface eth0.90
-            }
-            zone user {
-              default-action drop
-              description "User VM traffic"
-              from infra {
-                firewall {
-                  name infra-user
-                }
-              }
-              from wan {
-                firewall {
-                  name wan-user
-                }
-              }
-              interface eth0.40
-            }
-            zone vmhost {
-              default-action drop
-              description "VM host traffic"
-              from wan {
-                firewall {
-                  name wan-vmhost
-                }
-              }
-              interface eth0.20
-            }
-            zone wan {
-              default-action drop
-              description "WAN traffic"
-              from infra {
-                firewall {
-                  name infra-wan
-                }
-              }
-              from user {
-                firewall {
-                  name user-wan
-                }
-              }
-              from vmhost {
-                firewall {
-                  name vmhost-wan
-                }
-              }
 
-              interface eth0.10
-            }
-          }
 
-          /* Warning: Do not remove the following line. */
-          /* === vyatta-config-version: "broadcast-relay@1:cluster@1:config-management@1:conntrack@1:conntrack-sync@1:dhcp-relay@2:dhcp-server@5:dns-forwarding@2:firewall@5:interfaces@3:ipsec@5:l2tp@1:mdns@1:nat@4:ntp@1:pptp@1:qos@1:quagga@4:snmp@1:ssh@1:system@11:vrrp@2:vyos-accel-ppp@2:wanloadbalance@3:webgui@1:webproxy@2:zone-policy@1" === */
-          /* Release version: 1.2-rolling-201911230217 */
-    - vyos_config:
-        save: no
-        src: "{{ config_path }}"
-      register: result
-    - debug:
-        msg: "{{ result }}"
+# Can't run util next CIX trip, talk to canty
+# - name: "Provision router"
+#   hosts: router
+#   vars_files:
+#     - vars/network.yml
+#   tasks:
+#     - set_fact:
+#         config_path: "/tmp/router-config-{{ 100000000000 | random }}.boot"
+#     # Base config, don't touch this without talking to canty pls
+#     - copy:
+#         dest: "{{ config_path }}"
+#         content: |
+#           firewall {
+#             all-ping enable
+#             broadcast-ping disable
+#             config-trap disable
+#             ipv6-receive-redirects disable
+#             ipv6-src-route disable
+#             ip-src-route disable
+#             log-martians enable
+#             name infra-user {
+#               default-action accept
+#             }
+#             name infra-wan {
+#               default-action accept
+#             }
+#             name user-infra {
+#               default-action accept
+#             }
+#             name user-wan {
+#               default-action accept
+#             }
+#             name vmhost-wan {
+#               default-action accept
+#             }
+#             name wan-infra {
+#               default-action accept
+#             }
+#             name wan-user {
+#               default-action accept
+#             }
+#             name wan-vmhost {
+#               default-action accept
+#             }
+#             receive-redirects disable
+#             send-redirects enable
+#             source-validation disable
+#             syn-cookies enable
+#             twa-hazards-protection disable
+#           }
+#           interfaces {
+#             ethernet eth0 {
+#               vif 10 {
+#                 address 10.0.0.99/24
+#                 address 84.39.234.53/29
+#                 address 84.39.234.52/29
+#               }
+#               vif 20 {
+#                 address 10.0.20.1/24
+#               }
+#               vif 30 {
+#                 address 10.0.30.1/24
+#               }
+#               vif 40 {
+#                 address 10.0.40.1/24
+#               }
+#               vif 90 {
+#                 address 10.0.90.1/24
+#               }
+#             }
+#             loopback lo {
+#             }
+#           }
+#           nat {
+#             destination {
+#               rule 800 {
+#                 destination {
+#                   address 84.39.234.53
+#                   port 80,443
+#                 }
+#                 inbound-interface eth0.10
+#                 protocol tcp
+#                 translation {
+#                   address {{ interfaces.managerN.net0.addresses[0] | ipaddr('address') }}
+#                 }
+#               }
+#               rule 801 {
+#                 destination {
+#                   address 84.39.234.53
+#                   port 80,443
+#                 }
+#                 inbound-interface eth0.30
+#                 protocol tcp
+#                 translation {
+#                   address {{ interfaces.managerN.net0.addresses[0] | ipaddr('address') }}
+#                 }
+#               }
+#               rule 802 {
+#                 destination {
+#                   address 84.39.234.52
+#                   port 22
+#                 }
+#                 inbound-interface eth0.10
+#                 protocol tcp
+#                 translation {
+#                   address {{ interfaces.portal.net0.addresses[0] | ipaddr('address') }}
+#                 }
+#               }
+#               rule 803 {
+#                 destination {
+#                   address 84.39.234.52
+#                   port 22
+#                 }
+#                 inbound-interface eth0.30
+#                 protocol tcp
+#                 translation {
+#                   address {{ interfaces.portal.net0.addresses[0] | ipaddr('address') }}
+#                 }
+#               }
+#               rule 900 {
+#                 destination {
+#                   address 84.39.234.53
+#                   port 8006
+#                 }
+#                 inbound-interface eth0.10
+#                 protocol tcp
+#                 translation {
+#                   address 10.0.20.53
+#                 }
+#               }
+#               rule 901 {
+#                 destination {
+#                   address 84.39.234.53
+#                   port 2222
+#                 }
+#                 inbound-interface eth0.10
+#                 protocol tcp
+#                 translation {
+#                   address 10.0.20.53
+#                   port 22
+#                 }
+#               }
+#               rule 902 {
+#                 destination {
+#                   address 84.39.234.53
+#                   port 8007
+#                 }
+#                 inbound-interface eth0.10
+#                 protocol tcp
+#                 translation {
+#                   address 10.0.20.52
+#                   port 8006
+#                 }
+#               }
+#               rule 903 {
+#                 destination {
+#                   address 84.39.234.53
+#                   port 2223
+#                 }
+#                 inbound-interface eth0.10
+#                 protocol tcp
+#                 translation {
+#                   address 10.0.20.52
+#                   port 22
+#                 }
+#               }
+#               rule 904 {
+#                 destination {
+#                   address 84.39.234.53
+#                   port 1194
+#                 }
+#                 inbound-interface eth0.10
+#                 protocol tcp
+#                 translation {
+#                   address {{ interfaces.games.net0.addresses[0] | ipaddr('address') }}
+#                   port 1194
+#                 }
+#               }
+#             }
+#             source {
+#               rule 10 {
+#                 outbound-interface eth0.30
+#                 source {
+#                   address 10.0.30.0/24
+#                 }
+#                 destination {
+#                   address 10.0.30.0/24
+#                 }
+#                 translation {
+#                   address masquerade
+#                 }
+#               }
+#               rule 100 {
+#                 outbound-interface eth0.10
+#                 source {
+#                   address 10.0.20.0/24
+#                 }
+#                 translation {
+#                   address masquerade
+#                 }
+#               }
+#               rule 101 {
+#                 outbound-interface eth0.10
+#                 source {
+#                   address 10.0.40.0/24
+#                 }
+#                 translation {
+#                   address 84.39.234.53
+#                 }
+#               }
+#               rule 102 {
+#                 outbound-interface eth0.10
+#                 source {
+#                   address 10.0.30.0/24
+#                 }
+#                 translation {
+#                   address 84.39.234.53
+#                 }
+#               }
+#               rule 901 {
+#                 outbound-interface eth0.10
+#                 source {
+#                   address 10.0.200.0/24
+#                 }
+#                 translation {
+#                   address 84.39.234.53
+#                 }
+#               }
+#             }
+#           } 
+#           protocols {
+#             static {
+#               route 0.0.0.0/0 {
+#                 next-hop 84.39.234.49 {
+#                   distance 1
+#                 }
+#               }
+#             }
+#           }
+#           service {
+#             ssh {
+#               listen-address 10.0.90.1
+#               port 22
+#             }
+#           }
+#           system {
+#             config-management {
+#               commit-revisions 100
+#             }
+#             console {
+#               device ttyS0 {
+#                 speed 115200
+#               }
+#             }
+#             host-name router.vm.netsoc.co
+#             login {
+#               user vyos {
+#                 authentication {
+#                   encrypted-password '$6$Z3O/fMz9g4zCWys$DiujfJa4GEAlgj8C0WQlAmTTdlqCWFLkMLq5Bq1aBTGusQeyhS7H5K6sLINHmx1qg1BYyF36oPtoCEz/ZZiVJ.'
+#                   plaintext-password ""
+#                 }
+#                 level admin
+#               }
+#             }
+#             ntp {
+#               server 0.pool.ntp.org {
+#               }
+#               server 1.pool.ntp.org {
+#               }
+#               server 2.pool.ntp.org {
+#               }
+#             }
+#             syslog {
+#               global {
+#                 facility all {
+#                   level info
+#                 }
+#                 facility protocols {
+#                   level debug
+#                 }
+#               }
+#             }
+#             time-zone UTC
+#           }
+#           zone-policy {
+#             zone infra {
+#               default-action drop
+#               description "Infrastructure traffic"
+#               from user {
+#                 firewall {
+#                   name user-infra
+#                 }
+#               }
+#               from wan {
+#                 firewall {
+#                   name wan-infra
+#                 }
+#               }
+#               interface eth0.30
+#             }
+#             zone mgmt {
+#               default-action drop
+#               description "Management traffic"
+#               interface eth0.90
+#             }
+#             zone user {
+#               default-action drop
+#               description "User VM traffic"
+#               from infra {
+#                 firewall {
+#                   name infra-user
+#                 }
+#               }
+#               from wan {
+#                 firewall {
+#                   name wan-user
+#                 }
+#               }
+#               interface eth0.40
+#             }
+#             zone vmhost {
+#               default-action drop
+#               description "VM host traffic"
+#               from wan {
+#                 firewall {
+#                   name wan-vmhost
+#                 }
+#               }
+#               interface eth0.20
+#             }
+#             zone wan {
+#               default-action drop
+#               description "WAN traffic"
+#               from infra {
+#                 firewall {
+#                   name infra-wan
+#                 }
+#               }
+#               from user {
+#                 firewall {
+#                   name user-wan
+#                 }
+#               }
+#               from vmhost {
+#                 firewall {
+#                   name vmhost-wan
+#                 }
+#               }
+
+#               interface eth0.10
+#             }
+#           }
+
+#           /* Warning: Do not remove the following line. */
+#           /* === vyatta-config-version: "broadcast-relay@1:cluster@1:config-management@1:conntrack@1:conntrack-sync@1:dhcp-relay@2:dhcp-server@5:dns-forwarding@2:firewall@5:interfaces@3:ipsec@5:l2tp@1:mdns@1:nat@4:ntp@1:pptp@1:qos@1:quagga@4:snmp@1:ssh@1:system@11:vrrp@2:vyos-accel-ppp@2:wanloadbalance@3:webgui@1:webproxy@2:zone-policy@1" === */
+#           /* Release version: 1.2-rolling-201911230217 */
+#     - vyos_config:
+#         save: no
+#         src: "{{ config_path }}"
+#       register: result
+#     - debug:
+#         msg: "{{ result }}"

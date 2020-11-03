@@ -17,7 +17,6 @@
       - python-distutils-extra
       - python3-pip
     state: latest
-    update_cache: yes
 
 - name: Ensure upgraded pip and ansible pip requirements
   become: yes

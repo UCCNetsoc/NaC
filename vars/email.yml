@@ -1,1 +1,0 @@
-sendgrid: "{{ vault_sendgrid }}"
