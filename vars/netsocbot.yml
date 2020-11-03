@@ -1,7 +1,0 @@
-netsocbot: '{{ vault_netsocbot }}'
-public_announcements: '494539080885993472'
-private_events: '702594452367212544'
-public_general: '248421213628530688'
-public_server: '248421213628530688'
-committee_server: '684741641944170514'
-mysql_server: "{{ interfaces.databases.net0.addresses[0] | ipaddr('address') }}"

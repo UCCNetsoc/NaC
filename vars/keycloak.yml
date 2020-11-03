@@ -1,2 +1,0 @@
-keycloak: "{{ vault_keycloak }}"
-keycloak_freeipa_realm: "{{ vault_keycloak_freeipa_realm }}"

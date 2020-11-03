@@ -59,14 +59,14 @@
   #         iface vmbr0.40 inet static
   #                 address 10.0.40.53/24
 
-    - role: packer-provisioning-dhcp-bridge
-      vars:
-        bridge_inteface: "vmbr1"
-        bridge_address: "10.0.100.1"
-        bridge_netmask: "24"
-        nat_interface: "vmbr0.20"
-        dhcp_range_begin: "10.0.100.2"
-        dhcp_range_end: "10.0.100.254"
-        dhcp_netmask: "255.255.255.0"
-        dhcp_lease_length: "24h"
-        dhcp_dns_servers: "8.8.8.8,8.8.4.4"
+    # - role: packer-provisioning-dhcp-bridge
+    #   vars:
+    #     bridge_inteface: "vmbr1"
+    #     bridge_address: "10.0.100.1"
+    #     bridge_netmask: "24"
+    #     nat_interface: "vmbr0.20"
+    #     dhcp_range_begin: "10.0.100.2"
+    #     dhcp_range_end: "10.0.100.254"
+    #     dhcp_netmask: "255.255.255.0"
+    #     dhcp_lease_length: "24h"
+    #     dhcp_dns_servers: "8.8.8.8,8.8.4.4"

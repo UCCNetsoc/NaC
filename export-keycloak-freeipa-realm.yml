@@ -1,24 +1,24 @@
 # Export keycloak realm to ./keycloak-realm-exported
-- name: "Exporting Keycloak realm to ./keycloak-realm-exported.json"
-  hosts: auth
-  become: yes
-  tasks:
-    - shell: > # pretty bad way of doing this but who cares
-        docker restart keycloak &&
-        timeout 20s
-        docker exec -it keycloak /opt/jboss/keycloak/bin/standalone.sh
-        -Djboss.socket.binding.port-offset=1000
-        -Dkeycloak.migration.action=export
-        -Dkeycloak.migration.provider=singleFile
-        -Dkeycloak.migration.realmName=freeipa
-        -Dkeycloak.migration.usersExportStrategy=REALM_FILE
-        -Dkeycloak.migration.file=/tmp/keycloak/freeipa-realm-exported.json
-      args:
-        executable: /bin/bash
-      ignore_errors: yes
-    - fetch:
-        src: /mnt/data-disk/keycloak/freeipa-realm-exported.json
-        dest: ./keycloak-realm-exported.json
-        flat: yes
-    - shell:
-        rm /mnt/data-disk/keycloak/freeipa-realm-exported.json
+# - name: "Exporting Keycloak realm to ./keycloak-realm-exported.json"
+#   hosts: auth.infra.netsoc.co
+#   become: yes
+#   tasks:
+#     - shell: > # pretty bad way of doing this but who cares
+#         docker restart keycloak &&
+#         timeout 20s
+#         docker exec -it auth_keycloak_1 /opt/jboss/keycloak/bin/standalone.sh
+#         -Djboss.socket.binding.port-offset=1000
+#         -Dkeycloak.migration.action=export
+#         -Dkeycloak.migration.provider=singleFile
+#         -Dkeycloak.migration.realmName=freeipa
+#         -Dkeycloak.migration.usersExportStrategy=REALM_FILE
+#         -Dkeycloak.migration.file=/tmp/keycloak/freeipa-realm-exported.json
+#       args:
+#         executable: /bin/bash
+#       ignore_errors: yes
+#     - fetch:
+#         src: /mnt/data-disk/keycloak/freeipa-realm-exported.json
+#         dest: ./keycloak-realm-exported.json
+#         flat: yes
+#     - shell:
+#         rm /mnt/data-disk/keycloak/freeipa-realm-exported.json

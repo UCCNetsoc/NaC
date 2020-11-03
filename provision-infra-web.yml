@@ -1,0 +1,877 @@
+---
+- name: "INITIAL SETUP"
+  hosts: web.infra.netsoc.co
+  become: yes
+  roles:
+    - ansible-requirements
+    - utf8-locale
+    - docker
+  tasks:
+    - name: "Make /netsoc only readable by root"
+      file:
+        path: "/netsoc"
+        owner: root
+        group: root
+        mode: '1770'
+  tags:
+    - initial
+
+- name: "Enroll in IPA server"
+  hosts: web.infra.netsoc.co
+  become: yes
+  roles:
+    - role: ipa-client-enroll
+      vars:
+        client:
+          addresses: 
+            - "{{ ansible_default_ipv4.address }}"
+  vars_files:
+    - "vars/network.yml"
+    - "vars/secrets_mapping.yml"
+    - "vars/secrets.yml"
+  tags:
+    - ipa-client-enroll
+
+# We don't do this on the web host because ansible needs a python driver installed on a system that uses these
+- name: "WIKI (DATABASES) - Create databases for services"
+  hosts: databases.infra.netsoc.co
+  become: yes
+  tasks:
+    - name: WIKI - Ensure database
+      postgresql_db:
+        name: "{{ wikijs.postgres.db }}"
+        state: present
+        login_host: "pg.databases.infra.netsoc.co"
+        login_password: "{{ postgres.infra.postgres_password }}"
+
+    - name: WIKI - Ensure user
+      postgresql_user:
+        name: "{{ wikijs.postgres.username }}"
+        password: "{{ wikijs.postgres.password }}"
+        login_host: "pg.databases.infra.netsoc.co"
+        login_password: "{{ postgres.infra.postgres_password }}"
+    
+    - name: WIKI - Ensure user has access to database
+      postgresql_privs:
+        db: "{{ wikijs.postgres.db }}"
+        role: "{{ wikijs.postgres.username }}"
+        objs: ALL_IN_SCHEMA
+        privs: SELECT,INSERT,UPDATE,DELETE
+        login_host: "pg.databases.infra.netsoc.co"
+        login_password: "{{ postgres.infra.postgres_password }}"
+  vars_files:
+    - "vars/secrets_mapping.yml"
+    - "vars/secrets.yml"
+  tags:
+    - provision
+    - discord-bot
+
+- name: "TRAEFIK"
+  hosts: web.infra.netsoc.co
+  become: yes
+  tasks:
+    - name: TRAEFIK - Ensure directories exist
+      file:
+        path: "/netsoc/{{ item }}"
+        owner: root
+        group: root
+        mode: '0755'
+        state: directory
+      with_items:
+        - traefik
+        - traefik/file_config
+
+    - name: TRAEFIK - Ensure Docker network
+      become: yes
+      docker_network:
+        name: traefik
+        attachable: yes
+
+    - name: TRAEFIK - Remember configs
+      set_fact:
+        traefik_static_config:
+          log:
+            level: DEBUG
+          accessLog: {}
+          entrypoints:
+            web:
+              address: ':80'
+            web-secure:
+              address: ':443'
+            metrics:
+              address: ':8082'
+          metrics:
+            prometheus:
+              entrypoint: metrics
+          serversTransport:
+            insecureSkipVerify: true
+          certificatesResolvers:
+            letsencrypt:
+              acme:
+                email: netsoc@uccsocieties.ie
+                storage: /traefik/acme.json
+                #tlsChallenge: {}
+                dnsChallenge:
+                  provider: cloudflare
+                  delayBeforeCheck: 0
+          providers:
+            file:
+              directory: /traefik/file_config/
+              watch: true
+            docker:
+              exposedByDefault: false
+          api:
+            dashboard: true
+            insecure: true
+
+    - name: TRAEFIK - Remember file config
+      set_fact:
+        traefik_file_config:
+          http:
+            routers:
+              wildcard:
+                entrypoints:
+                  - web-secure
+                rule: Host(`*.netsoc.co`)
+                service: unused
+                tls:
+                  certResolver: letsencrypt
+              ipa:
+                entrypoints:
+                  - web-secure
+                rule: Host(`ipa.infra.netsoc.co`)
+                middlewares:
+                  - ipa-rewrite
+                service: ipa
+                tls:
+                  certResolver: letsencrypt
+              keycloak:
+                entrypoints:
+                  - web-secure
+                rule: Host(`keycloak.infra.netsoc.co`)
+                service: keycloak
+                tls:
+                  certResolver: letsencrypt
+              discord-router:
+                entrypoints:
+                  - web-secure
+                rule: Host(`discord.netsoc.co`)
+                middlewares:
+                  - discord-redirect
+                service: unused
+                tls:
+                  certResolver: letsencrypt
+              constitution-router:
+                entrypoints:
+                  - web-secure
+                rule: Host(`constitution.netsoc.co`)
+                middlewares:
+                  - constitution-redirect
+                service: unused
+                tls:
+                  certResolver: letsencrypt
+              esports-router:
+                entrypoints:
+                  - web-secure
+                rule: Host(`esports.netsoc.co`)
+                middlewares:
+                  - esports-redirect
+                service: unused
+                tls:
+                  certResolver: letsencrypt
+              prometheus:
+                entrypoints:
+                  - web-secure
+                rule: Host(`prometheus.infra.netsoc.co`)
+                middlewares:
+                  - prometheus-auth
+                service: prometheus
+                tls:
+                  certResolver: letsencrypt
+              mentorships-router:
+                entrypoints:
+                  - web-secure
+                rule: Host(`mentorships.netsoc.co`)
+                middlewares:
+                  - mentorships-redirect
+                service: unused
+                tls:
+                  certResolver: letsencrypt
+              tutorial-router:
+                entrypoints:
+                  - web-secure
+                rule: Host(`tutorial.netsoc.co`)
+                middlewares:
+                  - tutorial-redirect
+                service: unused
+                tls:
+                  certResolver: letsencrypt
+            middlewares:
+              discord-redirect:
+                redirectRegex:
+                  regex: ^(.*)
+                  replacement: 'https://discordapp.com/invite/qPUmuYw'
+              constitution-redirect:
+                redirectRegex:
+                  regex: ^(.*)
+                  replacement: 'https://wiki.netsoc.co/en/about/constitution'
+                  permanent: true
+              esports-redirect:
+                redirectRegex:
+                  regex: ^(.*)
+                  replacement: 'https://discordapp.com/invite/pDUv6Uj'
+              mentorships-redirect:
+                redirectRegex:
+                  regex: ^(.*)
+                  replacement: 'https://wiki.netsoc.co/en/technology/mentorships'
+              ipa-rewrite:
+                headers:
+                  customRequestHeaders:
+                    Host: ipa.infra.netsoc.co
+                    Referer: https://ipa.infra.netsoc.co/ipa/
+              prometheus-auth:
+                basicAuth:
+                  users:
+                    - "{{ prometheus.username }}:{{ prometheus.password | password_hash('bcrypt') }}"
+              tutorial-redirect:
+                redirectRegex:
+                  regex: ^(.*)
+                  replacement: 'https://wiki.netsoc.co/en/services/tutorial'
+                  permanent: true 
+            services:
+              ipa:
+                loadBalancer:
+                  servers:
+                    - url: "https://auth.infra.netsoc.co"
+              keycloak:
+                loadBalancer:
+                  servers:
+                    - url: "https://auth.infra.netsoc.co:8443"
+              prometheus:
+                loadBalancer:
+                  servers:
+                    - url: "http://prometheus.databases.infra.netsoc.co:9090"
+              unused:
+                loadBalancer:
+                  servers:
+                    - url: 'https://google.com'
+
+    - name: TRAEFIK - Write static config
+      copy:
+        content: "{{ traefik_static_config | from_yaml }}"
+        dest: /netsoc/traefik/config.yml
+
+    - name: TRAEFIK - Write file config
+      copy:
+        content: "{{ traefik_file_config | from_yaml }}"
+        dest: /netsoc/traefik/file_config/config.yml
+
+    - name: TRAEFIK - Write Cloudflare DNS token
+      copy:
+        content: "{{ cloudflare.api.dns_api_token }}"
+        dest: /netsoc/traefik/cloudflare_dns_api_token.txt
+        
+    - name: TRAEFIK - Remember Compose definition
+      set_fact:
+        traefik_definition: 
+          version: "3.8"
+          networks:
+            traefik:
+              external: true
+          services:
+            server:
+              restart: on-failure
+              image: traefik:v2.3.2
+              networks:
+                traefik:
+              ports:
+                - "80:80"
+                - "443:443"
+                - "8082:8082"
+              command: traefik --configFile=/traefik/config.yml
+              volumes:
+                - "/var/run/docker.sock:/var/run/docker.sock"
+                - "/netsoc/traefik:/traefik/:shared"
+              environment:
+                CLOUDFLARE_DNS_API_TOKEN_FILE: "/traefik/cloudflare_dns_api_token.txt"
+              labels:
+                # global redirect to https
+                traefik.enable: "true"
+                traefik.docker.network: "traefik"
+                traefik.http.routers.https-redirect.entrypoints: "web"
+                traefik.http.routers.https-redirect.rule: "HostRegexp(`{any:.*}`)"
+                traefik.http.routers.https-redirect.middlewares: "https-redirect"
+                traefik.http.middlewares.https-redirect.redirectscheme.scheme: "https"
+                traefik.http.middlewares.https-redirect.redirectscheme.port: "443"
+                traefik.http.middlewares.https-redirect.redirectscheme.permanent: "true"
+
+                # passworded dashboard
+                traefik.http.routers.dashboard.entrypoints: "web-secure"
+                traefik.http.routers.dashboard.rule: "Host(`traefik.infra.netsoc.co`)"
+                traefik.http.routers.dashboard.tls: ""
+                traefik.http.routers.dashboard.tls.certResolver: "letsencrypt"
+                traefik.http.routers.dashboard.service: "dashboard-service"
+                traefik.http.services.dashboard-service.loadbalancer.server.port: "8080"
+                traefik.http.middlewares.dashboard-auth.basicauth.users: "{{ traefik.username }}:{{ traefik.password | password_hash('bcrypt') | replace('$', '$$') }}"
+                traefik.http.routers.dashboard.middlewares: "dashboard-auth@docker"
+
+    - name: TRAEFIK - Setup compose
+      docker_compose:
+        project_name: traefik
+        recreate: smart
+        restarted: yes
+        remove_orphans: yes
+        state: present
+        definition: "{{ traefik_definition }}"
+  vars_files:
+    - "vars/network.yml"
+    - "vars/secrets_mapping.yml"
+    - "vars/secrets.yml"
+  tags:
+    - provision
+    - traefik
+
+- name: "STATIC WEBSITES"
+  hosts: web.infra.netsoc.co
+  become: yes
+  tasks:  
+    - name: STATIC WEBSITES - Remember Compose definition
+      set_fact:
+        static_websites_definition: 
+          version: "3.8"
+          networks:
+            traefik:
+              external: true
+          services:
+            netsoc.co:
+              image: uccnetsoc/netsoc.co:latest
+              networks:
+                traefik:
+              labels:
+                traefik.enable: "true"
+                traefik.http.routers.website.rule: "Host(`netsoc.co`) || Host(`www.netsoc.co`)"
+                traefik.http.routers.website.entrypoints: "web-secure"
+                traefik.http.routers.website.tls.certResolver: "letsencrypt"
+                traefik.http.services.website-service.loadbalancer.server.port: "80"
+                traefik.http.routers.website.service: "website-service"
+                traefik.http.middlewares.rk-redirect.redirectregex.regex: "^https://netsoc.co/(r(?:[^k].*)|[^r].*)?$$"
+                traefik.http.middlewares.rk-redirect.redirectregex.replacement: "https://netsoc.co/rk/$${1}"
+                traefik.http.middlewares.rk-redirect.redirectregex.permanent: "true"
+                traefik.http.middlewares.rk-strip.stripprefix.prefixes: "/rk"
+                traefik.http.middlewares.www-redirect.redirectregex.regex: "^https://www.netsoc.co/(.*)"
+                traefik.http.middlewares.www-redirect.redirectregex.replacement: "https://netsoc.co/$${1}"
+                traefik.http.middlewares.www-redirect.redirectregex.permanent: "true"
+                traefik.http.routers.website.middlewares: "rk-redirect@docker,rk-strip@docker,www-redirect@docker"
+                traefik.docker.network: "traefik"
+              restart: on-failure
+            blog:
+              image: uccnetsoc/blog:latest
+              networks:
+                traefik:
+              environment:
+                BASE_URL: "https://blog.netsoc.co/"
+              labels:
+                traefik.enable: "true"
+                traefik.http.routers.blog.rule: "Host(`blog.netsoc.co`)"
+                traefik.http.routers.blog.entrypoints: "web-secure"
+                traefik.http.routers.blog.tls.certResolver: "letsencrypt"
+                traefik.http.services.blog-service.loadbalancer.server.port: "80"
+                traefik.http.routers.blog.service: "blog-service"
+                traefik.docker.network: "traefik"
+              restart: on-failure
+    
+    - name: STATIC WEBSITES - Setup compose
+      docker_compose:
+        project_name: static_websites
+        recreate: smart
+        restarted: yes
+        remove_orphans: yes
+        state: present
+        definition: "{{ static_websites_definition }}"
+  vars_files:
+    - "vars/network.yml"
+    - "vars/secrets_mapping.yml"
+    - "vars/secrets.yml"
+  tags:
+    - provision
+    - static-websites
+
+- name: "WIKI"
+  hosts: web.infra.netsoc.co
+  become: yes
+  tasks:  
+    - name: WIKI - Remember Compose definition
+      set_fact:
+        wiki_definition: 
+          version: "3.8"
+          networks:
+            traefik:
+              external: true
+          services:
+            instance:
+              image: requarks/wiki:2.4
+              environment:
+                # like this for future use
+                DB_TYPE: "postgres"
+                DB_HOST: "{{ interfaces.infra.databases.net0.addresses[0] | ipaddr('address') }}"
+                DB_PORT: "{{ wikijs.postgres.port | default(5432) }}"
+                DB_USER: "{{ wikijs.postgres.username }}"
+                DB_PASS: "{{ wikijs.postgres.password }}"
+                DB_NAME: "{{ wikijs.postgres.db }}" 
+              networks:
+                traefik:
+              labels:
+                traefik.enable: "true"
+                traefik.http.routers.wiki.rule: "Host(`wiki.netsoc.co`)"
+                traefik.http.routers.wiki.entrypoints: "web-secure"
+                traefik.http.routers.wiki.tls.certResolver: "letsencrypt"
+                traefik.http.services.wiki.loadbalancer.server.port: "3000"
+                traefik.http.routers.wiki.service: "wiki"
+                traefik.docker.network: "traefik"
+              restart: on-failure
+
+    - name: WIKI - Setup compose
+      docker_compose:
+        project_name: wiki
+        recreate: smart
+        restarted: yes
+        remove_orphans: yes
+        state: present
+        definition: "{{ wiki_definition }}"
+  vars_files:
+    - "vars/network.yml"
+    - "vars/secrets_mapping.yml"
+    - "vars/secrets.yml"
+  tags:
+    - provision
+    - wiki
+
+- name: "DISCORD BOT (DATABASES) - Create databases for services"
+  hosts: databases.infra.netsoc.co
+  become: yes
+  tasks:
+    - name: DISCORD BOT - Ensure MySQL Database
+      run_once: true
+      mysql_db:
+        name: "{{ netsocbot.mysql_database }}"
+        login_host: "mysql.databases.infra.netsoc.co"
+        login_password: "{{ mysql.infra.root_password }}"
+        state: present
+
+    - name: DISCORD BOT - Ensure Bot MySQL User
+      run_once: true
+      mysql_user:
+        name: "{{ netsocbot.mysql_user }}"
+        password: "{{ netsocbot.mysql_password }}"
+        priv: "{{ netsocbot.mysql_database }}.*:ALL"
+        host: "%"
+        login_host: "mysql.databases.infra.netsoc.co"
+        login_password: "{{ mysql.infra.root_password }}"
+        state: present
+  vars_files:
+    - "vars/secrets_mapping.yml"
+    - "vars/secrets.yml"
+  tags:
+    - provision
+    - discord-bot
+
+- name: "DISCORD BOT"
+  hosts: web.infra.netsoc.co
+  become: yes
+  tasks:  
+    - name: DISCORD BOT - Remember Compose definition
+      set_fact:
+        discord_bot_definition: 
+          version: "3.8"
+          networks:
+            traefik:
+              external: true
+          services:
+            instance:
+              image: uccnetsoc/discord-bot:latest
+              restart: on-failure
+              networks:
+                traefik:
+              environment:
+                DISCORD_TOKEN: "{{ netsocbot.discord_token }}"
+                DISCORD_ROLES: "631196785913888768,720021252676518079"
+                DISCORD_PUBLIC_SERVER: "248421213628530688"
+                DISCORD_PUBLIC_CHANNEL: "494539080885993472"
+                DISCORD_PUBLIC_GENERAL: "248421213628530688"
+                DISCORD_PUBLIC_WELCOME: "Welcome to the UCC Netsoc Discord server %s!,Hey %s! Welcome to the Netsoc Discord Server!,Welcome %s!"
+                DISCORD_COMMITTEE_SERVER: "684741641944170514"
+                DISCORD_COMMITTEE_CHANNEL: "702594452367212544"
+                BOT_PREFIX: "!"
+                SENDGRID_TOKEN: "{{ sendgrid.apikey }}"
+                TWITTER_KEY: "{{ netsocbot.twitter_key }}"
+                TWITTER_SECRET: "{{ netsocbot.twitter_secret }}"
+                TWITTER_ACCESS_KEY: "{{ netsocbot.twitter_access_key }}"
+                TWITTER_ACCESS_SECRET: "{{ netsocbot.twitter_access_secret }}"
+                MYSQL_URL: "mysql.databases.infra.netsoc.co:3306"
+                MYSQL_USERNAME: "{{ netsocbot.mysql_user }}"
+                MYSQL_PASSWORD: "{{ netsocbot.mysql_password }}"
+              labels:
+                traefik.enable: "true"
+                traefik.http.routers.netsocbot.rule: "Host(`events.infra.netsoc.co`, `events.netsoc.dev`)"
+                traefik.http.routers.netsocbot.entrypoints: "web-secure"
+                traefik.http.routers.netsocbot.tls.certResolver: "letsencrypt"
+                traefik.http.services.netsocbot-service.loadbalancer.server.port: "80"
+                traefik.http.routers.netsocbot.service: "netsocbot-service"
+                traefik.docker.network: "traefik"
+    
+    - name: DISCORD BOT - Setup compose
+      docker_compose:
+        project_name: discord_bot
+        recreate: smart
+        restarted: yes
+        remove_orphans: yes
+        state: present
+        definition: "{{ discord_bot_definition }}"
+  vars_files:
+    - "vars/network.yml"
+    - "vars/secrets_mapping.yml"
+    - "vars/secrets.yml"
+  tags:
+    - provision
+    - discord-bot
+
+- name: "CI (DATABASES) - Create databases for services"
+  hosts: databases.infra.netsoc.co
+  become: yes
+  tasks:
+    # Uncomment if clearing drone state
+    # - name: CI - Ensure Drone MySQL Database
+    #   mysql_db:
+    #     name: "{{ drone.mysql_database }}"
+    #     login_host: "mysql.databases.infra.netsoc.co"
+    #     login_password: "{{ mysql.infra.root_password }}"
+    #     state: absent
+  
+    - name: CI - Ensure Drone MySQL Database
+      run_once: true
+      become: yes
+      mysql_db:
+        name: "{{ drone.mysql_database }}"
+        login_host: "mysql.databases.infra.netsoc.co"
+        login_password: "{{ mysql.infra.root_password }}"
+        state: absent
+
+    - name: CI - Ensure Drone MySQL User
+      run_once: true
+      become: yes
+      mysql_user:
+        name: "{{ drone.mysql_user }}"
+        password: "{{ drone.mysql_password }}"
+        priv: "{{ drone.mysql_database}}.*:ALL"
+        host: "%"
+        login_host: "mysql.databases.infra.netsoc.co"
+        login_password: "{{ mysql.infra.root_password }}"
+        state: absent
+
+    - name: CI - Set log_bin_trust_function_creators=1
+      run_once: true
+      become: yes
+      mysql_variables:
+        login_host: "mysql.databases.infra.netsoc.co"
+        login_password: "{{ mysql.infra.root_password }}"
+        variable: log_bin_trust_function_creators
+        value: 1
+  vars_files:
+    - "vars/secrets_mapping.yml"
+    - "vars/secrets.yml"
+  tags:
+    - provision
+    - ci
+
+- name: "CI"
+  hosts: web.infra.netsoc.co
+  become: yes
+  tasks:  
+    - name: CI - Remember Compose definition
+      set_fact:
+        ci_definition: 
+          version: "3.8"
+          networks:
+            traefik:
+              external: true
+            drone:
+          services:
+            drone: 
+              image: drone/drone:1.7.0
+              environment:
+                DRONE_GITHUB: "true"
+                DRONE_AGENTS_ENABLED: "true"
+                DRONE_GITHUB_SERVER: https://github.com
+                DRONE_GITHUB_CLIENT_ID: eabeb15df953b3daf847
+                DRONE_GITHUB_CLIENT_SECRET: "{{ drone.github_secret }}"
+                DRONE_RPC_SECRET: "{{ drone.rpc_secret }}"
+                DRONE_SERVER_HOST: "ci.infra.netsoc.co"
+                DRONE_TLS_AUTOCERT: "false"
+                DRONE_SERVER_PROTO: https
+                DRONE_DATABASE_DRIVER: postgres
+                DRONE_DATABASE_DATASOURCE: "{{ drone.mysql_user }}:{{ drone.mysql_password }}@tcp({{ interfaces.infra.databases.net0.addresses[0] | ipaddr('address') }}:3306)/{{ drone.mysql_database }}?parseTime=true"
+                DRONE_JSONNET_ENABLED: "true"
+                DRONE_STATUS_NAME: uccnetsoc/ci/drone
+                DRONE_AGENTS_ENABLED: "true"
+                DRONE_USER_CREATE: "username:UCCNetworkingSociety,admin:true,token:{{ drone.admin_token }}"
+                DRONE_USER_FILTER: "UCCNetsoc"
+              networks:
+                traefik:
+                drone:
+              labels:
+                traefik.enable: "true"
+                traefik.http.routers.drone.entrypoints: web-secure
+                traefik.http.routers.drone.rule: Host(`ci.infra.netsoc.co`)
+                traefik.http.routers.drone.tls.certResolver: letsencrypt
+                traefik.http.routers.drone.service: drone-service
+                traefik.http.services.drone-service.loadbalancer.server.port: 80
+                traefik.docker.network: traefik   
+            drone_agent:
+              image: drone/agent:1.6.2
+              environment:
+                DRONE_TRACE: "true"
+                DRONE_RPC_PROTO: https
+                DRONE_RPC_SERVER: "ci.infra.netsoc.co"
+                DRONE_RPC_SECRET: "{{ drone.rpc_secret }}"
+                DRONE_RUNNER_CAPACITY: "4"
+                # DRONE_SECRET_ENDPOINT: http://drone_vault:3000
+                # DRONE_SECRET_SECRET: "{{ drone.vault_secret }}"
+                DRONE_LIMIT_EVENTS: UCCNetsoc/*
+              volumes:
+                - /var/run/docker.sock:/var/run/docker.sock
+              networks:
+                drone:
+
+    - name: CI - Setup compose
+      docker_compose:
+        project_name: ci
+        recreate: always
+        remove_orphans: yes
+        state: present
+        definition: "{{ ci_definition }}"
+  vars_files:
+    - "vars/network.yml"
+    - "vars/secrets_mapping.yml"
+    - "vars/secrets.yml"
+  tags:
+    - provision
+    - ci
+
+- name: "CI - Secrets"
+  hosts: web.infra.netsoc.co
+  become: yes
+  tasks:  
+    # - name: CI - Install CLI
+    #   shell: | 
+    #     which /usr/local/bin/drone ||
+    #     (mkdir -p /tmp/drone && cd /tmp/drone/ && 
+    #     curl -L https://github.com/drone/drone-cli/releases/latest/download/drone_linux_amd64.tar.gz | tar zx &&
+    #     sudo install -t /usr/local/bin drone &&
+    #     rm -rf /tmp/drone)
+
+    - name: "CI - Wait for Drone to come up"
+      uri:
+        url: "https://ci.infra.netsoc.co/api/user/repos"
+        status_code: 200
+        validate_certs: no
+        headers:
+          Authorization: "Bearer {{ drone.admin_token }}"
+      register: result
+      until: result.status == 200
+      retries: 25
+      delay: 1
+
+    - name: CI - Get current secrets
+      uri:
+        url: "https://ci.infra.netsoc.co/api/secrets"
+        return_content: yes
+        status_code: [200, 201, 202, 203, 204]
+        validate_certs: no
+        headers:
+          Authorization: "Bearer {{ drone.admin_token }}"
+      register: secrets
+
+    - name: CI - Delete all previous secrets
+      uri:
+        url: "https://ci.infra.netsoc.co/api/secrets/{{ item.namespace }}/{{ item.name }}"
+        method: DELETE
+        status_code: [200, 201, 202, 203, 204]
+        validate_certs: no
+        headers:
+          Authorization: "Bearer {{ drone.admin_token }}"
+      with_items: "{{ secrets.json }}"
+
+    - name: CI - Create secrets
+      uri:
+        url: "https://ci.infra.netsoc.co/api/secrets/UCCNetsoc"
+        method: POST
+        body_format: json
+        body: 
+          name: "{{ item.key }}"
+          data: "{{ item.value }}"
+        status_code: [200, 201]
+        validate_certs: no
+        headers:
+          Authorization: "Bearer {{ drone.admin_token }}"
+      with_dict:
+        docker_hub_user: "{{ docker_hub.username }}"
+        docker_hub_token: "{{ docker_hub.token }}"
+        discord_webhook_id: "{{ webhooks.discord_id }}"
+        discord_webhook_token: "{{ webhooks.discord_token }}"
+        public_repo_token: "{{ github.public_repo_access_token }}"
+      no_log: true
+
+    - name: CI - Get current repos
+      uri:
+        url: "https://ci.infra.netsoc.co/api/user/repos"
+        return_content: yes
+        status_code: [200, 201, 202, 203, 204]
+        validate_certs: no
+        headers:
+          Authorization: "Bearer {{ drone.admin_token }}"
+      register: repos
+
+    - name: CI - Disable all previous repos
+      uri:
+        url: "https://ci.infra.netsoc.co/api/repos/{{ item.namespace }}/{{ item.name }}"
+        method: DELETE
+        status_code: [200, 201, 202, 203, 204]
+        validate_certs: no
+        headers:
+          Authorization: "Bearer {{ drone.admin_token }}"
+      when: "item.active is true"
+      with_items: "{{ repos.json }}"
+
+    - name: CI - Enable listed repos. (may fail if repos haven't synced yet/missing, will retry)
+      uri:
+        url: "https://ci.infra.netsoc.co/api/repos/UCCNetsoc/{{ item }}"
+        method: POST
+        body_format: json
+        status_code: [200, 201, 202, 203, 204]
+        validate_certs: no
+        headers:
+          Authorization: "Bearer {{ drone.admin_token }}"
+      register: result
+      until: result.status == 200
+      retries: 25
+      delay: 1
+      with_items:
+        - discord-bot
+        - netsoc.co
+        - keycloak
+        - admin
+
+  vars_files:
+    - "vars/network.yml"
+    - "vars/secrets_mapping.yml"
+    - "vars/secrets.yml"
+  tags:
+    - provision
+    - ci
+    - ci-secrets
+    - ci-builds
+
+- name: "LOKI"
+  hosts: web.infra.netsoc.co
+  become: yes
+  tasks:  
+    - name: LOKI - Ensure directories exist
+      file:
+        path: "/netsoc/{{ item }}"
+        owner: root
+        group: root
+        # Needs to be 775 as this folder is accessed internally by a dirsrv user
+        # https://github.com/freeipa/freeipa-container/issues/281
+        mode: '0755'
+        state: directory
+      with_items:
+        - loki
+    
+    # - name: LOKI - Ensure Loki config file
+    #   copy:
+    #     dest: /netsoc/loki/config.yaml
+    #     mode: 0777
+    #     content: |
+    #       auth_enabled: false
+    #       server:
+    #         http_listen_port: 3100
+    #       ingester:
+    #         lifecycler:
+    #           address: 127.0.0.1
+    #           ring:
+    #             kvstore:
+    #               store: inmemory
+    #             replication_factor: 1
+    #           final_sleep: 0s
+    #         chunk_idle_period: 5m
+    #         chunk_retain_period: 30s
+    #         max_transfer_retries: 0
+    #       schema_config:
+    #         configs:
+    #           - from: 2018-04-15
+    #             store: boltdb
+    #             object_store: filesystem
+    #             schema: v11
+    #             index:
+    #               prefix: index_
+    #               period: 168h
+    #       storage_config:
+    #         boltdb:
+    #           directory: /tmp/loki/index
+    #         filesystem:
+    #           directory: /tmp/loki/chunks
+    #       limits_config:
+    #         enforce_metric_name: false
+    #         reject_old_samples: true
+    #         reject_old_samples_max_age: 168h
+    #       chunk_store_config:
+    #         max_look_back_period: 0s
+    #       table_manager:
+    #         retention_deletes_enabled: false
+    #         retention_period: 0s
+
+    # - name: LOKI - Remember Compose definition
+    #   set_fact:
+    #     loki_definition: 
+    #       version: '3.8'
+    #       networks:
+    #         loki:
+    #       services:
+    #         loki:
+    #           command: -config.file=/loki/config.yaml
+    #           image: grafana/loki:1.6.0
+    #           networks:
+    #             loki:
+    #           ports:
+    #             - "3100:3100"
+    #           volumes:
+    #             - "/netsoc/loki:/loki"
+    #           restart: on-failure
+  vars_files:
+    - "vars/network.yml"
+    - "vars/secrets_mapping.yml"
+    - "vars/secrets.yml"
+  tags:
+    - provision
+    - loki
+
+# wetty:
+#   image: wettyoss/wetty@sha256:55efea8eac05a552acbb344449358f1fb10b7d7e06f192d20f4762bf1c4fc1d9
+#   working_dir: /usr/src/app
+#   environment:
+#     SSHHOST: "portal.infra.netsoc.co"
+#     SSHPORT: 22
+#   networks:
+#     - traefik
+#   labels:
+#     - "traefik.enable=true"
+#     - "traefik.http.routers.wetty.rule=Host(`portal.netsoc.co`)"
+#     - "traefik.http.routers.wetty.entrypoints=web-secure"
+#     - "traefik.http.routers.wetty.tls.certResolver=letsencrypt"
+#     - "traefik.http.middlewares.wetty-path.redirectregex.regex=^https:\/\/portal.netsoc.co\/?$$"
+#     - "traefik.http.middlewares.wetty-path.redirectregex.replacement=https:\/\/portal.netsoc.co\/wetty"
+#     - "traefik.http.middlewares.wetty-access.headers.customresponseheaders.Content-Security-Policy=frame-ancestors *"
+#     - "traefik.http.routers.wetty.middlewares=wetty-path,wetty-access"
+#     - "traefik.http.services.wetty-service.loadbalancer.server.port=3000"
+#     - "traefik.http.routers.wetty.service=wetty-service"
+#     - "traefik.docker.network=traefik"

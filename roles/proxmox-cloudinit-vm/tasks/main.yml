@@ -63,21 +63,11 @@
     state:          present
   when: "vm_needs_creation"
 
-- name: Ensure Proxmox VM exists
-  proxmox_kvm:
-    api_host:       "localhost"
-    api_user:       "{{ proxmox.username }}"
-    api_password:   "{{ proxmox.password }}"
-    node:           "{{ inventory_hostname }}"
-    name:           "{{ vm.name }}"
-    state:          present
-
 # Fixes: fatal: [lovelace]: FAILED! => {"changed": false, "msg": "VM worker1.docker does not exist in cluster."}
 - name: Wait to prevent a race condition where Proxmox doesn't think the VM exists yet
   wait_for:
-    timeout: 2
+    timeout: 6
   delegate_to: localhost
-
 
 # proxmox_kvm has a load of issues so here are a bunch of workarounds below
 
@@ -90,11 +80,11 @@
 - name: Get created/existing VM ID
   shell: pvesh get /nodes/{{ inventory_hostname }}/qemu/ --output-format=json | jq '.[] | select(.name=="{{ vm.name }}").vmid' -r --exit-status
   register: vm_id_result
-  ignore_errors: true
 - set_fact:
     vm_id: "{{ vm_id_result.stdout | trim }}"
 - debug:
     msg: "{{ vm_id }}"
+
 
 - name: Temporarily disable protection
   shell: pvesh set /nodes/{{ inventory_hostname }}/qemu/{{ vm_id }}/config -protection 0
@@ -133,18 +123,30 @@
 - name: Set VirtIO SCSI
   shell: qm set {{ vm_id }} --scsihw virtio-scsi-pci
 
-- name: Copy downloaded disk to boot disk and attach it
+- name: Delete old images directory if (re)creating VM
   shell: |
-    rm -rf {{ clone_pool_path }}/images/{{ vm_id }}/ && 
-    mkdir -p {{ clone_pool_path }}/images/{{ vm_id }} &&
-    cp {{ clone_pool_path }}/images/{{ vm.clone.qcow2_url.split('/')[-1] }}-{{ vm.clone.qcow2_hash }}.qcow2 {{ clone_pool_path }}/images/{{ vm_id }}/vm-{{ vm_id }}-disk-0.qcow2 &&
-    pvesh create /nodes/{{ inventory_hostname }}/qemu/{{ vm_id }}/config -virtio0 {{ vm.clone.pool }}:{{ vm_id }}/vm-{{ vm_id }}-disk-0.qcow2
+    rm -rf {{ clone_pool_path }}/images/{{ vm_id }}/
   when: "vm_needs_creation is true"
 
-- name: Add EFI disk
+- name: Ensure images directory
   shell: |
-    pvesh create /nodes/{{ inventory_hostname }}/qemu/{{ vm_id }}/config -efidisk0 {{ vm.efi.pool }}:1,format=qcow2
-  when: "vm_needs_creation is true"
+    mkdir -p {{ clone_pool_path }}/images/{{ vm_id }}
+
+- name: Add boot disk if it does not exist
+  shell: |
+    pvesh get /nodes/{{ inventory_hostname }}/qemu/{{ vm_id }}/config --output-format=json | jq 'select(.virtio0)' -r --exit-status
+
+    if [ $? -eq 4 ]; then
+      cp {{ clone_pool_path }}/images/{{ vm.clone.qcow2_url.split('/')[-1] }}-{{ vm.clone.qcow2_hash }}.qcow2 {{ clone_pool_path }}/images/{{ vm_id }}/vm-{{ vm_id }}-disk-0.qcow2 &&
+      pvesh create /nodes/{{ inventory_hostname }}/qemu/{{ vm_id }}/config -virtio0 {{ vm.clone.pool }}:{{ vm_id }}/vm-{{ vm_id }}-disk-0.qcow2
+    fi
+
+- name: Add EFI disk if it does not exist
+  shell: |
+    pvesh get /nodes/{{ inventory_hostname }}/qemu/{{ vm_id }}/config --output-format=json | jq 'select(.efidisk0)' -r --exit-status
+    if [ $? -eq 4 ]; then
+      pvesh create /nodes/{{ inventory_hostname }}/qemu/{{ vm_id }}/config -efidisk0 {{ vm.efi.pool }}:1,format=qcow2
+    fi
 
 - name: Set boot disk order
   shell: qm set {{ vm_id }} --bootdisk virtio0

@@ -1,6 +1,0 @@
-freeipa:
-  ds_password: "{{ vault_freeipa.ds_password }}"
-  admin_password: "{{ vault_freeipa.admin_password }}"
-  domain: "vm.netsoc.co"
-  server: "ipa.vm.netsoc.co"
-  realm: "VM.NETSOC.CO"

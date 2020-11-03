@@ -1,2 +1,0 @@
-proxmox: "{{ vault_proxmox }}"
-auditor: "{{ proxmox.auditor }}"
