@@ -1,18 +1,10 @@
 ---
+
 - name: FLUENTD
-  hosts: fluend
+  hosts: fluentd
   become: yes
   roles:
     - fluentd
-  vars_files:
-    - vars/secrets_mapping.yml
-    - vars/secrets.yml
-
-
-- name: Install Exporters on Servers
-  hosts: prometheus_base
-  roles:
-    - prometheus-exporter
   vars_files:
     - vars/secrets_mapping.yml
     - vars/secrets.yml
