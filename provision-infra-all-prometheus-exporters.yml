@@ -1,4 +1,5 @@
 ---
+
 - name: Create Proxmox Auditor
   hosts: control
   become: yes
@@ -21,7 +22,6 @@
   vars_files:
     - vars/secrets_mapping.yml
     - vars/secrets.yml
-
 
 - name: Install Exporters on Servers
   hosts: prometheus_base
