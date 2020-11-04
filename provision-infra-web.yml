@@ -110,10 +110,10 @@
               acme:
                 email: netsoc@uccsocieties.ie
                 storage: /traefik/acme.json
-                #tlsChallenge: {}
-                dnsChallenge:
-                  provider: cloudflare
-                  delayBeforeCheck: 0
+                tlsChallenge: {}
+                # dnsChallenge:
+                #   provider: cloudflare
+                #   delayBeforeCheck: 0
           providers:
             file:
               directory: /traefik/file_config/
@@ -318,7 +318,7 @@
     - name: TRAEFIK - Setup compose
       docker_compose:
         project_name: traefik
-        recreate: smart
+        recreate: always
         restarted: yes
         remove_orphans: yes
         state: present
@@ -540,13 +540,20 @@
   become: yes
   tasks:
     # Uncomment if clearing drone state
-    # - name: CI - Ensure Drone MySQL Database
-    #   mysql_db:
-    #     name: "{{ drone.mysql_database }}"
-    #     login_host: "mysql.databases.infra.netsoc.co"
-    #     login_password: "{{ mysql.infra.root_password }}"
-    #     state: absent
+    - name: CI - Ensure Drone MySQL Database cleared
+      mysql_db:
+        name: "{{ drone.mysql_database }}"
+        login_host: "mysql.databases.infra.netsoc.co"
+        login_password: "{{ mysql.infra.root_password }}"
+        state: absent
   
+    - name: CI - Ensure Drone MySQL User cleared
+      mysql_user:
+        name: "{{ drone.mysql_database }}"
+        login_host: "mysql.databases.infra.netsoc.co"
+        login_password: "{{ mysql.infra.root_password }}"
+        state: absent
+
     - name: CI - Ensure Drone MySQL Database
       run_once: true
       become: yes
@@ -554,11 +561,9 @@
         name: "{{ drone.mysql_database }}"
         login_host: "mysql.databases.infra.netsoc.co"
         login_password: "{{ mysql.infra.root_password }}"
-        state: absent
+        state: present
 
     - name: CI - Ensure Drone MySQL User
-      run_once: true
-      become: yes
       mysql_user:
         name: "{{ drone.mysql_user }}"
         password: "{{ drone.mysql_password }}"
@@ -566,7 +571,7 @@
         host: "%"
         login_host: "mysql.databases.infra.netsoc.co"
         login_password: "{{ mysql.infra.root_password }}"
-        state: absent
+        state: present
 
     - name: CI - Set log_bin_trust_function_creators=1
       run_once: true
@@ -606,8 +611,8 @@
                 DRONE_RPC_SECRET: "{{ drone.rpc_secret }}"
                 DRONE_SERVER_HOST: "ci.infra.netsoc.co"
                 DRONE_TLS_AUTOCERT: "false"
-                DRONE_SERVER_PROTO: https
-                DRONE_DATABASE_DRIVER: mysql
+                DRONE_SERVER_PROTO: http
+                DRONE_DATABASE_DRIVER: "mysql"
                 DRONE_DATABASE_DATASOURCE: "{{ drone.mysql_user }}:{{ drone.mysql_password }}@tcp({{ interfaces.infra.databases.net0.addresses[0] | ipaddr('address') }}:3306)/{{ drone.mysql_database }}?parseTime=true"
                 DRONE_JSONNET_ENABLED: "true"
                 DRONE_STATUS_NAME: uccnetsoc/ci/drone
@@ -644,7 +649,7 @@
     - name: CI - Setup compose
       docker_compose:
         project_name: ci
-        recreate: always
+        recreate: smart
         remove_orphans: yes
         state: present
         definition: "{{ ci_definition }}"
@@ -760,6 +765,10 @@
       when: "item.active is true"
       with_items: "{{ repos.json }}"
 
+    - name: CI
+      pause:
+        prompt: "Make sure at least one user of UCCNetsoc org has signed into Drone and hit Synchronize then hit enter"
+
     - name: CI - Enable listed repos. (may fail if repos haven't synced yet/missing, will retry)
       uri:
         url: "https://ci.infra.netsoc.co/api/repos/UCCNetsoc/{{ item }}"
@@ -771,7 +780,7 @@
           Authorization: "Bearer {{ drone.admin_token }}"
       register: result
       until: result.status == 200
-      retries: 25
+      retries: 50
       delay: 1
       with_items:
         - discord-bot
