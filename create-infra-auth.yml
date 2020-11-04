@@ -16,6 +16,7 @@
           description:
             groups:
               - vm
+              - fluentd
               - prometheus_base
               - prometheus_docker
               - ipaclients
@@ -81,7 +82,7 @@
           wait_for_ssh_ip: "{{ interfaces.infra.auth.net0.addresses[0] }}"
   vars_files:
     - vars/network.yml
-    - vars/proxmox.yml
+    - vars/secrets_mapping.yml
     - vars/secrets.yml
 
 - name: "Reload inventory to pull new VMs"
