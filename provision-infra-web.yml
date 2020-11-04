@@ -700,6 +700,30 @@
           Authorization: "Bearer {{ drone.admin_token }}"
       with_items: "{{ secrets.json }}"
 
+    - name: CI - Find SSH keys
+      delegate_to: localhost
+      become: no
+      find:
+        path: "{{ playbook_dir }}/keys/infra"
+        recurse: no
+        file_type: directory
+      register: ci_keys
+    
+    - name: CI - Create Secrets dict
+      set_fact:
+        ci_secrets:
+          docker_hub_user: "{{ docker_hub.username }}"
+          docker_hub_token: "{{ docker_hub.token }}"
+          discord_webhook_id: "{{ webhooks.discord_id }}"
+          discord_webhook_token: "{{ webhooks.discord_token }}"
+          public_repo_token: "{{ github.public_repo_access_token }}"
+
+    - name: CI - Populate Secrets with Keys
+      set_fact:
+        name: "key_{{ item.path | basename }}"
+        ci_secrets: "{{ ci_secrets | combine({ 'key_' + (item.path | basename): lookup('file', '{{ item.path }}/id_rsa')}) }}"
+      with_items: "{{ ci_keys.files }}"
+
     - name: CI - Create secrets
       uri:
         url: "https://ci.infra.netsoc.co/api/secrets/UCCNetsoc"
@@ -712,12 +736,7 @@
         validate_certs: no
         headers:
           Authorization: "Bearer {{ drone.admin_token }}"
-      with_dict:
-        docker_hub_user: "{{ docker_hub.username }}"
-        docker_hub_token: "{{ docker_hub.token }}"
-        discord_webhook_id: "{{ webhooks.discord_id }}"
-        discord_webhook_token: "{{ webhooks.discord_token }}"
-        public_repo_token: "{{ github.public_repo_access_token }}"
+      with_dict: "{{ ci_secrets }}"
       no_log: true
 
     - name: CI - Get current repos
