@@ -22,7 +22,11 @@ if not 'PM_PASS' in os.environ:
     print("You need to run source ./proxmox_secrets.sh first")
     quit(-1)
 
-proxmox = ProxmoxAPI("localhost", user=os.environ['PM_USER'], password=os.environ['PM_PASS'], verify_ssl=False)
+host = "localhost"
+if 'PM_HOST' in os.environ:
+    host = os.environ['PM_HOST']
+
+proxmox = ProxmoxAPI(host, user=os.environ['PM_USER'], password=os.environ['PM_PASS'], verify_ssl=False)
 
 # If you're maintaining this script for future use
 # Here is a good tutorial on Ansible custom inventories
