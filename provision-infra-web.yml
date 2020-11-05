@@ -498,6 +498,7 @@
                 DISCORD_PUBLIC_SERVER: "248421213628530688"
                 DISCORD_PUBLIC_CHANNEL: "494539080885993472"
                 DISCORD_PUBLIC_GENERAL: "248421213628530688"
+                DISCORD_PUBLIC_CORONA: "691756092379627621"
                 DISCORD_PUBLIC_WELCOME: "Welcome to the UCC Netsoc Discord server %s!,Hey %s! Welcome to the Netsoc Discord Server!,Welcome %s!"
                 DISCORD_COMMITTEE_SERVER: "684741641944170514"
                 DISCORD_COMMITTEE_CHANNEL: "702594452367212544"
@@ -510,6 +511,7 @@
                 MYSQL_URL: "mysql.databases.infra.netsoc.co:3306"
                 MYSQL_USERNAME: "{{ netsocbot.mysql_user }}"
                 MYSQL_PASSWORD: "{{ netsocbot.mysql_password }}"
+                FREEIMAGE_KEY: "{{ netsocbot.freeimage_key }}"
               labels:
                 traefik.enable: "true"
                 traefik.http.routers.netsocbot.rule: "Host(`events.infra.netsoc.co`, `events.netsoc.dev`)"
