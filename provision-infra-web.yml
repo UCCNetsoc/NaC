@@ -746,6 +746,14 @@
       with_dict: "{{ ci_secrets }}"
       no_log: true
 
+    - name: CI - Create repos dict
+      set_fact:
+        ci_repos:
+          - discord-bot
+          - netsoc.co
+          - keycloak
+          - admin
+
     - name: CI - Get current repos
       uri:
         url: "https://ci.infra.netsoc.co/api/user/repos"
@@ -756,7 +764,7 @@
           Authorization: "Bearer {{ drone.admin_token }}"
       register: repos
 
-    - name: CI - Disable all previous repos
+    - name: CI - Disable enabled but need to be disabled repos
       uri:
         url: "https://ci.infra.netsoc.co/api/repos/{{ item.namespace }}/{{ item.name }}"
         method: DELETE
@@ -764,7 +772,7 @@
         validate_certs: no
         headers:
           Authorization: "Bearer {{ drone.admin_token }}"
-      when: "item.active is true"
+      when: "item.namespace == 'UCCNetsoc' and item.active is true and item.name not in ci_repos"
       with_items: "{{ repos.json }}"
 
     - name: CI
@@ -784,11 +792,7 @@
       until: result.status == 200
       retries: 50
       delay: 1
-      with_items:
-        - discord-bot
-        - netsoc.co
-        - keycloak
-        - admin
+      with_items: "{{ ci_repos }}"
 
   vars_files:
     - "vars/network.yml"
@@ -798,7 +802,7 @@
     - provision
     - ci
     - ci-secrets
-    - ci-builds
+    - ci-repos
 
 - name: "LOKI"
   hosts: web.infra.netsoc.co
