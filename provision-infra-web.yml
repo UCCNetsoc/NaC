@@ -726,6 +726,7 @@
           public_repo_token: "{{ github.public_repo_access_token }}"
           proxmox_user: "{{ lookup('env', 'PM_USER') }}"
           proxmox_pass: "{{ lookup('env', 'PM_PASS') }}"
+          vault_pass: "{{ lookup('env', 'VAULT_PASS') }}"
 
     - name: CI - Populate Secrets with Keys
       set_fact:
