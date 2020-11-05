@@ -539,20 +539,20 @@
   hosts: databases.infra.netsoc.co
   become: yes
   tasks:
-    # Uncomment if clearing drone state
-    - name: CI - Ensure Drone MySQL Database cleared
-      mysql_db:
-        name: "{{ drone.mysql_database }}"
-        login_host: "mysql.databases.infra.netsoc.co"
-        login_password: "{{ mysql.infra.root_password }}"
-        state: absent
+    ## Uncomment if clearing drone state
+    # - name: CI - Ensure Drone MySQL Database cleared
+    #   mysql_db:
+    #     name: "{{ drone.mysql_database }}"
+    #     login_host: "mysql.databases.infra.netsoc.co"
+    #     login_password: "{{ mysql.infra.root_password }}"
+    #     state: absent
   
-    - name: CI - Ensure Drone MySQL User cleared
-      mysql_user:
-        name: "{{ drone.mysql_database }}"
-        login_host: "mysql.databases.infra.netsoc.co"
-        login_password: "{{ mysql.infra.root_password }}"
-        state: absent
+    # - name: CI - Ensure Drone MySQL User cleared
+    #   mysql_user:
+    #     name: "{{ drone.mysql_database }}"
+    #     login_host: "mysql.databases.infra.netsoc.co"
+    #     login_password: "{{ mysql.infra.root_password }}"
+    #     state: absent
 
     - name: CI - Ensure Drone MySQL Database
       run_once: true
@@ -602,23 +602,23 @@
             drone:
           services:
             drone: 
-              image: drone/drone:1.7.0
+              image: drone/drone:1.8.1
               environment:
                 DRONE_GITHUB: "true"
-                DRONE_GITHUB_SERVER: https://github.com
                 DRONE_GITHUB_CLIENT_ID: eabeb15df953b3daf847
                 DRONE_GITHUB_CLIENT_SECRET: "{{ drone.github_secret }}"
+                DRONE_GITHUB_SERVER: https://github.com
                 DRONE_RPC_SECRET: "{{ drone.rpc_secret }}"
                 DRONE_SERVER_HOST: "ci.infra.netsoc.co"
                 DRONE_TLS_AUTOCERT: "false"
-                DRONE_SERVER_PROTO: http
+                DRONE_SERVER_PROTO: https
                 DRONE_DATABASE_DRIVER: "mysql"
                 DRONE_DATABASE_DATASOURCE: "{{ drone.mysql_user }}:{{ drone.mysql_password }}@tcp({{ interfaces.infra.databases.net0.addresses[0] | ipaddr('address') }}:3306)/{{ drone.mysql_database }}?parseTime=true"
                 DRONE_JSONNET_ENABLED: "true"
                 DRONE_STATUS_NAME: uccnetsoc/ci/drone
-                DRONE_AGENTS_ENABLED: "true"
                 DRONE_USER_CREATE: "username:UCCNetworkingSociety,admin:true,token:{{ drone.admin_token }}"
                 DRONE_USER_FILTER: "UCCNetsoc"
+                #DRONE_RUNNER_NETWORKS: "drone"
               networks:
                 traefik:
                 drone:
@@ -630,17 +630,19 @@
                 traefik.http.routers.drone.service: drone-service
                 traefik.http.services.drone-service.loadbalancer.server.port: 80
                 traefik.docker.network: traefik   
-            drone_agent:
-              image: drone/agent:1.6.2
+            drone-runner:
+              image: drone/drone-runner-docker:1.4.0
               environment:
                 DRONE_TRACE: "true"
                 DRONE_RPC_PROTO: https
-                DRONE_RPC_SERVER: "ci.infra.netsoc.co"
+                DRONE_RPC_HOST: "ci.infra.netsoc.co"
                 DRONE_RPC_SECRET: "{{ drone.rpc_secret }}"
+                DRONE_RUNNER_NAME: "drone-runner"
                 DRONE_RUNNER_CAPACITY: "4"
                 # DRONE_SECRET_ENDPOINT: http://drone_vault:3000
                 # DRONE_SECRET_SECRET: "{{ drone.vault_secret }}"
-                DRONE_LIMIT_EVENTS: UCCNetsoc/*
+                # DRONE_LIMIT_EVENTS: UCCNetsoc/*
+                #DRONE_RUNNER_NETWORKS: "drone"
               volumes:
                 - /var/run/docker.sock:/var/run/docker.sock
               networks:
@@ -649,7 +651,7 @@
     - name: CI - Setup compose
       docker_compose:
         project_name: ci
-        recreate: smart
+        recreate: always
         remove_orphans: yes
         state: present
         definition: "{{ ci_definition }}"
