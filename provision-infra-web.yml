@@ -643,7 +643,7 @@
                 DRONE_RUNNER_CAPACITY: "4"
                 # DRONE_SECRET_ENDPOINT: http://drone_vault:3000
                 # DRONE_SECRET_SECRET: "{{ drone.vault_secret }}"
-                # DRONE_LIMIT_EVENTS: UCCNetsoc/*
+                DRONE_LIMIT_EVENTS: UCCNetsoc/*
                 #DRONE_RUNNER_NETWORKS: "drone"
               volumes:
                 - /var/run/docker.sock:/var/run/docker.sock
