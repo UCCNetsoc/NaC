@@ -492,6 +492,10 @@
               restart: on-failure
               networks:
                 traefik:
+              logging:
+                driver: loki
+                options:
+                  loki-url: http://host.docker.internal:3100/loki/api/v1/push
               environment:
                 DISCORD_TOKEN: "{{ netsocbot.discord_token }}"
                 DISCORD_ROLES: "631196785913888768,720021252676518079"
@@ -824,66 +828,79 @@
       with_items:
         - loki
     
-    # - name: LOKI - Ensure Loki config file
-    #   copy:
-    #     dest: /netsoc/loki/config.yaml
-    #     mode: 0777
-    #     content: |
-    #       auth_enabled: false
-    #       server:
-    #         http_listen_port: 3100
-    #       ingester:
-    #         lifecycler:
-    #           address: 127.0.0.1
-    #           ring:
-    #             kvstore:
-    #               store: inmemory
-    #             replication_factor: 1
-    #           final_sleep: 0s
-    #         chunk_idle_period: 5m
-    #         chunk_retain_period: 30s
-    #         max_transfer_retries: 0
-    #       schema_config:
-    #         configs:
-    #           - from: 2018-04-15
-    #             store: boltdb
-    #             object_store: filesystem
-    #             schema: v11
-    #             index:
-    #               prefix: index_
-    #               period: 168h
-    #       storage_config:
-    #         boltdb:
-    #           directory: /tmp/loki/index
-    #         filesystem:
-    #           directory: /tmp/loki/chunks
-    #       limits_config:
-    #         enforce_metric_name: false
-    #         reject_old_samples: true
-    #         reject_old_samples_max_age: 168h
-    #       chunk_store_config:
-    #         max_look_back_period: 0s
-    #       table_manager:
-    #         retention_deletes_enabled: false
-    #         retention_period: 0s
+    - name: LOKI - Ensure Loki config file
+      copy:
+        dest: /netsoc/loki/config.yaml
+        mode: 0777
+        content: |
+          auth_enabled: false
+          server:
+            http_listen_port: 3100
+          ingester:
+            lifecycler:
+              address: 127.0.0.1
+              ring:
+                kvstore:
+                  store: inmemory
+                replication_factor: 1
+              final_sleep: 0s
+            chunk_idle_period: 5m
+            chunk_retain_period: 30s
+            max_transfer_retries: 0
+          schema_config:
+            configs:
+              - from: 2018-04-15
+                store: boltdb
+                object_store: filesystem
+                schema: v11
+                index:
+                  prefix: index_
+                  period: 168h
+          storage_config:
+            boltdb:
+              directory: /tmp/loki/index
+            filesystem:
+              directory: /tmp/loki/chunks
+          limits_config:
+            enforce_metric_name: false
+            reject_old_samples: true
+            reject_old_samples_max_age: 168h
+          chunk_store_config:
+            max_look_back_period: 0s
+          table_manager:
+            retention_deletes_enabled: false
+            retention_period: 0s
 
-    # - name: LOKI - Remember Compose definition
-    #   set_fact:
-    #     loki_definition: 
-    #       version: '3.8'
-    #       networks:
-    #         loki:
-    #       services:
-    #         loki:
-    #           command: -config.file=/loki/config.yaml
-    #           image: grafana/loki:1.6.0
-    #           networks:
-    #             loki:
-    #           ports:
-    #             - "3100:3100"
-    #           volumes:
-    #             - "/netsoc/loki:/loki"
-    #           restart: on-failure
+    - name: LOKI - Install plugin
+      shell: docker plugin inspect loki || docker plugin install grafana/loki-docker-driver:latest --alias loki --grant-all-permissions 
+
+    - name: LOKI - Remember Compose definition
+      set_fact:
+        loki_definition: 
+          version: '3.8'
+          networks:
+            loki:
+          services:
+            loki:
+              command: -config.file=/loki/config.yaml
+              hostname: loki
+              image: grafana/loki:1.6.0
+              networks:
+                loki:
+              ports:
+                - "3100:3100"
+              volumes:
+                - "/netsoc/loki:/loki"
+              restart: on-failure
+
+    - name: LOKI - Setup compose
+      docker_compose:
+        project_name: loki
+        recreate: smart
+        restarted: yes
+        remove_orphans: yes
+        state: present
+        definition: "{{ loki_definition }}"
   vars_files:
     - "vars/network.yml"
     - "vars/secrets_mapping.yml"
