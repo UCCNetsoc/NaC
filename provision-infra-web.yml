@@ -492,10 +492,10 @@
               restart: on-failure
               networks:
                 traefik:
-              logging:
-                driver: loki
-                options:
-                  loki-url: http://host.docker.internal:3100/loki/api/v1/push
+              # logging:
+              #   driver: loki
+              #   options:
+              #     loki-url: http://host.docker.internal:3100/loki/api/v1/push
               environment:
                 DISCORD_TOKEN: "{{ netsocbot.discord_token }}"
                 DISCORD_ROLES: "631196785913888768,720021252676518079"
