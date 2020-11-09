@@ -1,14 +1,14 @@
 public_ips:
   cix:
-    - 84.39.234.50
-    - 84.39.234.51
-    - 84.39.234.52
-    - 84.39.234.53
-    - 84.39.234.54
+    - "84.39.234.50/29"
+    - "84.39.234.51/29"
+    - "84.39.234.52/29"
+    - "84.39.234.53/29"
+    - "84.39.234.54/29"
 
   ucc:
-    - 143.239.87.40
-    - 143.239.87.41
+    - "143.239.87.40/32"
+    - "143.239.87.41/32"
 
 # vlan tags
 vlan:
@@ -21,18 +21,6 @@ vlan:
   router:  70  # Used for vyos clustering + failover
   oob:     80  # OOB, connected to CIX OOBnet and OOB ports on machines
   mgmt:    90  #
-
-# # 10.0.x.0/24
-# subnets:
-#   wan:    10  # Uplink, connected directly to patch panel
-#   vmhost: 20  # Used for management traffic and proxmox clustering, has NAT to WAN
-#   infra:  30  # Used for infra VMs, can route to user and vmhost, has NAT to WAN
-#   user:   40  # User VM traffic, includes the User ssh server and user databases
-#   extern: 60  # VRRP stuff
-#   router: 70  # Used for vyos clustering + failover
-#   oob:    80  # OOB, connected to CIX OOBnet and OOB ports on machines
-#   mgmt:   90  #
-#   dhcp:  100  # DHCP Vlan, used to offer IP leases to building Packer templates
 
 subnets:
   wan:      "10.0.{{ vlan.wan }}.0/24"
@@ -86,7 +74,22 @@ interfaces:
           macaddress: "f2:f5:ee:2b:fb:05"
         addresses:
           - "{{ subnets.infra | ipaddr(35) }}"
-        gateway4: "{{ gateway4.infra }}"
+        routes:
+          - to: 0.0.0.0/0
+            via: "{{ gateway4.infra }}"
+            metric: 2047
+        nameservers: "{{ nameservers.infra }}"
+        optional: true
+        link-local: []
+      net1:
+        match:
+          macaddress: "1A:A0:49:7A:C1:A2"
+        addresses:
+          - "{{ public_ips.cix[2] }}"
+        routes:
+          - to: 0.0.0.0/0
+            via: "{{ gateway4.infra }}"
+            metric: 2048
         nameservers: "{{ nameservers.infra }}"
         optional: true
         link-local: []
