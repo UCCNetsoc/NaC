@@ -383,9 +383,8 @@
     - name: STATIC WEBSITES - Setup compose
       docker_compose:
         project_name: static_websites
-        recreate: smart
-        restarted: yes
         remove_orphans: yes
+        pull: yes
         state: present
         definition: "{{ static_websites_definition }}"
   vars_files:
@@ -492,12 +491,17 @@
               restart: on-failure
               networks:
                 traefik:
+              # logging:
+              #   driver: loki
+              #   options:
+              #     loki-url: http://host.docker.internal:3100/loki/api/v1/push
               environment:
                 DISCORD_TOKEN: "{{ netsocbot.discord_token }}"
                 DISCORD_ROLES: "631196785913888768,720021252676518079"
                 DISCORD_PUBLIC_SERVER: "248421213628530688"
                 DISCORD_PUBLIC_CHANNEL: "494539080885993472"
                 DISCORD_PUBLIC_GENERAL: "248421213628530688"
+                DISCORD_PUBLIC_CORONA: "691756092379627621"
                 DISCORD_PUBLIC_WELCOME: "Welcome to the UCC Netsoc Discord server %s!,Hey %s! Welcome to the Netsoc Discord Server!,Welcome %s!"
                 DISCORD_COMMITTEE_SERVER: "684741641944170514"
                 DISCORD_COMMITTEE_CHANNEL: "702594452367212544"
@@ -510,6 +514,11 @@
                 MYSQL_URL: "mysql.databases.infra.netsoc.co:3306"
                 MYSQL_USERNAME: "{{ netsocbot.mysql_user }}"
                 MYSQL_PASSWORD: "{{ netsocbot.mysql_password }}"
+                FREEIMAGE_KEY: "{{ netsocbot.freeimage_key }}"
+                FACEBOOK_APPID: "{{ netsocbot.fb.appid }}"
+                FACEBOOK_APP_SECRET: "{{ netsocbot.fb.appsecret }}"
+                FACEBOOK_PAGEID: "{{ netsocbot.fb.pageid }}"
+                FACEBOOK_PAGE_ACCESS_TOKEN: "{{ netsocbot.fb.accesstoken }}"
               labels:
                 traefik.enable: "true"
                 traefik.http.routers.netsocbot.rule: "Host(`events.infra.netsoc.co`, `events.netsoc.dev`)"
@@ -522,9 +531,8 @@
     - name: DISCORD BOT - Setup compose
       docker_compose:
         project_name: discord_bot
-        recreate: smart
-        restarted: yes
         remove_orphans: yes
+        pull: yes
         state: present
         definition: "{{ discord_bot_definition }}"
   vars_files:
@@ -631,7 +639,7 @@
                 traefik.http.services.drone-service.loadbalancer.server.port: 80
                 traefik.docker.network: traefik   
             drone-runner:
-              image: drone/drone-runner-docker:1.4.0
+              image: drone/drone-runner-docker:1.5
               environment:
                 DRONE_TRACE: "true"
                 DRONE_RPC_PROTO: https
@@ -641,7 +649,7 @@
                 DRONE_RUNNER_CAPACITY: "4"
                 # DRONE_SECRET_ENDPOINT: http://drone_vault:3000
                 # DRONE_SECRET_SECRET: "{{ drone.vault_secret }}"
-                # DRONE_LIMIT_EVENTS: UCCNetsoc/*
+                DRONE_LIMIT_REPOS: UCCNetsoc/*
                 #DRONE_RUNNER_NETWORKS: "drone"
               volumes:
                 - /var/run/docker.sock:/var/run/docker.sock
@@ -724,10 +732,12 @@
           discord_webhook_id: "{{ webhooks.discord_id }}"
           discord_webhook_token: "{{ webhooks.discord_token }}"
           public_repo_token: "{{ github.public_repo_access_token }}"
+          proxmox_user: "{{ lookup('env', 'PM_USER') }}"
+          proxmox_pass: "{{ lookup('env', 'PM_PASS') }}"
+          vault_pass: "{{ lookup('env', 'VAULT_PASS') }}"
 
     - name: CI - Populate Secrets with Keys
       set_fact:
-        name: "key_{{ item.path | basename }}"
         ci_secrets: "{{ ci_secrets | combine({ 'key_' + (item.path | basename): lookup('file', '{{ item.path }}/id_rsa')}) }}"
       with_items: "{{ ci_keys.files }}"
 
@@ -820,66 +830,79 @@
       with_items:
         - loki
     
-    # - name: LOKI - Ensure Loki config file
-    #   copy:
-    #     dest: /netsoc/loki/config.yaml
-    #     mode: 0777
-    #     content: |
-    #       auth_enabled: false
-    #       server:
-    #         http_listen_port: 3100
-    #       ingester:
-    #         lifecycler:
-    #           address: 127.0.0.1
-    #           ring:
-    #             kvstore:
-    #               store: inmemory
-    #             replication_factor: 1
-    #           final_sleep: 0s
-    #         chunk_idle_period: 5m
-    #         chunk_retain_period: 30s
-    #         max_transfer_retries: 0
-    #       schema_config:
-    #         configs:
-    #           - from: 2018-04-15
-    #             store: boltdb
-    #             object_store: filesystem
-    #             schema: v11
-    #             index:
-    #               prefix: index_
-    #               period: 168h
-    #       storage_config:
-    #         boltdb:
-    #           directory: /tmp/loki/index
-    #         filesystem:
-    #           directory: /tmp/loki/chunks
-    #       limits_config:
-    #         enforce_metric_name: false
-    #         reject_old_samples: true
-    #         reject_old_samples_max_age: 168h
-    #       chunk_store_config:
-    #         max_look_back_period: 0s
-    #       table_manager:
-    #         retention_deletes_enabled: false
-    #         retention_period: 0s
+    - name: LOKI - Ensure Loki config file
+      copy:
+        dest: /netsoc/loki/config.yaml
+        mode: 0777
+        content: |
+          auth_enabled: false
+          server:
+            http_listen_port: 3100
+          ingester:
+            lifecycler:
+              address: 127.0.0.1
+              ring:
+                kvstore:
+                  store: inmemory
+                replication_factor: 1
+              final_sleep: 0s
+            chunk_idle_period: 5m
+            chunk_retain_period: 30s
+            max_transfer_retries: 0
+          schema_config:
+            configs:
+              - from: 2018-04-15
+                store: boltdb
+                object_store: filesystem
+                schema: v11
+                index:
+                  prefix: index_
+                  period: 168h
+          storage_config:
+            boltdb:
+              directory: /tmp/loki/index
+            filesystem:
+              directory: /tmp/loki/chunks
+          limits_config:
+            enforce_metric_name: false
+            reject_old_samples: true
+            reject_old_samples_max_age: 168h
+          chunk_store_config:
+            max_look_back_period: 0s
+          table_manager:
+            retention_deletes_enabled: false
+            retention_period: 0s
 
-    # - name: LOKI - Remember Compose definition
-    #   set_fact:
-    #     loki_definition: 
-    #       version: '3.8'
-    #       networks:
-    #         loki:
-    #       services:
-    #         loki:
-    #           command: -config.file=/loki/config.yaml
-    #           image: grafana/loki:1.6.0
-    #           networks:
-    #             loki:
-    #           ports:
-    #             - "3100:3100"
-    #           volumes:
-    #             - "/netsoc/loki:/loki"
-    #           restart: on-failure
+    - name: LOKI - Install plugin
+      shell: docker plugin inspect loki || docker plugin install grafana/loki-docker-driver:latest --alias loki --grant-all-permissions 
+
+    - name: LOKI - Remember Compose definition
+      set_fact:
+        loki_definition: 
+          version: '3.8'
+          networks:
+            loki:
+          services:
+            loki:
+              command: -config.file=/loki/config.yaml
+              hostname: loki
+              image: grafana/loki:1.6.0
+              networks:
+                loki:
+              ports:
+                - "3100:3100"
+              volumes:
+                - "/netsoc/loki:/loki"
+              restart: on-failure
+
+    - name: LOKI - Setup compose
+      docker_compose:
+        project_name: loki
+        recreate: smart
+        restarted: yes
+        remove_orphans: yes
+        state: present
+        definition: "{{ loki_definition }}"
   vars_files:
     - "vars/network.yml"
     - "vars/secrets_mapping.yml"
