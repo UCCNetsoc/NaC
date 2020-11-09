@@ -383,9 +383,8 @@
     - name: STATIC WEBSITES - Setup compose
       docker_compose:
         project_name: static_websites
-        recreate: smart
-        restarted: yes
         remove_orphans: yes
+        pull: yes
         state: present
         definition: "{{ static_websites_definition }}"
   vars_files:
