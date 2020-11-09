@@ -528,9 +528,8 @@
     - name: DISCORD BOT - Setup compose
       docker_compose:
         project_name: discord_bot
-        recreate: smart
-        restarted: yes
         remove_orphans: yes
+        pull: yes
         state: present
         definition: "{{ discord_bot_definition }}"
   vars_files:
