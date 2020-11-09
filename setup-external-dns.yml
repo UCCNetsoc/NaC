@@ -7,11 +7,11 @@
         records:
           "netsoc.dev":
             # A
-            - { type: A,      name: "cix-1",          value: "84.39.234.50" }
-            - { type: A,      name: "cix-2",          value: "84.39.234.51" }
-            - { type: A,      name: "cix-3",          value: "84.39.234.52" }
-            - { type: A,      name: "cix-4",          value: "84.39.234.53" }
-            - { type: A,      name: "cix-5",          value: "84.39.234.54" }
+            - { type: A,      name: "cix-0",          value: "84.39.234.50" }
+            - { type: A,      name: "cix-1",          value: "84.39.234.51" }
+            - { type: A,      name: "cix-2",          value: "84.39.234.52" }
+            - { type: A,      name: "cix-3",          value: "84.39.234.53" }
+            - { type: A,      name: "cix-4",          value: "84.39.234.54" }
 
             # Historical hostnames
             - { type: A,      name: "bigbertha",      value: "84.39.234.50" }
@@ -28,7 +28,7 @@
 
             - { type: CNAME,  name: traefik,          value: 80-443-swarm-ingress.netsoc.dev }
             - { type: CNAME,  name: events,           value: "cix-2.netsoc.co"  }
-            
+
           "netsoc.co":
             # A
             - { type: A,      name: "cix-0",          value: "84.39.234.50" }
@@ -93,7 +93,6 @@
             - { type: CNAME, name: ldap, value: elon.netsoc.co }
             - { type: CNAME, name: logs, value: bigbertha.netsoc.co }
             - { type: CNAME, name: lxd, value: bigbertha.netsoc.co }
-            - { type: CNAME, name: minecraft, value: feynman.netsoc.co }
             - { type: CNAME, name: mysql, value: bigbertha.netsoc.co }
             - { type: CNAME, name: "*", value: bigbertha.netsoc.co }
             - { type: CNAME, name: portainer, value: boole.netsoc.co }
@@ -124,7 +123,7 @@
             - { type: CNAME, name: "s2._domainkey", value: "s2.domainkey.u18778499.wl250.sendgrid.net" }
 
             # SRV
-            - { type: SRV, name: "minecraft", proto: "tcp", service: "minecraft", port: "1194", priority: 0, weight: 5, value: "feynman.netsoc.co"}
+            - { type: SRV, name: "minecraft", proto: "tcp", service: "minecraft", port: "1194", priority: 0, weight: 5, value: "cix-3.netsoc.co"}
         cf_headers:
           X-Auth-Email: "{{ cloudflare.api.email }}"
           Authorization: "Bearer {{ cloudflare.api.dns_api_token }}"
