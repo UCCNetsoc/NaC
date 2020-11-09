@@ -516,6 +516,10 @@
                 MYSQL_USERNAME: "{{ netsocbot.mysql_user }}"
                 MYSQL_PASSWORD: "{{ netsocbot.mysql_password }}"
                 FREEIMAGE_KEY: "{{ netsocbot.freeimage_key }}"
+                FACEBOOK_APPID: "{{ netsocbot.fb.appid }}"
+                FACEBOOK_APP_SECRET: "{{ netsocbot.fb.appsecret }}"
+                FACEBOOK_PAGEID: "{{ netsocbot.fb.pageid }}"
+                FACEBOOK_PAGE_ACCESS_TOKEN: "{{ netsocbot.fb.accesstoken }}"
               labels:
                 traefik.enable: "true"
                 traefik.http.routers.netsocbot.rule: "Host(`events.infra.netsoc.co`, `events.netsoc.dev`)"
