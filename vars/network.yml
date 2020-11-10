@@ -93,16 +93,6 @@ interfaces:
         nameservers: "{{ nameservers.infra }}"
         optional: true
         link-local: []
-    portal:
-      net0: 
-        match:
-          macaddress: "ca:61:c3:c8:c9:25"
-        addresses:
-          - "{{ subnets.infra | ipaddr(45) }}"
-        gateway4: "{{ gateway4.infra }}"
-        nameservers: "{{ nameservers.infra }}"
-        optional: true
-        link-local: []
     games:
       net0: 
         match:
