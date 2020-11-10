@@ -823,8 +823,7 @@
         path: "/netsoc/{{ item }}"
         owner: root
         group: root
-        # Needs to be 775 as this folder is accessed internally by a dirsrv user
-        # https://github.com/freeipa/freeipa-container/issues/281
+
         mode: '0755'
         state: directory
       with_items:
@@ -911,23 +910,79 @@
     - provision
     - loki
 
-# wetty:
-#   image: wettyoss/wetty@sha256:55efea8eac05a552acbb344449358f1fb10b7d7e06f192d20f4762bf1c4fc1d9
-#   working_dir: /usr/src/app
-#   environment:
-#     SSHHOST: "portal.infra.netsoc.co"
-#     SSHPORT: 22
-#   networks:
-#     - traefik
-#   labels:
-#     - "traefik.enable=true"
-#     - "traefik.http.routers.wetty.rule=Host(`portal.netsoc.co`)"
-#     - "traefik.http.routers.wetty.entrypoints=web-secure"
-#     - "traefik.http.routers.wetty.tls.certResolver=letsencrypt"
-#     - "traefik.http.middlewares.wetty-path.redirectregex.regex=^https:\/\/portal.netsoc.co\/?$$"
-#     - "traefik.http.middlewares.wetty-path.redirectregex.replacement=https:\/\/portal.netsoc.co\/wetty"
-#     - "traefik.http.middlewares.wetty-access.headers.customresponseheaders.Content-Security-Policy=frame-ancestors *"
-#     - "traefik.http.routers.wetty.middlewares=wetty-path,wetty-access"
-#     - "traefik.http.services.wetty-service.loadbalancer.server.port=3000"
-#     - "traefik.http.routers.wetty.service=wetty-service"
-#     - "traefik.docker.network=traefik"
+
+- name: "NETSOC CLOUD"
+  hosts: web.infra.netsoc.co
+  become: yes
+  tasks:  
+    - name: NETSOC CLOUD - Ensure directories exist
+      file:
+        path: "/netsoc/{{ item }}"
+        owner: root
+        group: root
+        mode: '0755'
+        state: directory
+      with_items:
+        - cloud
+    
+    - name: NETSOC CLOUD - Ensure config file
+      copy:
+        src: "./vars/netsoc-cloud-api-config.yml"
+        dest: /netsoc/cloud/config.yaml
+        owner: root
+        group: root
+        mode: 0770
+
+    - name: NETSOC CLOUD - Remember Compose definition
+      set_fact:
+        netsoc_cloud_definition: 
+          version: '3.8'
+          networks:
+            traefik:
+              external: true
+          services:
+            api:
+              image: uccnetsoc/admin-api:latest
+              entrypoint: /start.sh 
+              restart: on-failure
+              networks:
+                traefik:
+              volumes:
+                - "/netsoc/cloud/config.yaml:/config.yml"
+              labels:
+                traefik.enable: "true"
+                traefik.http.routers.netsoc-cloud-api.entrypoints: web-secure
+                traefik.http.routers.netsoc-cloud-api.rule: Host(`api.infra.netsoc.co`)
+                traefik.http.routers.netsoc-cloud-api.tls.certResolver: letsencrypt
+                traefik.http.routers.netsoc-cloud-api.service: netsoc-cloud-api
+                traefik.http.services.netsoc-cloud-api.loadbalancer.server.port: "80"
+                traefik.docker.network: traefik
+            ui:
+              image: uccnetsoc/admin-ui:latest
+              restart: on-failure
+              networks:
+                traefik:
+              labels:
+                traefik.enable: "true"
+                traefik.http.routers.netsoc-cloud-ui.entrypoints: web-secure
+                traefik.http.routers.netsoc-cloud-ui.rule: Host(`cloud.netsoc.co`)
+                traefik.http.routers.netsoc-cloud-ui.tls.certResolver: letsencrypt
+                traefik.http.routers.netsoc-cloud-ui.service: netsoc-cloud-ui
+                traefik.http.services.netsoc-cloud-ui.loadbalancer.server.port: "80"
+                traefik.docker.network: traefik   
+
+    - name: NETSOC CLOUD - Setup compose
+      docker_compose:
+        project_name: netsoc_cloud
+        recreate: always
+        restarted: yes
+        remove_orphans: yes
+        state: present
+        definition: "{{ netsoc_cloud_definition }}"
+  vars_files:
+    - "vars/network.yml"
+    - "vars/secrets_mapping.yml"
+    - "vars/secrets.yml"
+  tags:
+    - provision
+    - netsoc-cloud
