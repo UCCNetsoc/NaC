@@ -120,6 +120,9 @@
               watch: true
             docker:
               exposedByDefault: false
+            http:
+              endpoint:
+                - "https://api.infra.netsoc.co/v1/proxmox/traefik-config"
           api:
             dashboard: true
             insecure: true
@@ -976,6 +979,7 @@
         project_name: netsoc_cloud
         recreate: always
         restarted: yes
+        pull: yes
         remove_orphans: yes
         state: present
         definition: "{{ netsoc_cloud_definition }}"

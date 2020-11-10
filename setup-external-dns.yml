@@ -58,6 +58,7 @@
             # web
             - { type: CNAME,    name: web.infra,             value: "cix-2.netsoc.co"      }
 
+            - { type: CNAME,    name: api.infra,             value: "web.infra.netsoc.co"  }
             - { type: CNAME,    name: ipa.infra,             value: "web.infra.netsoc.co"  }
             - { type: CNAME,    name: keycloak.infra,        value: "web.infra.netsoc.co"  }
             - { type: CNAME,    name: traefik.infra,         value: "web.infra.netsoc.co"  }
