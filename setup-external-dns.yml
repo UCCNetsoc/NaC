@@ -28,7 +28,9 @@
 
             - { type: CNAME,  name: traefik,          value: 80-443-swarm-ingress.netsoc.dev }
             - { type: CNAME,  name: events,           value: "cix-2.netsoc.co"  }
-
+          "netsoc.cloud":
+            - { type: CNAME,  name: "*",              value: "cix-2.netsoc.co" }
+            - { type: CNAME,  name: "netsoc.cloud",   value: "cloud.netsoc.co" }
           "netsoc.co":
             # A
             - { type: A,      name: "cix-0",          value: "84.39.234.50" }
