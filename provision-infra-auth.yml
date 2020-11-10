@@ -48,13 +48,25 @@
         owner: root
         group: root
         # Uses UIDs interally too
-        mode: '0755'
+        mode: '0777'
         state: directory
+
+
+    - name: KEYCLOAK - Ensure Keycloak directories exists
+      file:
+        path: "/netsoc/keycloak/{{ item }}"
+        owner: root
+        group: root
+        # Uses UIDs interally too
+        mode: '0777'
+        state: directory
+      with_items:
+        - realm
 
     - name: KEYCLOAK - Ensure realm file
       copy:
-        content: "{{ keycloak.realm }}"
-        dest: "/netsoc/keycloak/realm.json"
+        src: "./vars/keycloak-realm-exported.json"
+        dest: "/netsoc/keycloak/realm/realm.json"
         mode: 0755
 
     - name: IPA/KEYCLOAK - Remember Compose definition
@@ -62,6 +74,20 @@
         definition: 
           version: "3.5"
           services:
+            keycloak:
+              image: uccnetsoc/keycloak:9.0.3-themed
+              hostname: keycloak.infra.netsoc.co
+              environment:
+                DB_VENDOR: h2
+                KEYCLOAK_USER: "{{ keycloak.username }}"
+                KEYCLOAK_PASSWORD: "{{ keycloak.password }}"
+                KEYCLOAK_IMPORT: "/tmp/realm/realm.json"
+              restart: on-failure
+              ports:
+                - "8443:8443"
+              volumes:
+                - "/netsoc/keycloak/realm:/tmp/realm/"
+                - "/etc/localtime:/etc/localtime:ro"
             ipa:
               image: freeipa/freeipa-server:centos-8-4.8.4
               command: >
@@ -104,25 +130,12 @@
                 # RuntimeError: IPv6 stack is enabled in the kernel but there is no interface that has ::1 address assigned.
                 # Add ::1 address resolution to "lo" interface. You might need to enable IPv6 on the interface "lo" in sysctl.conf.
                 net.ipv6.conf.lo.disable_ipv6: 0
-            keycloak:
-              image: uccnetsoc/keycloak:9.0.3-themed
-              hostname: keycloak.infra.netsoc.co
-              environment:
-                DB_VENDOR: h2
-                KEYCLOAK_USER: "{{ keycloak.username }}"
-                KEYCLOAK_PASSWORD: "{{ keycloak.password }}"
-                # KEYCLOAK_IMPORT: "/tmp/keycloak/realm.json"
-              restart: on-failure
-              ports:
-                - "8443:8443"
-              volumes:
-                - "/netsoc/keycloak:/tmp/keycloak/"
-                - "/etc/localtime:/etc/localtime:ro"
 
     - name: IPA/KEYCLOAK - Setup services
       docker_compose:
         project_name: auth
         recreate: always
+        pull: yes
         remove_orphans: yes
         state: present
         definition: "{{ definition }}"
