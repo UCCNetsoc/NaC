@@ -970,7 +970,7 @@
               labels:
                 traefik.enable: "true"
                 traefik.http.routers.netsoc-cloud-ui.entrypoints: web-secure
-                traefik.http.routers.netsoc-cloud-ui.rule: Host(`cloud.netsoc.co`)
+                traefik.http.routers.netsoc-cloud-ui.rule: Host(`cloud.netsoc.co`, `netsoc.cloud`)
                 traefik.http.routers.netsoc-cloud-ui.tls.certResolver: letsencrypt
                 traefik.http.routers.netsoc-cloud-ui.service: netsoc-cloud-ui
                 traefik.http.services.netsoc-cloud-ui.loadbalancer.server.port: "80"
