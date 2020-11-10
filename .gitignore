@@ -5,6 +5,5 @@ lib/
 *.retry
 keys/
 production
-keycloak-realm-exported.json
 _vault_pass
 _secrets.yml
