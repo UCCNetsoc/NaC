@@ -91,7 +91,7 @@
       set_fact:
         traefik_static_config:
           log:
-            level: DEBUG
+            level: ERROR
           accessLog: {}
           entrypoints:
             web:
@@ -120,9 +120,9 @@
               watch: true
             docker:
               exposedByDefault: false
-            http:
+            http: # cloud http config
               endpoint:
-                - "https://api.infra.netsoc.co/v1/proxmox/traefik-config"
+                - "http://api/v1/proxmox/traefik-config"
           api:
             dashboard: true
             insecure: true
@@ -765,7 +765,7 @@
           - discord-bot
           - netsoc.co
           - keycloak
-          - admin
+          - cloud
 
     - name: CI - Get current repos
       uri:
@@ -952,6 +952,8 @@
                 traefik:
               volumes:
                 - "/netsoc/cloud/config.yaml:/config.yml"
+              environment:
+                WORKERS_PER_CORE: 3
               labels:
                 traefik.enable: "true"
                 traefik.http.routers.netsoc-cloud-api.entrypoints: web-secure
