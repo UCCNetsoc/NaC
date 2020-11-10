@@ -53,7 +53,7 @@
             - { type: CNAME,    name: minecraft,             value: "cix-3.netsoc.co"      }
 
             # proxmox control host
-            - { type: CNAME,    name: control.infra,         value: "cix-3.netsoc.co"      }
+            - { type: CNAME,    name: control,               value: "cix-3.netsoc.co"      }
 
             # web
             - { type: CNAME,    name: web.infra,             value: "cix-2.netsoc.co"      }
