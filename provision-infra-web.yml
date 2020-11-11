@@ -50,6 +50,7 @@
         password: "{{ wikijs.postgres.password }}"
         login_host: "pg.databases.infra.netsoc.co"
         login_password: "{{ postgres.infra.postgres_password }}"
+      no_log: true
     
     - name: WIKI - Ensure user has access to database
       postgresql_privs:
@@ -477,6 +478,7 @@
         login_host: "mysql.databases.infra.netsoc.co"
         login_password: "{{ mysql.infra.root_password }}"
         state: present
+      no_log: true
   vars_files:
     - "vars/secrets_mapping.yml"
     - "vars/secrets.yml"
@@ -529,6 +531,7 @@
                 FACEBOOK_APP_SECRET: "{{ netsocbot.fb.appsecret }}"
                 FACEBOOK_PAGEID: "{{ netsocbot.fb.pageid }}"
                 FACEBOOK_PAGE_ACCESS_TOKEN: "{{ netsocbot.fb.accesstoken }}"
+                SCHEDULE_ENABLE: "False"
               labels:
                 traefik.enable: "true"
                 traefik.http.routers.netsocbot.rule: "Host(`events.infra.netsoc.co`, `events.netsoc.dev`)"
