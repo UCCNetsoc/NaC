@@ -87,19 +87,33 @@
         name: traefik
         attachable: yes
 
-    - name: TRAEFIK - Remember configs
+    - name: TRAEFIK & NETSOC CLOUD - Load Netsoc Cloud config
+      set_fact:
+        netsoc_cloud_config: "{{ lookup('file', './vars/netsoc_cloud_api_config.yml') | from_yaml }}"
+
+    - name: TRAEFIK & NETSOC CLOUD - Generate entrypoints for web + Netsoc Cloud
+      set_fact:
+        text_traefik_entrypoints: |
+          web:
+            address: '84.39.234.52:80'
+          web-secure:
+            address: '84.39.234.52:443'
+          metrics:
+            address: '84.39.234.52:8082'
+          {% for i in range(netsoc_cloud_config.proxmox.port_forward.range[0],netsoc_cloud_config.proxmox.port_forward.range[1]+1) %}
+          netsoc-cloud-{{i}}-tcp:
+            address: '84.39.234.52:{{i}}/tcp'
+          netsoc-cloud-{{i}}-udp:
+            address: '84.39.234.52:{{i}}/udp'
+          {% endfor %}
+
+    - name: TRAEFIK & NETSOC CLOUD - Remember static config
       set_fact:
         traefik_static_config:
           log:
             level: ERROR
           accessLog: {}
-          entrypoints:
-            web:
-              address: ':80'
-            web-secure:
-              address: ':443'
-            metrics:
-              address: ':8082'
+          entrypoints: "{{ text_traefik_entrypoints | from_yaml }}"
           metrics:
             prometheus:
               entrypoint: metrics
@@ -111,9 +125,6 @@
                 email: netsoc@uccsocieties.ie
                 storage: /traefik/acme.json
                 tlsChallenge: {}
-                # dnsChallenge:
-                #   provider: cloudflare
-                #   delayBeforeCheck: 0
           providers:
             file:
               directory: /traefik/file_config/
@@ -122,11 +133,11 @@
               exposedByDefault: false
             http: # cloud http config
               endpoint:
-                - "http://api/v1/proxmox/traefik-config"
+                - "http://127.0.0.1:42069/v1/proxmox/traefik-config"
           api:
             dashboard: true
             insecure: true
-
+                      
     - name: TRAEFIK - Remember file config
       set_fact:
         traefik_file_config:
@@ -285,18 +296,13 @@
             server:
               restart: on-failure
               image: traefik:v2.3.2
-              networks:
-                traefik:
-              ports:
-                - "80:80"
-                - "443:443"
-                - "8082:8082"
               command: traefik --configFile=/traefik/config.yml
               volumes:
                 - "/var/run/docker.sock:/var/run/docker.sock"
                 - "/netsoc/traefik:/traefik/:shared"
               environment:
                 CLOUDFLARE_DNS_API_TOKEN_FILE: "/traefik/cloudflare_dns_api_token.txt"
+              network_mode: "host"
               labels:
                 # global redirect to https
                 traefik.enable: "true"
@@ -333,6 +339,7 @@
   tags:
     - provision
     - traefik
+    - netsoc-cloud
 
 - name: "STATIC WEBSITES"
   hosts: web.infra.netsoc.co
@@ -930,7 +937,7 @@
     
     - name: NETSOC CLOUD - Ensure config file
       copy:
-        src: "./vars/netsoc-cloud-api-config.yml"
+        src: "./vars/netsoc_cloud_api_config.yml"
         dest: /netsoc/cloud/config.yaml
         owner: root
         group: root
@@ -945,13 +952,15 @@
               external: true
           services:
             api:
-              image: uccnetsoc/admin-api:latest
+              image: uccnetsoc/cloud-api:latest
               entrypoint: /start.sh 
               restart: on-failure
               networks:
                 traefik:
               volumes:
                 - "/netsoc/cloud/config.yaml:/config.yml"
+              ports:
+                - "127.0.0.1:42069:80"
               environment:
                 WORKERS_PER_CORE: 3
               labels:
@@ -963,7 +972,7 @@
                 traefik.http.services.netsoc-cloud-api.loadbalancer.server.port: "80"
                 traefik.docker.network: traefik
             ui:
-              image: uccnetsoc/admin-ui:latest
+              image: uccnetsoc/cloud-ui:latest
               restart: on-failure
               networks:
                 traefik:
