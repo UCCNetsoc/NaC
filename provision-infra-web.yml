@@ -23,8 +23,8 @@
     - role: ipa-client-enroll
       vars:
         client:
-          addresses: 
-            - "{{ ansible_default_ipv4.address }}"
+          addresses: # Use public IP so any lookups for this IP will hit the webserver bound on the public IP
+            - "{{ interfaces.infra.web.net1.addresses[0] | ipaddr('address') }}"
   vars_files:
     - "vars/network.yml"
     - "vars/secrets_mapping.yml"
