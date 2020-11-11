@@ -522,6 +522,7 @@
                 FACEBOOK_APP_SECRET: "{{ netsocbot.fb.appsecret }}"
                 FACEBOOK_PAGEID: "{{ netsocbot.fb.pageid }}"
                 FACEBOOK_PAGE_ACCESS_TOKEN: "{{ netsocbot.fb.accesstoken }}"
+                SCHEDULE_ENABLE: "False"
               labels:
                 traefik.enable: "true"
                 traefik.http.routers.netsocbot.rule: "Host(`events.infra.netsoc.co`, `events.netsoc.dev`)"
