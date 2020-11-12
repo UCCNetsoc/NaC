@@ -34,7 +34,7 @@
 
 # Command useful for local testing, replace UPPERCASE vars with appropriate values
 # Additional base templates can be found here http://uk.images.linuxcontainers.org
-# packer build -var "name=NAME" -var "dist=DIST" -var "rel=FOCAL" -var "playbook=PLAYBOOK" -var "packer_output=OUTPUT_DIR" ./lxc/packer.json
+# packer build -var "name=NAME" -var "dist=DIST" -var "rel=REL" -var "playbook=PLAYBOOK" -var "packer_output=OUTPUT_DIR" ./lxc/packer.json
 - name: Templates
   hosts: localhost
   become: yes
