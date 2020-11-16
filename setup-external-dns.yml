@@ -66,6 +66,7 @@
             - { type: CNAME,    name: traefik.infra,         value: "web.infra.netsoc.co"  }
             - { type: CNAME,    name: prometheus.infra,      value: "web.infra.netsoc.co"  }
             - { type: CNAME,    name: ci.infra,              value: "web.infra.netsoc.co"  }
+            - { type: CNAME,    name: grafana.infra,         value: "web.infra.netsoc.co"  }
 
             - { type: CNAME,    name: wiki,                  value: "web.infra.netsoc.co"  }
             - { type: CNAME,    name: netsoc.co,             value: "web.infra.netsoc.co"  }
