@@ -67,157 +67,6 @@
     - provision
     - discord-bot
 
-- name: "LOKI"
-  hosts: web.infra.netsoc.co
-  become: yes
-  tasks:  
-    - name: LOKI - Ensure directories exist
-      file:
-        path: "/netsoc/{{ item }}"
-        owner: root
-        group: root
-
-        mode: '0755'
-        state: directory
-      with_items:
-        - loki
-        - promtail
-    
-    - name: LOKI - Ensure Loki config file
-      copy:
-        dest: /netsoc/loki/config.yaml
-        mode: 0777
-        content: |
-          auth_enabled: false
-          server:
-            http_listen_port: 3100
-          ingester:
-            lifecycler:
-              address: 127.0.0.1
-              ring:
-                kvstore:
-                  store: inmemory
-                replication_factor: 1
-              final_sleep: 0s
-            chunk_idle_period: 5m
-            chunk_retain_period: 30s
-            max_transfer_retries: 0
-          schema_config:
-            configs:
-              - from: 2018-04-15
-                store: boltdb
-                object_store: filesystem
-                schema: v11
-                index:
-                  prefix: index_
-                  period: 168h
-          storage_config:
-            boltdb:
-              directory: /tmp/loki/index
-            filesystem:
-              directory: /tmp/loki/chunks
-          limits_config:
-            enforce_metric_name: false
-            reject_old_samples: true
-            reject_old_samples_max_age: 168h
-          chunk_store_config:
-            max_look_back_period: 0s
-          table_manager:
-            retention_deletes_enabled: false
-            retention_period: 0s
-
-    - name: LOKI - Ensure Promtail config file
-      copy:
-        dest: /netsoc/promtail/config.yaml
-        mode: 0777
-        content: |
-          server:
-            http_listen_port: 9080
-            grpc_listen_port: 0
-            log_level: "debug"
-            
-          positions:
-            filename: /tmp/positions.yaml
-            
-          clients:
-            - url: http://loki:3100/loki/api/v1/push
-            
-          scrape_configs:
-            - job_name: containers
-              pipeline_stages:
-                - docker:
-              file_sd_configs:
-                - files:
-                  - /promtail/targets.yaml
-              relabel_configs:
-                - source_labels: [__address__]
-                  target_label: container_id
-                - source_labels: [container_id]
-                  target_label: __path__
-                  replacement: /var/lib/docker/containers/$1*/*.log
-    
-    - name: LOKI - Setup targets
-      shell: "docker ps --format '- targets: [\"{{ '{{' }}.ID{{ '}}' }}\"]\\n  labels:\\n    container_name: \"{{ '{{' }}.Names{{ '}}' }}\"' > /netsoc/promtail/targets.yaml"
-
-    - name: LOKI - Remember Compose definition
-      set_fact:
-        loki_definition: 
-          version: '3.8'
-          networks:
-            loki:
-            traefik:
-              external: true
-          services:
-            loki:
-              command: -config.file=/loki/config.yaml
-              hostname: loki
-              image: grafana/loki:2.0.0
-              networks:
-                loki:
-              ports:
-                - "3100:3100"
-              volumes:
-                - "/netsoc/loki:/loki"
-              restart: on-failure
-
-            promtail:
-              image: grafana/promtail:2.0.0
-              volumes:
-                - /var/lib/docker:/var/lib/docker
-                - /netsoc/promtail/:/promtail
-              command: -config.file=/promtail/config.yaml
-              networks:
-                loki:
-
-            grafana:
-              image: grafana/grafana:latest
-              labels:
-                traefik.enable: "true"
-                traefik.http.routers.grafana.rule: "Host(`grafana.infra.netsoc.co`)"
-                traefik.http.routers.grafana.entrypoints: "web-secure"
-                traefik.http.routers.grafana.tls.certResolver: "letsencrypt"
-                traefik.http.services.grafana.loadbalancer.server.port: "3000"
-                traefik.http.routers.grafana.service: "grafana"
-                traefik.docker.network: "traefik"
-              networks:
-                - loki
-                - traefik
-
-    - name: LOKI - Setup compose
-      docker_compose:
-        project_name: loki
-        recreate: always
-        restarted: yes
-        remove_orphans: yes
-        state: present
-        definition: "{{ loki_definition }}"
-  vars_files:
-    - "vars/network.yml"
-    - "vars/secrets_mapping.yml"
-    - "vars/secrets.yml"
-  tags:
-    - provision
-    - loki
 
 - name: "TRAEFIK"
   hosts: web.infra.netsoc.co
@@ -1068,3 +917,171 @@
   tags:
     - provision
     - netsoc-cloud
+
+
+- name: "LOKI"
+  hosts: web.infra.netsoc.co
+  become: yes
+  tasks:  
+    - name: LOKI - Ensure directories exist
+      file:
+        path: "/netsoc/{{ item }}"
+        owner: root
+        group: root
+
+        mode: '0755'
+        state: directory
+      with_items:
+        - loki
+        - promtail
+    
+    - name: LOKI - Ensure Loki config file
+      copy:
+        dest: /netsoc/loki/config.yaml
+        mode: 0777
+        content: |
+          auth_enabled: false
+          server:
+            http_listen_port: 3100
+          ingester:
+            lifecycler:
+              address: 127.0.0.1
+              ring:
+                kvstore:
+                  store: inmemory
+                replication_factor: 1
+              final_sleep: 0s
+            chunk_idle_period: 5m
+            chunk_retain_period: 30s
+            max_transfer_retries: 0
+          schema_config:
+            configs:
+              - from: 2018-04-15
+                store: boltdb
+                object_store: filesystem
+                schema: v11
+                index:
+                  prefix: index_
+                  period: 168h
+          storage_config:
+            boltdb:
+              directory: /tmp/loki/index
+            filesystem:
+              directory: /tmp/loki/chunks
+          limits_config:
+            enforce_metric_name: false
+            reject_old_samples: true
+            reject_old_samples_max_age: 168h
+          chunk_store_config:
+            max_look_back_period: 0s
+          table_manager:
+            retention_deletes_enabled: false
+            retention_period: 0s
+
+    - name: LOKI - Ensure Promtail config file
+      copy:
+        dest: /netsoc/promtail/config.yaml
+        mode: 0777
+        content: |
+          server:
+            http_listen_port: 9080
+            grpc_listen_port: 0
+            log_level: "debug"
+            
+          positions:
+            filename: /tmp/positions.yaml
+            
+          clients:
+            - url: http://loki:3100/loki/api/v1/push
+            
+          scrape_configs:
+            - job_name: containers
+              pipeline_stages:
+                - docker:
+              file_sd_configs:
+                - files:
+                  - /promtail/targets.yaml
+              relabel_configs:
+                - source_labels: [__address__]
+                  target_label: container_id
+                - source_labels: [container_id]
+                  target_label: __path__
+                  replacement: /var/lib/docker/containers/$1*/*.log
+    
+    - name: LOKI - Setup targets
+      shell: "docker ps --format '- targets: [\"{{ '{{' }}.ID{{ '}}' }}\"]\\n  labels:\\n    container_name: \"{{ '{{' }}.Names{{ '}}' }}\"' > /netsoc/promtail/targets.yaml"
+
+    - name: LOKI - Remember Compose definition
+      set_fact:
+        loki_definition: 
+          version: '3.8'
+          networks:
+            loki:
+            traefik:
+              external: true
+          services:
+            loki:
+              command: -config.file=/loki/config.yaml
+              hostname: loki
+              image: grafana/loki:2.0.0
+              networks:
+                loki:
+              ports:
+                - "3100:3100"
+              volumes:
+                - "/netsoc/loki:/loki"
+              restart: on-failure
+
+            promtail:
+              image: grafana/promtail:2.0.0
+              volumes:
+                - /var/lib/docker:/var/lib/docker
+                - /netsoc/promtail/:/promtail
+              command: -config.file=/promtail/config.yaml
+              networks:
+                loki:
+
+            # grafana:
+            #   image: grafana/grafana:latest
+            #   labels:
+            #     traefik.enable: "true"
+            #     traefik.http.routers.grafana.rule: "Host(`grafana.infra.netsoc.co`)"
+            #     traefik.http.routers.grafana.entrypoints: "web-secure"
+            #     traefik.http.routers.grafana.tls.certResolver: "letsencrypt"
+            #     traefik.http.services.grafana.loadbalancer.server.port: "3000"
+            #     traefik.http.routers.grafana.service: "grafana"
+            #     traefik.docker.network: "traefik"
+            #   networks:
+            #     - loki
+            #     - traefik
+
+    - name: LOKI - Setup compose
+      docker_compose:
+        project_name: loki
+        recreate: always
+        restarted: yes
+        remove_orphans: yes
+        state: present
+        definition: "{{ loki_definition }}"
+  vars_files:
+    - "vars/network.yml"
+    - "vars/secrets_mapping.yml"
+    - "vars/secrets.yml"
+  tags:
+    - provision
+    - loki
+
+- name: "LOKI TARGETS"
+  hosts: web.infra.netsoc.co
+  become: yes
+  tasks:  
+    - name: LOKI TARGETS - Setup targets
+      shell: "docker ps --format '- targets: [\"{{ '{{' }}.ID{{ '}}' }}\"]\\n  labels:\\n    container_name: \"{{ '{{' }}.Names{{ '}}' }}\"' > /netsoc/promtail/targets.yaml"
+  tags:
+    - traefik
+    - discord-bot
+    - provision
+    - netsoc-cloud
+    - ci
+    - wiki
+    - static-websites
