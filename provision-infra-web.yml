@@ -71,12 +71,6 @@
   hosts: web.infra.netsoc.co
   become: yes
   tasks:  
-    - name: LOKI - Ensure Docker network
-      become: yes
-      docker_network:
-        name: loki
-        attachable: yes
-
     - name: LOKI - Ensure directories exist
       file:
         path: "/netsoc/{{ item }}"
@@ -87,6 +81,7 @@
         state: directory
       with_items:
         - loki
+        - promtail
     
     - name: LOKI - Ensure Loki config file
       copy:
@@ -131,8 +126,38 @@
             retention_deletes_enabled: false
             retention_period: 0s
 
-    - name: LOKI - Install plugin
-      shell: docker plugin inspect loki || docker plugin install grafana/loki-docker-driver:latest-bridge --alias loki --grant-all-permissions 
+    - name: LOKI - Ensure Promtail config file
+      copy:
+        dest: /netsoc/promtail/config.yaml
+        mode: 0777
+        content: |
+          server:
+            http_listen_port: 9080
+            grpc_listen_port: 0
+            log_level: "debug"
+            
+          positions:
+            filename: /tmp/positions.yaml
+            
+          clients:
+            - url: http://loki:3100/loki/api/v1/push
+            
+          scrape_configs:
+            - job_name: containers
+              pipeline_stages:
+                - docker:
+              file_sd_configs:
+                - files:
+                  - /promtail/targets.yaml
+              relabel_configs:
+                - source_labels: [__address__]
+                  target_label: container_id
+                - source_labels: [container_id]
+                  target_label: __path__
+                  replacement: /var/lib/docker/containers/$1*/*.log
+    
+    - name: LOKI - Setup targets
+      shell: "docker ps --format '- targets: [\"{{ '{{' }}.ID{{ '}}' }}\"]\\n  labels:\\n    container_name: \"{{ '{{' }}.Names{{ '}}' }}\"' > /netsoc/promtail/targets.yaml"
 
     - name: LOKI - Remember Compose definition
       set_fact:
@@ -140,12 +165,13 @@
           version: '3.8'
           networks:
             loki:
+            traefik:
               external: true
           services:
             loki:
               command: -config.file=/loki/config.yaml
               hostname: loki
-              image: grafana/loki:1.6.0
+              image: grafana/loki:2.0.0
               networks:
                 loki:
               ports:
@@ -153,6 +179,29 @@
               volumes:
                 - "/netsoc/loki:/loki"
               restart: on-failure
+
+            promtail:
+              image: grafana/promtail:2.0.0
+              volumes:
+                - /var/lib/docker:/var/lib/docker
+                - /netsoc/promtail/:/promtail
+              command: -config.file=/promtail/config.yaml
+              networks:
+                loki:
+
+            grafana:
+              image: grafana/grafana:latest
+              labels:
+                traefik.enable: "true"
+                traefik.http.routers.grafana.rule: "Host(`grafana.infra.netsoc.co`)"
+                traefik.http.routers.grafana.entrypoints: "web-secure"
+                traefik.http.routers.grafana.tls.certResolver: "letsencrypt"
+                traefik.http.services.grafana.loadbalancer.server.port: "3000"
+                traefik.http.routers.grafana.service: "grafana"
+                traefik.docker.network: "traefik"
+              networks:
+                - loki
+                - traefik
 
     - name: LOKI - Setup compose
       docker_compose:
@@ -606,34 +655,12 @@
           networks:
             traefik:
               external: true
-            loki:
-              external: true
           services:
             instance:
               image: uccnetsoc/discord-bot:latest
               restart: on-failure
               networks:
                 traefik:
-                loki:
-              logging:
-                driver: loki
-                options:
-                  loki-url: http://loki:3100/loki/api/v1/push
-                  loki-retries: "5"
-                  loki-batch-size: "400"
-                  # loki-pipeline-stages: |
-                  #   - json:
-                  #       expressions:
-                  #         level: level
-                  #         path: path
-                  #         method: method
-                  #         msg: msg
-                  #   - labels:
-                  #       msg: 
-                  #       level:
-                  #       path:
-                  #       method:
-                  # loki-external-labels: container_name={{ '{{' }}.Name{{ '}}' }}
               environment:
                 DISCORD_TOKEN: "{{ netsocbot.discord_token }}"
                 DISCORD_ROLES: "631196785913888768,720021252676518079"
