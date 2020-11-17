@@ -23,14 +23,17 @@
             - { type: A,      name: 80-443-swarm-ingress,  value: "84.39.234.53" }
 
             # CNAMEs
-            - { type: CNAME,  name: "netsoc.dev",     value: "traefik.netsoc.dev" }
             - { type: CNAME,  name: grafana,          value: "bigbertha.netsoc.dev" }
 
-            - { type: CNAME,  name: traefik,          value: 80-443-swarm-ingress.netsoc.dev }
             - { type: CNAME,  name: events,           value: "cix-2.netsoc.co"  }
           "netsoc.cloud":
-            - { type: CNAME,  name: "*",              value: "cix-2.netsoc.co" }
-            - { type: CNAME,  name: "netsoc.cloud",   value: "cloud.netsoc.co" }
+            # API traffic goes to the web host
+            - { type: CNAME,  name: api,              value: "web.netsoc.co"  }
+            - { type: CNAME,  name: "netsoc.cloud",   value: "web.netsoc.co"  }
+
+            # Any traffic to VM goes to the proxy/jumphost
+            - { type: CNAME,  name: proxy,            value: "cix-4.netsoc.co"    }
+            - { type: CNAME,  name: "*",              value: "proxy.netsoc.cloud" }
           "netsoc.co":
             # A
             - { type: A,      name: "cix-0",          value: "84.39.234.50" }
@@ -52,33 +55,31 @@
 
             # New - post proxmoxification
             - { type: A,        name: 80-443-swarm-ingress,  value: "84.39.234.53" }
-            - { type: CNAME,    name: minecraft,             value: "cix-3.netsoc.co"      }
+            - { type: CNAME,    name: minecraft,             value: "cix-3.netsoc.co" }
 
             # proxmox control host
-            - { type: CNAME,    name: control,               value: "cix-3.netsoc.co"      }
+            - { type: CNAME,    name: control,               value: "cix-3.netsoc.co" }
 
             # web
-            - { type: CNAME,    name: web.infra,             value: "cix-2.netsoc.co"      }
+            - { type: CNAME,    name: web,                   value: "cix-2.netsoc.co" }
+            - { type: CNAME,    name: netsoc.co,             value: "web.netsoc.co"  }
 
-            - { type: CNAME,    name: api.infra,             value: "web.infra.netsoc.co"  }
-            - { type: CNAME,    name: ipa.infra,             value: "web.infra.netsoc.co"  }
-            - { type: CNAME,    name: keycloak.infra,        value: "web.infra.netsoc.co"  }
-            - { type: CNAME,    name: traefik.infra,         value: "web.infra.netsoc.co"  }
-            - { type: CNAME,    name: prometheus.infra,      value: "web.infra.netsoc.co"  }
-            - { type: CNAME,    name: ci.infra,              value: "web.infra.netsoc.co"  }
+            - { type: CNAME,    name: ipa,                   value: "web.netsoc.co"  }
+            - { type: CNAME,    name: keycloak,              value: "web.netsoc.co"  }
+            - { type: CNAME,    name: traefik,               value: "web.netsoc.co"  }
+            - { type: CNAME,    name: prometheus,            value: "web.netsoc.co"  }
+            - { type: CNAME,    name: ci,                    value: "web.netsoc.co"  }
 
-            - { type: CNAME,    name: wiki,                  value: "web.infra.netsoc.co"  }
-            - { type: CNAME,    name: netsoc.co,             value: "web.infra.netsoc.co"  }
-            - { type: CNAME,    name: www,                   value: "web.infra.netsoc.co"  }
-            - { type: CNAME,    name: mentorships,           value: "web.infra.netsoc.co"  }
-            - { type: CNAME,    name: tutorial,              value: "web.infra.netsoc.co"  }
-            - { type: CNAME,    name: constitution,          value: "web.infra.netsoc.co"  }
-            - { type: CNAME,    name: portal,                value: "web.infra.netsoc.co"  }
-            - { type: CNAME,    name: blog,                  value: "web.infra.netsoc.co"  }
-            - { type: CNAME,    name: discord,               value: "web.infra.netsoc.co"  }
-            - { type: CNAME,    name: esports,               value: "web.infra.netsoc.co"  }
-            - { type: CNAME,    name: cloud,                 value: "web.infra.netsoc.co"  }
-            - { type: CNAME,    name: api,                   value: "web.infra.netsoc.co"  }
+            - { type: CNAME,    name: wiki,                  value: "web.netsoc.co"  }
+            - { type: CNAME,    name: www,                   value: "web.netsoc.co"  }
+            - { type: CNAME,    name: mentorships,           value: "web.netsoc.co"  }
+            - { type: CNAME,    name: tutorial,              value: "web.netsoc.co"  }
+            - { type: CNAME,    name: constitution,          value: "web.netsoc.co"  }
+            - { type: CNAME,    name: portal,                value: "web.netsoc.co"  }
+            - { type: CNAME,    name: blog,                  value: "web.netsoc.co"  }
+            - { type: CNAME,    name: discord,               value: "web.netsoc.co"  }
+            - { type: CNAME,    name: esports,               value: "web.netsoc.co"  }
+            - { type: CNAME,    name: cloud,                 value: "web.netsoc.co"  }
 
             # Historical CNAME Records
             - { type: CNAME, name: admin, value: bigbertha.netsoc.co }

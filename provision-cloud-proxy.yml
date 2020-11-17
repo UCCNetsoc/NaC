@@ -1,0 +1,141 @@
+---
+- name: "INITIAL SETUP"
+  hosts: proxy.netsoc.cloud
+  become: yes
+  roles:
+    - ansible-requirements
+    - utf8-locale
+    - docker
+  tasks:
+    - name: "Make /netsoc only readable by root"
+      file:
+        path: "/netsoc"
+        owner: root
+        group: root
+        mode: '1770'
+  tags:
+    - initial
+
+
+- name: "TRAEFIK"
+  hosts: proxy.netsoc.cloud
+  become: yes
+  tasks:
+    - name: TRAEFIK - Ensure directories exist
+      file:
+        path: "/netsoc/{{ item }}"
+        owner: root
+        group: root
+        mode: '0755'
+        state: directory
+      with_items:
+        - traefik
+
+    - name: TRAEFIK & NETSOC CLOUD - Load Netsoc Cloud config
+      set_fact:
+        netsoc_cloud_config: "{{ lookup('file', './vars/netsoc_cloud_api_config.yml') | from_yaml }}"
+
+    - name: TRAEFIK & NETSOC CLOUD - Generate entrypoints for web + Netsoc Cloud
+      set_fact:
+        text_traefik_entrypoints: |
+          web:
+            address: ':80'
+          web-secure:
+            address: ':443'
+          metrics:
+            address: ':8082'
+          {% for i in range(netsoc_cloud_config.proxmox.network.port_forward.range[0],netsoc_cloud_config.proxmox.network.port_forward.range[1]+1) %}
+          netsoc-cloud-{{i}}-tcp:
+            address: ':{{i}}/tcp'
+          netsoc-cloud-{{i}}-udp:
+            address: ':{{i}}/udp'
+          {% endfor %}
+
+    - name: TRAEFIK & NETSOC CLOUD - Remember static config
+      set_fact:
+        traefik_static_config:
+          log:
+            level: ERROR
+          accessLog: {}
+          entrypoints: "{{ text_traefik_entrypoints | from_yaml }}"
+          metrics:
+            prometheus:
+              entrypoint: metrics
+          serversTransport:
+            insecureSkipVerify: true
+          certificatesResolvers:
+            letsencrypt:
+              acme:
+                email: netsoc@uccsocieties.ie
+                storage: /traefik/acme.json
+                tlsChallenge: {}
+          providers:
+            docker:
+              exposedByDefault: false
+            http: # cloud http config
+              endpoint:
+                - "http://api.netsoc.cloud/v1/proxmox/traefik-config"
+          api:
+            dashboard: true
+            insecure: true
+
+    - name: TRAEFIK - Write static config
+      copy:
+        content: "{{ traefik_static_config | from_yaml }}"
+        dest: /netsoc/traefik/config.yml
+        
+    - name: TRAEFIK - Remember Compose definition
+      set_fact:
+        traefik_definition: 
+          version: "3.8"
+          networks:
+            traefik:
+              external: true
+          services:
+            server:
+              restart: on-failure
+              image: traefik:v2.3.2
+              command: traefik --configFile=/traefik/config.yml
+              volumes:
+                - "/var/run/docker.sock:/var/run/docker.sock"
+                - "/netsoc/traefik:/traefik/:shared"
+              environment:
+                CLOUDFLARE_DNS_API_TOKEN_FILE: "/traefik/cloudflare_dns_api_token.txt"
+              network_mode: "host"
+              labels:
+                # global redirect to https
+                traefik.enable: "true"
+                traefik.docker.network: "traefik"
+                traefik.http.routers.https-redirect.entrypoints: "web"
+                traefik.http.routers.https-redirect.rule: "HostRegexp(`{any:.*}`)"
+                traefik.http.routers.https-redirect.middlewares: "https-redirect"
+                traefik.http.middlewares.https-redirect.redirectscheme.scheme: "https"
+                traefik.http.middlewares.https-redirect.redirectscheme.port: "443"
+                traefik.http.middlewares.https-redirect.redirectscheme.permanent: "true"
+
+                # passworded dashboard
+                traefik.http.routers.dashboard.entrypoints: "web-secure"
+                traefik.http.routers.dashboard.rule: "Host(`proxy.netsoc.cloud`)"
+                traefik.http.routers.dashboard.tls: ""
+                traefik.http.routers.dashboard.tls.certResolver: "letsencrypt"
+                traefik.http.routers.dashboard.service: "dashboard-service"
+                traefik.http.services.dashboard-service.loadbalancer.server.port: "8080"
+                traefik.http.middlewares.dashboard-auth.basicauth.users: "{{ traefik.username }}:{{ traefik.password | password_hash('bcrypt') | replace('$', '$$') }}"
+                traefik.http.routers.dashboard.middlewares: "dashboard-auth@docker"
+
+    - name: TRAEFIK - Setup compose
+      docker_compose:
+        project_name: traefik
+        recreate: always
+        restarted: yes
+        remove_orphans: yes
+        state: present
+        definition: "{{ traefik_definition }}"
+  vars_files:
+    - "vars/network.yml"
+    - "vars/secrets_mapping.yml"
+    - "vars/secrets.yml"
+  tags:
+    - provision
+    - traefik
+    - netsoc-cloud

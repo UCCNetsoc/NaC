@@ -19,7 +19,6 @@
         - { type: A, name: "pg.databases",         value: "{{ interfaces.infra.databases.net0.addresses[0] | ipaddr('address') }}" }
         - { type: A, name: "mysql.databases",      value: "{{ interfaces.infra.databases.net0.addresses[0] | ipaddr('address') }}" }
         - { type: A, name: "prometheus.databases", value: "{{ interfaces.infra.databases.net0.addresses[0] | ipaddr('address') }}" }
-        - { type: CNAME, name: "ci",               value: "web" }
   vars_files:
     - vars/network.yml
     - vars/secrets_mapping.yml
