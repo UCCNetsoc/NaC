@@ -7,6 +7,10 @@
         content: USE_LXC_BRIDGE="true"
         dest: /etc/default/lxc-net
         mode: 0774
+    - name: Start lxc-net service
+      service:
+        name: lxc-net
+        state: started
     - name: Make /lxc dir
       file:
         state: directory
