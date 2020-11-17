@@ -76,7 +76,6 @@
           services:
             keycloak:
               image: uccnetsoc/keycloak:9.0.3-themed
-              hostname: keycloak.infra.netsoc.co
               environment:
                 DB_VENDOR: h2
                 KEYCLOAK_USER: "{{ keycloak.username }}"

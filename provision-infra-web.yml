@@ -97,29 +97,19 @@
         private_ip: "{{ interfaces.infra.web.net0.addresses[0] | ipaddr('address') }}"
         public_ip: "{{ interfaces.infra.web.net1.addresses[0] | ipaddr('address') }}"
 
-    - name: TRAEFIK & NETSOC CLOUD - Generate entrypoints for web + Netsoc Cloud
-      set_fact:
-        text_traefik_entrypoints: |
-          web:
-            address: '{{ public_ip }}:80'
-          web-secure:
-            address: '{{ public_ip }}:443'
-          metrics:
-            address: '{{ private_ip }}:8082'
-          {% for i in range(netsoc_cloud_config.proxmox.port_forward.range[0],netsoc_cloud_config.proxmox.port_forward.range[1]+1) %}
-          netsoc-cloud-{{i}}-tcp:
-            address: '{{ public_ip }}:{{i}}/tcp'
-          netsoc-cloud-{{i}}-udp:
-            address: '{{ public_ip }}:{{i}}/udp'
-          {% endfor %}
-
     - name: TRAEFIK & NETSOC CLOUD - Remember static config
       set_fact:
         traefik_static_config:
           log:
             level: ERROR
           accessLog: {}
-          entrypoints: "{{ text_traefik_entrypoints | from_yaml }}"
+          entrypoints: 
+            web:
+              address: ':80'
+            web-secure:
+              address: ':443'
+            metrics:
+              address: ':8082'
           metrics:
             prometheus:
               entrypoint: metrics
@@ -137,9 +127,6 @@
               watch: true
             docker:
               exposedByDefault: false
-            http: # cloud http config
-              endpoint:
-                - "http://127.0.0.1:42069/v1/proxmox/traefik-config"
           api:
             dashboard: true
             insecure: true
@@ -160,7 +147,7 @@
               ipa:
                 entrypoints:
                   - web-secure
-                rule: Host(`ipa.infra.netsoc.co`)
+                rule: Host(`ipa.netsoc.co`)
                 middlewares:
                   - ipa-rewrite
                 service: ipa
@@ -169,7 +156,7 @@
               keycloak:
                 entrypoints:
                   - web-secure
-                rule: Host(`keycloak.infra.netsoc.co`)
+                rule: Host(`keycloak.netsoc.co`)
                 service: keycloak
                 tls:
                   certResolver: letsencrypt
@@ -203,7 +190,7 @@
               prometheus:
                 entrypoints:
                   - web-secure
-                rule: Host(`prometheus.infra.netsoc.co`)
+                rule: Host(`prometheus.netsoc.co`)
                 middlewares:
                   - prometheus-auth
                 service: prometheus
@@ -323,7 +310,7 @@
 
                 # passworded dashboard
                 traefik.http.routers.dashboard.entrypoints: "web-secure"
-                traefik.http.routers.dashboard.rule: "Host(`traefik.infra.netsoc.co`)"
+                traefik.http.routers.dashboard.rule: "Host(`traefik.netsoc.co`)"
                 traefik.http.routers.dashboard.tls: ""
                 traefik.http.routers.dashboard.tls.certResolver: "letsencrypt"
                 traefik.http.routers.dashboard.service: "dashboard-service"
@@ -346,7 +333,6 @@
   tags:
     - provision
     - traefik
-    - netsoc-cloud
 
 - name: "STATIC WEBSITES"
   hosts: web.infra.netsoc.co
@@ -540,7 +526,7 @@
                 SCHEDULE_ENABLE: "False"
               labels:
                 traefik.enable: "true"
-                traefik.http.routers.netsocbot.rule: "Host(`events.infra.netsoc.co`, `events.netsoc.dev`)"
+                traefik.http.routers.netsocbot.rule: "Host(`events.netsoc.co`, `events.netsoc.dev`)"
                 traefik.http.routers.netsocbot.entrypoints: "web-secure"
                 traefik.http.routers.netsocbot.tls.certResolver: "letsencrypt"
                 traefik.http.services.netsocbot-service.loadbalancer.server.port: "80"
@@ -636,7 +622,7 @@
                 DRONE_GITHUB_CLIENT_SECRET: "{{ drone.github_secret }}"
                 DRONE_GITHUB_SERVER: https://github.com
                 DRONE_RPC_SECRET: "{{ drone.rpc_secret }}"
-                DRONE_SERVER_HOST: "ci.infra.netsoc.co"
+                DRONE_SERVER_HOST: "ci.netsoc.co"
                 DRONE_TLS_AUTOCERT: "false"
                 DRONE_SERVER_PROTO: https
                 DRONE_DATABASE_DRIVER: "mysql"
@@ -652,7 +638,7 @@
               labels:
                 traefik.enable: "true"
                 traefik.http.routers.drone.entrypoints: web-secure
-                traefik.http.routers.drone.rule: Host(`ci.infra.netsoc.co`)
+                traefik.http.routers.drone.rule: Host(`ci.netsoc.co`)
                 traefik.http.routers.drone.tls.certResolver: letsencrypt
                 traefik.http.routers.drone.service: drone-service
                 traefik.http.services.drone-service.loadbalancer.server.port: 80
@@ -662,7 +648,7 @@
               environment:
                 DRONE_TRACE: "true"
                 DRONE_RPC_PROTO: https
-                DRONE_RPC_HOST: "ci.infra.netsoc.co"
+                DRONE_RPC_HOST: "ci.netsoc.co"
                 DRONE_RPC_SECRET: "{{ drone.rpc_secret }}"
                 DRONE_RUNNER_NAME: "drone-runner"
                 DRONE_RUNNER_CAPACITY: "4"
@@ -704,7 +690,7 @@
 
     - name: "CI - Wait for Drone to come up"
       uri:
-        url: "https://ci.infra.netsoc.co/api/user/repos"
+        url: "https://ci.netsoc.co/api/user/repos"
         status_code: 200
         validate_certs: no
         headers:
@@ -716,7 +702,7 @@
 
     - name: CI - Get current secrets
       uri:
-        url: "https://ci.infra.netsoc.co/api/secrets"
+        url: "https://ci.netsoc.co/api/secrets"
         return_content: yes
         status_code: [200, 201, 202, 203, 204]
         validate_certs: no
@@ -726,7 +712,7 @@
 
     - name: CI - Delete all previous secrets
       uri:
-        url: "https://ci.infra.netsoc.co/api/secrets/{{ item.namespace }}/{{ item.name }}"
+        url: "https://ci.netsoc.co/api/secrets/{{ item.namespace }}/{{ item.name }}"
         method: DELETE
         status_code: [200, 201, 202, 203, 204]
         validate_certs: no
@@ -762,7 +748,7 @@
 
     - name: CI - Create secrets
       uri:
-        url: "https://ci.infra.netsoc.co/api/secrets/UCCNetsoc"
+        url: "https://ci.netsoc.co/api/secrets/UCCNetsoc"
         method: POST
         body_format: json
         body: 
@@ -785,7 +771,7 @@
 
     - name: CI - Get current repos
       uri:
-        url: "https://ci.infra.netsoc.co/api/user/repos"
+        url: "https://ci.netsoc.co/api/user/repos"
         return_content: yes
         status_code: [200, 201, 202, 203, 204]
         validate_certs: no
@@ -795,7 +781,7 @@
 
     - name: CI - Disable enabled but need to be disabled repos
       uri:
-        url: "https://ci.infra.netsoc.co/api/repos/{{ item.namespace }}/{{ item.name }}"
+        url: "https://ci.netsoc.co/api/repos/{{ item.namespace }}/{{ item.name }}"
         method: DELETE
         status_code: [200, 201, 202, 203, 204]
         validate_certs: no
@@ -810,7 +796,7 @@
 
     - name: CI - Enable listed repos. (may fail if repos haven't synced yet/missing, will retry)
       uri:
-        url: "https://ci.infra.netsoc.co/api/repos/UCCNetsoc/{{ item }}"
+        url: "https://ci.netsoc.co/api/repos/UCCNetsoc/{{ item }}"
         method: POST
         body_format: json
         status_code: [200, 201, 202, 203, 204]
@@ -968,14 +954,12 @@
                 traefik:
               volumes:
                 - "/netsoc/cloud/config.yaml:/config.yml"
-              ports:
-                - "127.0.0.1:42069:80"
               environment:
-                WORKERS_PER_CORE: 3
+                WORKERS_PER_CORE: 4
               labels:
                 traefik.enable: "true"
                 traefik.http.routers.netsoc-cloud-api.entrypoints: web-secure
-                traefik.http.routers.netsoc-cloud-api.rule: Host(`api.infra.netsoc.co`)
+                traefik.http.routers.netsoc-cloud-api.rule: Host(`api.netsoc.cloud`)
                 traefik.http.routers.netsoc-cloud-api.tls.certResolver: letsencrypt
                 traefik.http.routers.netsoc-cloud-api.service: netsoc-cloud-api
                 traefik.http.services.netsoc-cloud-api.loadbalancer.server.port: "80"
@@ -988,7 +972,7 @@
               labels:
                 traefik.enable: "true"
                 traefik.http.routers.netsoc-cloud-ui.entrypoints: web-secure
-                traefik.http.routers.netsoc-cloud-ui.rule: Host(`cloud.netsoc.co`, `netsoc.cloud`)
+                traefik.http.routers.netsoc-cloud-ui.rule: Host(`netsoc.cloud`)
                 traefik.http.routers.netsoc-cloud-ui.tls.certResolver: letsencrypt
                 traefik.http.routers.netsoc-cloud-ui.service: netsoc-cloud-ui
                 traefik.http.services.netsoc-cloud-ui.loadbalancer.server.port: "80"
