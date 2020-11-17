@@ -1,12 +1,16 @@
 - name: Setup
   become: yes
-  hosts: localhost
+  hosts: lovelace
   tasks:
     - name: Configure LXC to use a bridge
       copy:
         content: USE_LXC_BRIDGE="true"
         dest: /etc/default/lxc-net
         mode: 0774
+    - name: Make /lxc dir
+      file:
+        state: directory
+        path: /lxc
     - name: Configure general container settings
       copy:
         content: |
@@ -16,10 +20,6 @@
           lxc.net.0.hwaddr = 00:16:3e:xx:xx:xx
         dest: /etc/lxc/default.conf
         mode: 0774
-    - name: Start lxc-net service
-      service:
-        name: lxc-net
-        state: started
     - name: Output Directories Vars
       set_fact:
         packer_output: /tmp/packer/output
@@ -31,12 +31,33 @@
       loop:
         - "{{ packer_output }}"
         - "{{ template_output }}"
+    - name: lxc-dev package
+      apt:
+        name: lxc-pve-dev
+    - name: python3 lxc bindings
+      pip:
+        name: git+https://github.com/lxc/python3-lxc
+  roles:
+    - packer
+  tags:
+    - always
+
+- name: Delegate to Lovelace
+  become: yes
+  hosts: lovelace
+  tasks:
+  - name: Copy provisioning files
+    copy:
+      src: ./lxc/
+      dest: /lxc/
+  tags:
+    - always
 
 # Command useful for local testing, replace UPPERCASE vars with appropriate values
 # Additional base templates can be found here http://uk.images.linuxcontainers.org
-# packer build -var "name=NAME" -var "dist=DIST" -var "rel=REL" -var "playbook=PLAYBOOK" -var "packer_output=OUTPUT_DIR" ./lxc/packer.json
+# packer build -var "name=NAME" -var "dist=DIST" -var "rel=REL" -var "playbook=PLAYBOOK" -var "packer_output=OUTPUT_DIR" /lxc/packer.json
 - name: Templates
-  hosts: localhost
+  hosts: lovelace
   become: yes
   tasks:
     - name: Ghost CMS Ubuntu
@@ -48,7 +69,7 @@
           -var "rel={{ rel }}"
           -var "playbook={{ playbook }}"
           -var "packer_output={{ packer_output }}"
-          ./lxc/packer.json
+          /lxc/packer.json
       vars:
         name: ghostcms
         dist: ubuntu
@@ -56,7 +77,7 @@
         playbook: ghostcms-ubuntu
       tags:
         - ghostcms-ubuntu
-    - name: NGINX Ubuntu
+    - name: nginx Ubuntu
       command:
         cmd: >
           packer build
@@ -65,7 +86,7 @@
           -var "rel={{ rel }}"
           -var "playbook={{ playbook }}"
           -var "packer_output={{ packer_output }}"
-          ./lxc/packer.json
+          /lxc/packer.json
       vars:
         name: nginx
         dist: ubuntu
@@ -83,7 +104,7 @@
 # As such we must extract rootfs and then compress just its contents
 - name: Fix Archives
   become: yes
-  hosts: localhost
+  hosts: lovelace
   tasks:
     - name: Get all templates
       find:
@@ -101,20 +122,25 @@
         cmd: "tar -czf {{ template_output }}/netsoc-{{ item.path.split('/')[-2] }}.tar.gz -C {{ item.path | dirname }}/rootfs ."
         warn: false
       loop: "{{ files.files }}"
+  tags:
+   - always
 
-# synchronize might be a better module to use here
-- name: Copy Templates to Proxmox Nodes
+- name: Copy Templates to Proxmox Hosts
   become: yes
-  hosts: proxmox_nodes
+  hosts: proxmox_hosts
   tasks:
-    - name: Copy
-      copy:
-        src: "{{ template_output }}/"
-        dest: /var/lib/vz/template/cache/
+    - name: Copy templates
+      synchronize:
+        src: "{{ hostvars['lovelace']['template_output'] }}/"
+        dest: "/var/lib/vz/template/cache/"
+      delegate_to: lovelace
+      delegate_facts: true
+  tags:
+    - always
 
 - name: Cleanup
   become: yes
-  hosts: localhost
+  hosts: lovelace
   tasks:
     - name: Stop lxc-net service
       service:
@@ -127,3 +153,5 @@
       loop:
         - "{{ packer_output }}"
         - "{{ template_output }}"
+  tags:
+   - always

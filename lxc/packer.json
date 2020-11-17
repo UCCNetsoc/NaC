@@ -6,7 +6,7 @@
             ],
             "type": "lxc",
             "name": "{{user `name`}}",
-            "config_file": "/etc/lxc/default.conf",
+            "config_file": "/lxc/lxc.conf",
             "container_name": "{{user `name`}}-{{user `dist`}}",
             "template_name": "download",
             "template_parameters": [
@@ -34,7 +34,7 @@
                 "lxc"
             ],
             "inventory_file_template": "container ansible_host={{user `name`}}-{{user `dist`}}",
-            "playbook_file": "./lxc/{{user `playbook`}}.yml"
+            "playbook_file": "/lxc/{{user `playbook`}}.yml"
         }
     ]
 }
