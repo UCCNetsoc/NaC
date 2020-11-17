@@ -6,7 +6,7 @@
             ],
             "type": "lxc",
             "name": "{{user `name`}}",
-            "config_file": "/lxc/lxc.conf",
+            "config_file": "/etc/lxc/default.conf",
             "container_name": "{{user `name`}}-{{user `dist`}}",
             "template_name": "download",
             "template_parameters": [
