@@ -125,4 +125,3 @@
   vars_files:
     - 'vars/secrets.yml'
     - 'vars/secrets_mapping.yml'
-    - 'vars/backups.yml'
