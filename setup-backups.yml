@@ -117,10 +117,10 @@
           \"
           " >> /var/log/backup-{{ item }}.log
 
-  when: item != control.name
-  loop: "{{ groups['proxmox_hosts'] }}"
-  loop_control:
-    index_var: index
+      when: item != control.name
+      loop: "{{ groups['proxmox_hosts'] }}"
+      loop_control:
+        index_var: index
 
   vars_files:
     - 'vars/secrets.yml'
