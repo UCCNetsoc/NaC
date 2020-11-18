@@ -2,7 +2,7 @@
 - name: "BACKUP JOBS"
   hosts: localhost
   tasks:
-    - name: Setup variables
+    - name: BACKUP JOBS - Setup variables
       set_fact:
         gdrive: '{{ vault_gdrive }}'
         #   user_id
@@ -26,27 +26,27 @@
           name: 'feynman'
           port: '2222'
 
-    - name: 'Ensure duplicity config path'
+    - name: BACKUP JOBS - Ensure duplicity config path
       file:
         path: '/root/.duplicity'
         state: directory
 
-    - name: 'Ensure duplicity config path; credentials'
+    - name: BACKUP JOBS - Ensure duplicity config path; credentials
       file:
         path: '/root/.duplicity/credentials'
         state: touch
 
-    - name: 'Ensure duplicity config path; excludes'
+    - name: BACKUP JOBS - Ensure duplicity config path; excludes
       file:
         path: '/root/.duplicity/excludes'
         state: touch
 
-    - name: 'Ensure duplicity config path; gdrive.cache'
+    - name: BACKUP JOBS - Ensure duplicity config path; gdrive.cache
       file:
         path: '/root/.duplicity/gdrive.cache'
         state: touch
 
-    - name: 'Ensure duplicity OneDrive credentials'
+    - name: BACKUP JOBS - Ensure duplicity OneDrive credentials
       copy:
         content: |
           client_config_backend: settings
@@ -59,12 +59,12 @@
           get_refresh_token: True
         dest: '/root/.duplicity/credentials'
 
-    - name: 'Ensure duplicity config'
+    - name: 'BACKUP JOBS - Ensure duplicity config'
       copy:
         content: '{{ gdrive.cache }}'
         dest: '/root/.duplicity/gdrive.cache'
 
-    - name: 'Ensure backup script on host'
+    - name: BACKUP JOBS - Ensure backup script on host
       copy:
         content: |
           #!/bin/bash
@@ -84,7 +84,7 @@
         dest: /root/backup.sh
         mode: '0755'
 
-    - name: 'Ensure backup cron job on control host'
+    - name: BACKUP JOBS - Ensure backup cron job on control host
       cron:
         user: 'root'
         name: 'Run VZdump and duplicity for control host'
@@ -98,7 +98,7 @@
           ssh -i {{ nac }}/keys/{{ control.name }}/id_rsa root@{{ control.host }} -p {{ control.port }} /root/backup.sh
           " >> /var/log/backup-{{ control.name }}.log
 
-    - name: 'Ensure backup cron job on each host'
+    - name: BACKUP JOBS - Ensure backup cron job on each host
       cron:
         user: 'root'
         name: 'Run VZdump and duplicity for {{ item }}'
