@@ -23,7 +23,10 @@
             filename: /tmp/positions.yaml
 
           clients:
-            - url: http://{{ interfaces.infra.web.net1.addresses[0] | ipaddr('address') }}:3100/loki/api/v1/push
+            - url: http://loki.netsoc.co/loki/api/v1/push
+              basic_auth:
+                username: {{ loki.username }}
+                password: {{ loki.password }}
 
           scrape_configs:
           - job_name: syslog
