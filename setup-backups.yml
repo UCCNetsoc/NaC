@@ -1,9 +1,127 @@
 ---
-- name: Ensure backup job on proxmox backup host
+- name: "BACKUP JOBS"
   hosts: localhost
-  roles:
-    - backups
+  tasks:
+    - name: BACKUP JOBS - Setup variables
+      set_fact:
+        gdrive: '{{ vault_gdrive }}'
+        #   user_id
+        #   client_id
+        #   client_secret
+        #   cache
+        #   location
+
+        backup:
+          weekday: 4 # Day of the week that the job should run ( 0-6 for Sunday-Saturday, *, etc ).
+          hour: 3 
+          minute: 0
+          directory: '/backups'
+        blacklist:
+          - 'router.vm.netsoc.co'
+        compress: 'lzo'
+        nac: '/root/NaC'
+        mode: snapshot
+        control:
+          host: 'feynman.netsoc.co'
+          name: 'feynman'
+          port: '2222'
+
+    - name: BACKUP JOBS - Ensure duplicity config path
+      file:
+        path: '/root/.duplicity'
+        state: directory
+
+    - name: BACKUP JOBS - Ensure duplicity config path; credentials
+      file:
+        path: '/root/.duplicity/credentials'
+        state: touch
+
+    - name: BACKUP JOBS - Ensure duplicity config path; excludes
+      file:
+        path: '/root/.duplicity/excludes'
+        state: touch
+
+    - name: BACKUP JOBS - Ensure duplicity config path; gdrive.cache
+      file:
+        path: '/root/.duplicity/gdrive.cache'
+        state: touch
+
+    - name: BACKUP JOBS - Ensure duplicity OneDrive credentials
+      copy:
+        content: |
+          client_config_backend: settings
+          client_config:
+            client_id: "{{ gdrive.client_id }}"
+            client_secret: "{{ gdrive.client_secret }}"
+          save_credentials: True
+          save_credentials_backend: file
+          save_credentials_file: /root/.duplicity/gdrive.cache
+          get_refresh_token: True
+        dest: '/root/.duplicity/credentials'
+
+    - name: 'BACKUP JOBS - Ensure duplicity config'
+      copy:
+        content: '{{ gdrive.cache }}'
+        dest: '/root/.duplicity/gdrive.cache'
+
+    - name: BACKUP JOBS - Ensure backup script on host
+      copy:
+        content: |
+          #!/bin/bash
+          for VM in $(qm list --full | 
+          awk '/netsoc.co/ { if ($2 !~ /"{{ blacklist | join('|') }}"/) { printf "%s\n\n", $1; } }') ;
+            do CONF=`pvesh get /nodes/$(hostname -s)/qemu/$VM/config --output-format=json` &&
+              [[ `echo $CONF | jq .virtio0` != "null" ]] && [[ `echo $CONF | jq .virtio0` != *"backup=0"* ]] && pvesh set /nodes/$(hostname -s)/qemu/$VM/config -virtio0 `echo $CONF | jq -r .virtio0`,backup=0 && sleep 5;
+              [[ `echo $CONF | jq .virtio1` != "null" ]] && 
+              echo "Backing up $VM" && MDIR="{{ backup.directory }}/$(echo $CONF | jq -r .name)" && 
+              mkdir -p $MDIR && (vzdump --compress {{ compress }} $VM --mode {{ mode }} --dumpdir $MDIR --exclude-path /boot ||
+                curl -H "Content-Type: application/json" -X POST -d "{\"username\": \"$(hostname -s)\", \"content\": \"Error backing up VM $VM\"}" {{ webhooks.discord }});
+            done;
+          GOOGLE_DRIVE_SETTINGS=~/.duplicity/credentials duplicity --exclude-filelist ~/.duplicity/excludes {{ backup.directory }} gdocs://{{ gdrive.user_id }}/{{ gdrive.location }}/$(hostname -s) --no-encryption || 
+            curl -H "Content-Type: application/json" -X POST -d "{\"username\": \"$(hostname -s)\", \"content\": \"Error syncing with Google Drive. You may need to update the refresh token in ansible vault :/\"}" {{ webhooks.discord }}; 
+          curl -H "Content-Type: application/json" -X POST -d "{\"username\": \"$(hostname -s)\", \"content\": \"VM backups completed\"}" {{ webhooks.discord }}
+          rm -rf /root/.duplicity # remove after termination
+        dest: /root/backup.sh
+        mode: '0755'
+
+    - name: BACKUP JOBS - Ensure backup cron job on control host
+      cron:
+        user: 'root'
+        name: 'Run VZdump and duplicity for control host'
+        weekday: '{{ backup.weekday }}'
+        hour: '{{ backup.hour }}'
+        minute: '{{ backup.minute }}'
+        job: >
+          bash -c "
+          scp -r -i {{ nac }}/keys/{{ control.name }}/id_rsa -P {{ control.port }} /root/.duplicity root@{{ control.host }}:/root/.duplicity &&
+          scp -i {{ nac }}/keys/{{ control.name }}/id_rsa -P {{ control.port }} /root/backup.sh root@{{ control.host }}:/root/backup.sh &&
+          ssh -i {{ nac }}/keys/{{ control.name }}/id_rsa root@{{ control.host }} -p {{ control.port }} /root/backup.sh
+          " >> /var/log/backup-{{ control.name }}.log
+
+    - name: BACKUP JOBS - Ensure backup cron job on each host
+      cron:
+        user: 'root'
+        name: 'Run VZdump and duplicity for {{ item }}'
+        weekday: '{{ backup.weekday }}'
+        hour: '{{ backup.hour + index }}'
+        minute: '{{ backup.minute }}'
+        job: >
+          bash -c "
+          scp -r -i {{ nac }}/keys/{{ control.name }}/id_rsa -P {{ control.port }} /root/.duplicity root@{{ control.host }}:/root/.duplicity &&
+          scp -i {{ nac }}/keys/{{ control.name }}/id_rsa -P {{ control.port }} /root/backup.sh root@{{ control.host }}:/root/backup.sh &&
+          ssh -i {{ nac }}/keys/{{ control.name }}/id_rsa root@{{ control.host }} -p {{ control.port }} \"
+          scp -r /root/.duplicity root@{{ item }}:/root/.duplicity &&
+          scp /root/backup.sh root@{{ item }}:/root/backup.sh &&
+          ssh root@{{ item }} /root/backup.sh &&
+          rm -rf /root/.duplicity
+          \"
+          " >> /var/log/backup-{{ item }}.log
+
+      when: item != control.name
+      loop: "{{ groups['proxmox_hosts'] }}"
+      loop_control:
+        index_var: index
+
   vars_files:
     - 'vars/secrets.yml'
-    - 'vars/webhooks.yml'
-    - 'vars/backups.yml'
+    - 'vars/secrets_mapping.yml'
