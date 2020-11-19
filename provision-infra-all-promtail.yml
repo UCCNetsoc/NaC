@@ -1,9 +1,14 @@
 ---
 
 - name: PROMTAIL
-  hosts: promtail_syslog
+  hosts: promtail
   become: yes
   tasks:
+    - name: PROMTAIL - Ensure build dependencies
+      apt: 
+        name: unzip
+        state: present
+
     - name : PROMTAIL - Set config
       copy:
         dest: /netsoc/promtail.yml 
@@ -12,6 +17,7 @@
           server:
             http_listen_port: 9080
             grpc_listen_port: 0
+            log_level: "info"
 
           positions:
             filename: /tmp/positions.yaml
@@ -20,19 +26,63 @@
             - url: http://{{ interfaces.infra.web.net1.addresses[0] | ipaddr('address') }}:3100/loki/api/v1/push
 
           scrape_configs:
-          - job_name: system
+          - job_name: syslog
             static_configs:
             - targets:
                 - localhost
               labels:
                 job: "syslog-{{ inventory_hostname }}"
                 __path__: /var/log/syslog
+          - job_name: varlogs
+            static_configs:
+            - targets:
+                - localhost
+              labels:
+                job: "varlogs-{{ inventory_hostname }}"
+                __path__: /var/log/*.log
+          - job_name: ipalogs
+            static_configs:
+            - targets:
+                - localhost
+              labels:
+                job: "ipalogs-{{ inventory_hostname }}"
+                __path__: /netsoc/ipa/var/log/*
     
-    - name: PROMTAIL - Download promtail
-      get_url:
-        url: https://github.com/grafana/loki/releases/download/v2.0.0/promtail-linux-amd64.zip
-        dest: /tmp/promtail.zip
+    - name: PROMTAIL - Install
+      unarchive:
+        src: https://github.com/grafana/loki/releases/download/v2.0.0/promtail-linux-amd64.zip
+        dest: /usr/local/bin
+        remote_src: yes
+    
+    - name: PROMTAIL - Install systemd service
+      copy:
+        dest: /etc/systemd/system/promtail.service
         mode: 0777
+        content: |
+          [Unit]
+          Description=Promtail service
+          After=network.target
+
+          [Service]
+          Type=simple
+          User=root
+          ExecStart=/usr/local/bin/promtail-linux-amd64 -config.file /netsoc/promtail.yml 
+
+          [Install]
+          WantedBy=multi-user.target
+    
+    - name: PROMTAIL - Enable and start service
+      systemd:
+        state: started
+        enabled: yes
+        daemon_reload: yes
+        name:  promtail
+
+    - name: PROMTAIL - Restart service
+      systemd:
+        state: restarted
+        enabled: yes
+        name:  promtail
 
   vars_files:
     - vars/secrets_mapping.yml

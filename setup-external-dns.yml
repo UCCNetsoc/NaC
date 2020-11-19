@@ -91,7 +91,6 @@
             - { type: CNAME, name: docker, value: boole.netsoc.co }
             - { type: CNAME, name: es, value: bigbertha.netsoc.co }
             - { type: CNAME, name: "*.evan", value: leela.netsoc.co }
-            - { type: CNAME, name: grafana, value: bigbertha.netsoc.co }
             - { type: CNAME, name: hlm, value: bigbertha.netsoc.co }
             - { type: CNAME, name: impressive, value: bigbertha.netsoc.co }
             - { type: CNAME, name: irc, value: bigbertha.netsoc.co }
