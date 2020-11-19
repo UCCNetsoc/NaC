@@ -1010,11 +1010,19 @@
               image: grafana/loki:2.0.0
               networks:
                 loki:
-              ports:
-                - "3100:3100"
               volumes:
                 - "/netsoc/loki:/loki"
               restart: on-failure
+              labels:
+                traefik.enable: "true"
+                traefik.http.routers.loki.rule: "Host(`loki.netsoc.co`)"
+                traefik.http.routers.loki.entrypoints: "web-secure"
+                traefik.http.routers.loki.tls.certResolver: "letsencrypt"
+                traefik.http.services.loki.loadbalancer.server.port: "3100"
+                traefik.http.routers.loki.service: "loki"
+                traefik.http.middlewares.loki-auth.basicauth.users: "{{ loki.username }}:{{ loki.hash }}"
+                traefik.http.routers.loki.middlewares: "loki-auth@docker"
+                traefik.docker.network: "traefik"
 
             promtail:
               image: grafana/promtail:2.0.0
