@@ -26,6 +26,7 @@
       shell: |
         systemctl stop systemd-resolved
         systemctl disable systemd-resolved
+
     - name: IPA - Switch from IPA DNS server to regular name server temporarily so we can make changes and still have DNS (2/2)
       copy:
         content: |

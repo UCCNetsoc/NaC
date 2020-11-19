@@ -59,7 +59,8 @@ for node in proxmox.nodes.get():
 
                 ifaces = proxmox.nodes(node['node']).qemu(vm['vmid']).agent.get('network-get-interfaces')
                 for iface in ifaces['result']:
-                    if 'hardware-address' in iface and iface['hardware-address'] == macaddress:
+                    #print(iface)
+                    if 'hardware-address' in iface and iface['hardware-address'].lower() == macaddress.lower():
                         
                         if 'ip-addresses' in iface and len(iface['ip-addresses']) > 0:
                             ssh_ip = iface['ip-addresses'][0]['ip-address']
