@@ -771,6 +771,7 @@
           - discord-bot
           - netsoc.co
           - keycloak
+          - drone-ansible
           - cloud
 
     - name: CI - Get current repos
