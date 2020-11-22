@@ -1,0 +1,161 @@
+- name: Setup
+  become: yes
+  hosts: lovelace
+  tasks:
+    - name: Configure LXC to use a bridge
+      copy:
+        content: USE_LXC_BRIDGE="true"
+        dest: /etc/default/lxc-net
+        mode: 0774
+    - name: Start lxc-net service
+      service:
+        name: lxc-net
+        state: started
+    - name: Make /lxc dir
+      file:
+        state: directory
+        path: /lxc
+    - name: Configure general container settings
+      copy:
+        content: |
+          lxc.net.0.type = veth
+          lxc.net.0.link = lxcbr0
+          lxc.net.0.flags = up
+          lxc.net.0.hwaddr = 00:16:3e:xx:xx:xx
+        dest: /etc/lxc/default.conf
+        mode: 0774
+    - name: Output Directories Vars
+      set_fact:
+        packer_output: /tmp/packer/output
+        template_output: /tmp/packer/templates
+    - name: Ensure Output Dirs
+      file:
+        path: "{{ item }}"
+        state: directory
+      loop:
+        - "{{ packer_output }}"
+        - "{{ template_output }}"
+    - name: lxc-dev package
+      apt:
+        name: lxc-pve-dev
+    - name: python3 lxc bindings
+      pip:
+        name: git+https://github.com/lxc/python3-lxc
+  roles:
+    - packer
+  tags:
+    - always
+
+- name: Delegate to Lovelace
+  become: yes
+  hosts: lovelace
+  tasks:
+  - name: Copy provisioning files
+    copy:
+      src: ./lxc/
+      dest: /lxc/
+  tags:
+    - always
+
+# Command useful for local testing, replace UPPERCASE vars with appropriate values
+# Additional base templates can be found here http://uk.images.linuxcontainers.org
+# packer build -var "name=NAME" -var "dist=DIST" -var "rel=REL" -var "playbook=PLAYBOOK" -var "packer_output=OUTPUT_DIR" /lxc/packer.json
+- name: Templates
+  hosts: lovelace
+  become: yes
+  tasks:
+    - name: Ghost CMS Ubuntu
+      command:
+        cmd: >
+          packer build
+          -var "name={{ name }}"
+          -var "dist={{ dist }}"
+          -var "rel={{ rel }}"
+          -var "playbook={{ playbook }}"
+          -var "packer_output={{ packer_output }}"
+          /lxc/packer.json
+      vars:
+        name: ghostcms
+        dist: ubuntu
+        rel: focal
+        playbook: ghostcms-ubuntu
+      tags:
+        - ghostcms-ubuntu
+    - name: nginx Ubuntu
+      command:
+        cmd: >
+          packer build
+          -var "name={{ name }}"
+          -var "dist={{ dist }}"
+          -var "rel={{ rel }}"
+          -var "playbook={{ playbook }}"
+          -var "packer_output={{ packer_output }}"
+          /lxc/packer.json
+      vars:
+        name: nginx
+        dist: ubuntu
+        rel: focal
+        playbook: nginx-ubuntu
+      tags:
+        - nginx-ubuntu
+
+# Packer exports containers as rootfs.tar.gz with the following structure
+#   rootfs/
+#     - bin
+#     - boot
+#     - etc...
+# Proxmox expects bin,boot,etc... without parent rootfs dir
+# As such we must extract rootfs and then compress just its contents
+- name: Fix Archives
+  become: yes
+  hosts: lovelace
+  tasks:
+    - name: Get all templates
+      find:
+        pattern: "rootfs.tar.gz"
+        path: "{{ packer_output }}"
+        recurse: yes
+      register: files
+    - name: Extract
+      shell:
+        cmd: "tar --preserve-permissions --numeric-owner -xzf {{ item.path }} -C {{ item.path | dirname }}"
+        warn: false
+      loop: "{{ files.files }}"
+    - name: Compress
+      shell:
+        cmd: "tar -czf {{ template_output }}/netsoc-{{ item.path.split('/')[-2] }}.tar.gz -C {{ item.path | dirname }}/rootfs ."
+        warn: false
+      loop: "{{ files.files }}"
+  tags:
+   - always
+
+- name: Copy Templates to Proxmox Hosts
+  become: yes
+  hosts: proxmox_hosts
+  tasks:
+    - name: Copy templates
+      synchronize:
+        src: "{{ hostvars['lovelace']['template_output'] }}/"
+        dest: "/var/lib/vz/template/cache/"
+      delegate_to: lovelace
+      delegate_facts: true
+  tags:
+    - always
+
+- name: Cleanup
+  become: yes
+  hosts: lovelace
+  tasks:
+    - name: Stop lxc-net service
+      service:
+        name: lxc-net
+        state: stopped
+    - name: Tidy up outputs
+      file:
+        path: "{{ item }}"
+        state: absent
+      loop:
+        - "{{ packer_output }}"
+        - "{{ template_output }}"
+  tags:
+   - always

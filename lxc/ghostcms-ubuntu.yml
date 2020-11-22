@@ -1,0 +1,133 @@
+- name: Requirements
+  hosts: container
+  tasks:
+    - name: Install nodejs
+      apt:
+        name: nodejs
+        state: present
+    # I couldn't get npm to install any other way /shrug
+    - name: Install npm
+      raw: apt-get install -y npm
+      args:
+        executable: /bin/bash
+    - name: Create ghost_manager group
+      group:
+        name: ghost_manager
+        system: yes
+    - name: Create ghost_manager user
+      user:
+        name: ghost_manager
+        home: /ghost
+        group: ghost_manager
+        shell: /bin/bash
+        password: "!"
+    - name: Make ghost_manager a sudoer
+      copy:
+        dest: /etc/sudoers.d/ghost_manager
+        content: ghost_manager  ALL=(ALL) NOPASSWD:ALL
+    - name: Global NPM
+      npm:
+        global: yes
+        production: yes
+        name: "{{ item }}"
+      loop:
+        - npm
+        - ghost-cli
+    - name: Permissions Helper
+      copy:
+        dest: /fix-permissions.sh
+        mode: 0770
+        content: |
+          #!/bin/bash
+          sudo find /ghost/ ! -path "./versions/*" -type f -exec chmod 00664 {} \;
+          sudo find /ghost/ -type d -exec chmod 00775 {} \;
+
+- name: Install Ghost
+  hosts: container
+  become: yes
+  become_user: ghost_manager
+  become_method: su
+  tasks:
+    - name: NPM install Ghost
+      npm:
+        name: ghost
+        production: yes
+        path: /ghost
+    - name: Get package.json contents
+      shell: cat /ghost/node_modules/ghost/package.json
+      register: package
+    - name: Get Ghost Version
+      set_fact:
+        ghost_version: "{{ (package.stdout | from_json).get('version') }}"
+    - name: Configure file structure
+      shell:
+        chdir: /ghost
+        executable: /bin/bash
+        cmd: |
+          mv /ghost/node_modules/ghost/content /ghost/content
+          mkdir -p /ghost/versions/{{ ghost_version }}
+          mkdir /ghost/.ghost
+          ln -sf /ghost/versions/{{ ghost_version }} current
+          mv /ghost/node_modules/ghost/* current/
+          mv package-lock.json current/
+          mv node_modules current/
+    - name: Ghost Config
+      copy:
+        dest: /ghost/config.production.json
+        content: |
+          {
+            "url": "https://PLACEHOLDER",
+            "server": {
+              "port": 6969,
+              "host": "0.0.0.0"
+            },
+            "database": {
+              "client": "sqlite3",
+              "connection": {
+                "filename": "/ghost/content/data/ghost.db",
+                "database": "ghost"
+              }
+            },
+            "mail": {
+              "transport": "Direct"
+            },
+            "logging": {
+              "path": "/ghost/content/logs",
+                "level": "info",
+                "rotation": {
+                "enabled": true,
+                "count": 15,
+                "period": "1d"
+              },
+              "transports": ["stdout", "file"]
+            },
+            "process": "systemd",
+            "paths": {
+              "contentPath": "/ghost/content"
+            }
+          }
+    - name: Instances Config
+      copy:
+        dest: /ghost/.ghost/config
+        content: |
+          {
+            "instances": {
+              "ghost": {
+                "cwd": "/ghost"
+              }
+            }
+          }
+    - name: Ghost CLI Config
+      copy:
+        dest: /ghost/.ghost-cli
+        content: |
+          {
+            "active-version": "{{ ghost_version }}",
+            "cli-version": "1",
+            "name": "ghost",
+            "running": "production"
+          }
+    - name: Finish Setup with Ghost-CLI
+      shell:
+        chdir: /ghost
+        cmd: ghost setup linux-user systemd migrate
