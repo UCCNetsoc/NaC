@@ -1,0 +1,40 @@
+{
+    "builders": [
+        {
+            "attach_options": [
+                "--clear-env"
+            ],
+            "type": "lxc",
+            "name": "{{user `name`}}",
+            "config_file": "/etc/lxc/default.conf",
+            "container_name": "{{user `name`}}-{{user `dist`}}",
+            "template_name": "download",
+            "template_parameters": [
+                "-d",
+                "{{user `dist`}}",
+                "-r",
+                "{{user `rel`}}",
+                "-a",
+                "amd64"
+            ],
+            "output_directory": "{{user `packer_output`}}/{{user `name`}}-{{user `dist`}}"
+        }
+    ],
+    "provisioners": [
+        {
+            "type": "shell",
+            "inline": [
+                "sleep 10"
+            ]
+        },
+        {
+            "type": "ansible",
+            "extra_arguments": [
+                "-c",
+                "lxc"
+            ],
+            "inventory_file_template": "container ansible_host={{user `name`}}-{{user `dist`}}",
+            "playbook_file": "/lxc/{{user `playbook`}}.yml"
+        }
+    ]
+}
