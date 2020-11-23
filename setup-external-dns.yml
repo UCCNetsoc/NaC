@@ -70,6 +70,7 @@
             - { type: CNAME,    name: prometheus,            value: "web.netsoc.co"  }
             - { type: CNAME,    name: ci,                    value: "web.netsoc.co"  }
             - { type: CNAME,    name: grafana,               value: "web.netsoc.co"  }
+            - { type: CNAME,    name: loki,                  value: "web.netsoc.co"  }
 
             - { type: CNAME,    name: wiki,                  value: "web.netsoc.co"  }
             - { type: CNAME,    name: www,                   value: "web.netsoc.co"  }
@@ -86,12 +87,10 @@
             - { type: CNAME, name: admin, value: bigbertha.netsoc.co }
             - { type: CNAME, name: alerts, value: bigbertha.netsoc.co }
             - { type: CNAME, name: bert.ci, value: bigbertha.netsoc.co }
-            - { type: CNAME, name: ci, value: bigbertha.netsoc.co }
             - { type: CNAME, name: consul, value: bigbertha.netsoc.co }
             - { type: CNAME, name: docker, value: boole.netsoc.co }
             - { type: CNAME, name: es, value: bigbertha.netsoc.co }
             - { type: CNAME, name: "*.evan", value: leela.netsoc.co }
-            - { type: CNAME, name: grafana, value: bigbertha.netsoc.co }
             - { type: CNAME, name: hlm, value: bigbertha.netsoc.co }
             - { type: CNAME, name: impressive, value: bigbertha.netsoc.co }
             - { type: CNAME, name: irc, value: bigbertha.netsoc.co }

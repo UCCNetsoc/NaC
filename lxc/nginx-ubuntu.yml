@@ -1,0 +1,11 @@
+- name: nginx
+  hosts: container
+  tasks:
+    - name: Install nginx
+      apt:
+        name: nginx
+        state: present
+    - name: Enable nginx
+      systemd:
+        name: nginx
+        enabled: yes
