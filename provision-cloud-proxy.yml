@@ -74,7 +74,7 @@
               exposedByDefault: false
             http: # cloud http config
               endpoint:
-                - "https://api.netsoc.cloud/v1/proxmox/traefik-config"
+                - "https://api.netsoc.cloud/v1/proxmox/traefik-config?key={{ netsoc_cloud_config.proxmox.network.traefik_config_key }}"
           api:
             dashboard: true
             insecure: true
