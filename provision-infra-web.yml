@@ -1071,10 +1071,4 @@
     - name: LOKI TARGETS - Setup targets
       shell: "docker ps --format '- targets: [\"{{ '{{' }}.ID{{ '}}' }}\"]\\n  labels:\\n    container_name: \"{{ '{{' }}.Names{{ '}}' }}\"' | sed -e '/`docker ps -aqf \"name=loki_promtail_1\"`/,+3d'  | sed -e '/`docker ps -aqf \"name=loki_loki_1\"`/,+3d' > /netsoc/promtail/targets.yaml"
   tags:
-    - traefik
-    - discord-bot
-    - provision
-    - netsoc-cloud
-    - ci
-    - wiki
-    - static-websites
+    - always
