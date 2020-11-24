@@ -132,6 +132,23 @@
         playbook: linuxgsm-ubuntu
       tags:
         - linuxgsm-ubuntu
+    - name: Devtools Ubuntu
+      command:
+        cmd: >
+          packer build
+          -var "name={{ name }}"
+          -var "dist={{ dist }}"
+          -var "rel={{ rel }}"
+          -var "playbook={{ playbook }}"
+          -var "packer_output={{ packer_output }}"
+          /lxc/packer.json
+      vars:
+        name: devtools
+        dist: ubuntu
+        rel: focal
+        playbook: devtools-ubuntu
+      tags:
+        - devtools-ubuntu
 
 # Packer exports containers as rootfs.tar.gz with the following structure
 #   rootfs/
