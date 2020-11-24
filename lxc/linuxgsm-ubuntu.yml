@@ -6,10 +6,12 @@
       apt:
         name: curl
         state: present
+
     - name: Install JRE
       apt:
         name: default-jre
         state: present
+
     - name: Setup LinuxGSM script
       copy:
         content: |
