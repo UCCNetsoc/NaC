@@ -1,116 +1,83 @@
 ---
-- name: "Create /storage/docker/grafana directory"
-  become: yes
+- name: Create Directories
   file:
-    path: /storage/docker/grafana
+    path: /netsoc/docker/{{ item }}
     mode: 0770
     state: directory
-
-- name: "Create /storage/docker/grafana/data directory"
-  become: yes
-  file:
-    path: /storage/docker/grafana/data
-    mode: 0770
-    state: directory
+  loop:
+    - /grafana
+    - /grafana/data
+    - /grafana/provisioning
+    - /grafana/provisioning/notifiers
 
 - name: "Copy config provisioning"
   become: yes
   copy:
     mode: 0770
-    src: files/provisioning # without / copies provisioning itself not just contents
-    dest: /storage/docker/grafana/
-
-- name: "Create notifier directory"
-  become: yes
-  file:
-    mode: 0700
-    path: /storage/docker/grafana/provisioning/notifiers
-    state: directory
+    src: files/provisioning/ # without / copies provisioning itself not just contents
+    dest: /netsoc/docker/grafana/provisioning
 
 - name: "Template Discord Webhook"
   become: yes
   template:
     mode: 0770
     src: templates/discord.yaml
-    dest: /storage/docker/grafana/provisioning/notifiers/discord.yaml
-
-- name: Docker Network for Remote Rendoring
-  become: yes
-  docker_network:
-    name: rendering
-    driver: overlay
-    attachable: yes
-    state: present
-    scope: swarm
+    dest: /netsoc/docker/grafana/provisioning/notifiers/discord.yaml
 
 - name: Copy Dashboards
   become: yes
   copy:
     mode: 0770
     src: /tmp/grafana/
-    dest: /storage/docker/grafana/data/dashboards/
+    dest: /netsoc/docker/grafana/data/dashboards/
   tags:
     - dashboards
 
 - name: Ensure Grafana Docker Container
   become: yes
-  docker_stack:
+  docker_compose:
+    project_name: grafana
+    recreate: always
+    restarted: yes
+    remove_orphans: yes
     state: present
-    name: grafana
-    compose:
-      - version: "3.8"
-        services:
-          server:
-            image: "grafana/grafana:7.2.1"
-            user: root
-            restart: always
-            networks:
-              traefik:
-              rendering:
-            deploy:
-              labels:
-                - "traefik.enable=true"
-                - "traefik.http.routers.grafana.rule=Host(`new.grafana.{{ dev_site }}`)"
-                - "traefik.http.routers.grafana.entrypoints=web-secure"
-                - "traefik.http.routers.grafana.tls.certResolver=letsencrypt"
-                - "traefik.http.services.grafana-service.loadbalancer.server.port=3000"
-                - "traefik.http.routers.grafana.service=grafana-service"
-                - "traefik.docker.network=traefik"
-              mode: replicated
-              replicas: 1
-              restart_policy:
-                condition: any
-                delay: 5s
-                max_attempts: 5
-                window: 60s
-            volumes:
-              - "/storage/docker/grafana/provisioning/:/etc/grafana/provisioning/"
-              - "/storage/docker/grafana/data/:/var/lib/grafana/"
-            ports:
-              - 3000
-            environment:
-              GF_SECURITY_ADMIN_PASSWORD: "{{ grafana.password }}"
-              GF_SERVER_ROOT_URL: "https://new.grafana.{{ dev_site }}"
-              GF_RENDERING_SERVER_URL: "http://renderer:8081/render"
-              GF_RENDERING_CALLBACK_URL: "http://grafana:3000/"
-          renderer:
-            image: "grafana/grafana-image-renderer:2.0.0"
-            restart: always
-            networks:
-              rendering:
-            deploy:
-              mode: replicated
-              replicas: 1
-              restart_policy:
-                condition: any
-                max_attempts: 5
-                window: 60s
-            ports:
-              - 8081
-        networks:
-          traefik:
-            name: traefik
-            external: true
-          rendering:
-            name: rendering
-            external: true
+    definition:
+      version: "3.8"
+      networks:
+        rendering:
+        traefik:
+          name: traefik
+          external: true
+      services:
+        grafana:
+          image: "grafana/grafana:7.3.3"
+          user: root
+          restart: on-failure
+          networks:
+            traefik:
+            rendering:
+          labels:
+            - "traefik.enable=true"
+            - "traefik.http.routers.grafana.rule=Host(`{{ host }}`)"
+            - "traefik.http.routers.grafana.entrypoints=web-secure"
+            - "traefik.http.routers.grafana.tls.certResolver=letsencrypt"
+            - "traefik.http.services.grafana-service.loadbalancer.server.port=3000"
+            - "traefik.http.routers.grafana.service=grafana-service"
+            - "traefik.docker.network=traefik"
+          volumes:
+            - "/netsoc/docker/grafana/provisioning/:/etc/grafana/provisioning/"
+            - "/netsoc/docker/grafana/data/:/var/lib/grafana/"
+          ports:
+            - 3000
+          environment:
+            GF_SECURITY_ADMIN_PASSWORD: "{{ grafana.password }}"
+            GF_SERVER_ROOT_URL: "https://{{ host }}"
+            GF_RENDERING_SERVER_URL: "http://renderer:8081/render"
+            GF_RENDERING_CALLBACK_URL: "http://grafana:3000/"
+        renderer:
+          image: "grafana/grafana-image-renderer:2.0.0"
+          restart: on-failure
+          networks:
+            rendering:
+          ports:
+            - 8081
