@@ -19,11 +19,10 @@ local vm_summary = table.new(
 )
 .addTarget(
   prometheus.new(
-    expr='sum(pve_guest_info{node="${host}"},) by (id)',
+    expr='sum(pve_guest_info{node="${host}"}) by (id)',
     format="table",
-  ) + {
-    instant: true, /* WORKAROUND: */
-  }
+    instant=true,
+  )
 );
 
 dashboard.new(
@@ -40,10 +39,12 @@ dashboard.new(
     label="Host",
     name="host",
     query="label_values(pve_node_info, name)",
+    refresh=1,
     sort=1,
   )
-) + {
-  panels: [
-    vm_summary,
-  ],
-}
+)
+.addPanels(
+  [
+    vm_summary
+  ]
+)
