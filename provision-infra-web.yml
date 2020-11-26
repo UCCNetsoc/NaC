@@ -89,16 +89,12 @@
         name: traefik
         attachable: yes
 
-    - name: TRAEFIK & NETSOC CLOUD - Load Netsoc Cloud config
-      set_fact:
-        netsoc_cloud_config: "{{ lookup('file', './vars/netsoc_cloud_api_config.yml') | from_yaml }}"
-
     - name: TRAEFIK - Remember IPs
       set_fact:
         private_ip: "{{ interfaces.infra.web.net0.addresses[0] | ipaddr('address') }}"
         public_ip: "{{ interfaces.infra.web.net1.addresses[0] | ipaddr('address') }}"
 
-    - name: TRAEFIK & NETSOC CLOUD - Remember static config
+    - name: TRAEFIK - Remember static config
       set_fact:
         traefik_static_config:
           log:
