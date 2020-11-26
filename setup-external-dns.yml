@@ -71,6 +71,7 @@
             - { type: CNAME,    name: ci,                    value: "web.netsoc.co"  }
             - { type: CNAME,    name: grafana,               value: "web.netsoc.co"  }
             - { type: CNAME,    name: loki,                  value: "web.netsoc.co"  }
+            - { type: CNAME,    name: bot,                   value: "web.netsoc.co"  }
 
             - { type: CNAME,    name: wiki,                  value: "web.netsoc.co"  }
             - { type: CNAME,    name: www,                   value: "web.netsoc.co"  }
@@ -136,7 +137,7 @@
 
     - name: "Set Grafana dashboard annotation"
       uri:
-        url: https://grafana.netsoc.dev/api/annotations
+        url: https://grafana.netsoc.co/api/annotations
         method: POST
         headers:
           Content-Type: "application/json"
