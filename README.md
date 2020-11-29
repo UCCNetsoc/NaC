@@ -4,7 +4,7 @@
 ## I'm a new SysAdmin, what the heck do I do?
 
 * `ssh` into the Ansible control server (currently `control.netsoc.co:2222`)
-  * `ssh <username>@feynman.netsoc.co -p 2222 -i <path to ssh key>`
+  * `ssh <username>@control.netsoc.co -p 2222 -i <path to ssh key>`
   * If you have not supplied an SSH key to the Head SysAdmin already:
     * Open a PR adding your username and key to `setup-control-host.yml`
 
