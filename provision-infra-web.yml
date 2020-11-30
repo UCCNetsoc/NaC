@@ -585,6 +585,7 @@
         login_host: "mysql.databases.infra.netsoc.co"
         login_password: "{{ mysql.infra.root_password }}"
         state: present
+      no_log: true
 
     - name: CI - Set log_bin_trust_function_creators=1
       run_once: true
@@ -765,6 +766,7 @@
       set_fact:
         ci_repos:
           - discord-bot
+          - dev-env
           - netsoc.co
           - keycloak
           - drone-ansible
