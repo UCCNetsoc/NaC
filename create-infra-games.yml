@@ -16,7 +16,7 @@
           description:
             groups:
               - vm
-              - fluentd
+              - promtail
               - prometheus_base
               - prometheus_docker
               - ipaclients
