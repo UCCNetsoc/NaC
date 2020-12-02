@@ -93,7 +93,7 @@
               external: true
           services:
             server:
-              restart: on-failure
+              restart: always
               image: traefik:v2.3.2
               command: traefik --configFile=/traefik/config.yml
               volumes:
