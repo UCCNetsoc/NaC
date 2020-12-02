@@ -6,6 +6,11 @@
       apt:
         name: nodejs
         state: present
+        
+    - name: Install git
+      apt:
+        name: git
+        state: present
 
     - name: Install npm
       raw: apt-get install -y npm
