@@ -11,6 +11,7 @@
           - mysql-common
           - php7.4-fpm
           - php7.4-mysql
+          - git
         state: latest
 
     - name: Secure MySQL installation (does the same as mysql_secure_installation)
