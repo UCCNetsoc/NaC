@@ -51,7 +51,7 @@
         login_host: "pg.databases.infra.netsoc.co"
         login_password: "{{ postgres.infra.postgres_password }}"
       no_log: true
-    
+
     - name: WIKI - Ensure user has access to database
       postgresql_privs:
         db: "{{ wikijs.postgres.db }}"
@@ -89,22 +89,18 @@
         name: traefik
         attachable: yes
 
-    - name: TRAEFIK & NETSOC CLOUD - Load Netsoc Cloud config
-      set_fact:
-        netsoc_cloud_config: "{{ lookup('file', './vars/netsoc_cloud_api_config.yml') | from_yaml }}"
-    
     - name: TRAEFIK - Remember IPs
       set_fact:
         private_ip: "{{ interfaces.infra.web.net0.addresses[0] | ipaddr('address') }}"
         public_ip: "{{ interfaces.infra.web.net1.addresses[0] | ipaddr('address') }}"
 
-    - name: TRAEFIK & NETSOC CLOUD - Remember static config
+    - name: TRAEFIK - Remember static config
       set_fact:
         traefik_static_config:
           log:
             level: ERROR
           accessLog: {}
-          entrypoints: 
+          entrypoints:
             web:
               address: ':80'
             web-secure:
@@ -131,7 +127,7 @@
           api:
             dashboard: true
             insecure: true
-                      
+
     - name: TRAEFIK - Remember file config
       set_fact:
         traefik_file_config:
@@ -246,7 +242,7 @@
                 redirectRegex:
                   regex: ^(.*)
                   replacement: 'https://wiki.netsoc.co/en/services/tutorial'
-                  permanent: true 
+                  permanent: true
             services:
               ipa:
                 loadBalancer:
@@ -279,10 +275,10 @@
       copy:
         content: "{{ cloudflare.api.dns_api_token }}"
         dest: /netsoc/traefik/cloudflare_dns_api_token.txt
-        
+
     - name: TRAEFIK - Remember Compose definition
       set_fact:
-        traefik_definition: 
+        traefik_definition:
           version: "3.8"
           networks:
             traefik:
@@ -338,10 +334,10 @@
 - name: "STATIC WEBSITES"
   hosts: web.infra.netsoc.co
   become: yes
-  tasks:  
+  tasks:
     - name: STATIC WEBSITES - Remember Compose definition
       set_fact:
-        static_websites_definition: 
+        static_websites_definition:
           version: "3.8"
           networks:
             traefik:
@@ -383,7 +379,7 @@
                 traefik.http.routers.blog.service: "blog-service"
                 traefik.docker.network: "traefik"
               restart: on-failure
-    
+
     - name: STATIC WEBSITES - Setup compose
       docker_compose:
         project_name: static_websites
@@ -402,10 +398,10 @@
 - name: "WIKI"
   hosts: web.infra.netsoc.co
   become: yes
-  tasks:  
+  tasks:
     - name: WIKI - Remember Compose definition
       set_fact:
-        wiki_definition: 
+        wiki_definition:
           version: "3.8"
           networks:
             traefik:
@@ -420,7 +416,7 @@
                 DB_PORT: "{{ wikijs.postgres.port | default(5432) }}"
                 DB_USER: "{{ wikijs.postgres.username }}"
                 DB_PASS: "{{ wikijs.postgres.password }}"
-                DB_NAME: "{{ wikijs.postgres.db }}" 
+                DB_NAME: "{{ wikijs.postgres.db }}"
               networks:
                 traefik:
               labels:
@@ -482,10 +478,10 @@
 - name: "DISCORD BOT"
   hosts: web.infra.netsoc.co
   become: yes
-  tasks:  
+  tasks:
     - name: DISCORD BOT - Remember Compose definition
       set_fact:
-        discord_bot_definition: 
+        discord_bot_definition:
           version: "3.8"
           networks:
             traefik:
@@ -523,13 +519,13 @@
                 SCHEDULE_ENABLE: "False"
               labels:
                 traefik.enable: "true"
-                traefik.http.routers.netsocbot.rule: "Host(`events.netsoc.co`, `events.netsoc.dev`)"
+                traefik.http.routers.netsocbot.rule: "Host(`bot.netsoc.co`)"
                 traefik.http.routers.netsocbot.entrypoints: "web-secure"
                 traefik.http.routers.netsocbot.tls.certResolver: "letsencrypt"
                 traefik.http.services.netsocbot-service.loadbalancer.server.port: "80"
                 traefik.http.routers.netsocbot.service: "netsocbot-service"
                 traefik.docker.network: "traefik"
-    
+
     # - name: DISCORD BOT - Remove container
     #   docker_container:
     #     name: discord_bot_instance_1
@@ -563,7 +559,7 @@
     #     login_host: "mysql.databases.infra.netsoc.co"
     #     login_password: "{{ mysql.infra.root_password }}"
     #     state: absent
-  
+
     # - name: CI - Ensure Drone MySQL User cleared
     #   mysql_user:
     #     name: "{{ drone.mysql_database }}"
@@ -589,6 +585,7 @@
         login_host: "mysql.databases.infra.netsoc.co"
         login_password: "{{ mysql.infra.root_password }}"
         state: present
+      no_log: true
 
     - name: CI - Set log_bin_trust_function_creators=1
       run_once: true
@@ -608,17 +605,17 @@
 - name: "CI"
   hosts: web.infra.netsoc.co
   become: yes
-  tasks:  
+  tasks:
     - name: CI - Remember Compose definition
       set_fact:
-        ci_definition: 
+        ci_definition:
           version: "3.8"
           networks:
             traefik:
               external: true
             drone:
           services:
-            drone: 
+            drone:
               image: drone/drone:1.8.1
               environment:
                 DRONE_GITHUB: "true"
@@ -646,7 +643,7 @@
                 traefik.http.routers.drone.tls.certResolver: letsencrypt
                 traefik.http.routers.drone.service: drone-service
                 traefik.http.services.drone-service.loadbalancer.server.port: 80
-                traefik.docker.network: traefik   
+                traefik.docker.network: traefik
             drone-runner:
               image: drone/drone-runner-docker:1.5
               environment:
@@ -683,11 +680,11 @@
 - name: "CI - Secrets"
   hosts: web.infra.netsoc.co
   become: yes
-  tasks:  
+  tasks:
     # - name: CI - Install CLI
-    #   shell: | 
+    #   shell: |
     #     which /usr/local/bin/drone ||
-    #     (mkdir -p /tmp/drone && cd /tmp/drone/ && 
+    #     (mkdir -p /tmp/drone && cd /tmp/drone/ &&
     #     curl -L https://github.com/drone/drone-cli/releases/latest/download/drone_linux_amd64.tar.gz | tar zx &&
     #     sudo install -t /usr/local/bin drone &&
     #     rm -rf /tmp/drone)
@@ -732,7 +729,7 @@
         recurse: no
         file_type: directory
       register: ci_keys
-    
+
     - name: CI - Create Secrets dict
       set_fact:
         ci_secrets:
@@ -755,7 +752,7 @@
         url: "https://ci.netsoc.co/api/secrets/UCCNetsoc"
         method: POST
         body_format: json
-        body: 
+        body:
           name: "{{ item.key }}"
           data: "{{ item.value }}"
         status_code: [200, 201]
@@ -769,6 +766,7 @@
       set_fact:
         ci_repos:
           - discord-bot
+          - dev-env
           - netsoc.co
           - keycloak
           - drone-ansible
@@ -827,7 +825,7 @@
 - name: "NETSOC CLOUD"
   hosts: web.infra.netsoc.co
   become: yes
-  tasks:  
+  tasks:
     - name: NETSOC CLOUD - Ensure directories exist
       file:
         path: "/netsoc/{{ item }}"
@@ -837,7 +835,7 @@
         state: directory
       with_items:
         - cloud
-    
+
     - name: NETSOC CLOUD - Ensure config file
       copy:
         src: "./vars/netsoc_cloud_api_config.yml"
@@ -848,7 +846,7 @@
 
     - name: NETSOC CLOUD - Remember Compose definition
       set_fact:
-        netsoc_cloud_definition: 
+        netsoc_cloud_definition:
           version: '3.8'
           networks:
             traefik:
@@ -856,7 +854,7 @@
           services:
             api:
               image: uccnetsoc/cloud-api:latest
-              entrypoint: /start.sh 
+              entrypoint: /start.sh
               restart: on-failure
               networks:
                 traefik:
@@ -884,7 +882,7 @@
                 traefik.http.routers.netsoc-cloud-ui.tls.certResolver: letsencrypt
                 traefik.http.routers.netsoc-cloud-ui.service: netsoc-cloud-ui
                 traefik.http.services.netsoc-cloud-ui.loadbalancer.server.port: "80"
-                traefik.docker.network: traefik   
+                traefik.docker.network: traefik
 
     - name: NETSOC CLOUD - Setup compose
       docker_compose:
@@ -907,7 +905,7 @@
 - name: "LOKI"
   hosts: web.infra.netsoc.co
   become: yes
-  tasks:  
+  tasks:
     - name: LOKI - Ensure directories exist
       file:
         path: "/netsoc/{{ item }}"
@@ -919,7 +917,7 @@
       with_items:
         - loki
         - promtail
-    
+
     - name: LOKI - Ensure Loki config file
       copy:
         dest: /netsoc/loki/config.yaml
@@ -972,13 +970,13 @@
             http_listen_port: 9080
             grpc_listen_port: 0
             log_level: "info"
-            
+
           positions:
             filename: /tmp/positions.yaml
-            
+
           clients:
             - url: http://loki:3100/loki/api/v1/push
-            
+
           scrape_configs:
             - job_name: containers
               pipeline_stages:
@@ -992,13 +990,13 @@
                 - source_labels: [container_id]
                   target_label: __path__
                   replacement: /var/lib/docker/containers/$1*/*.log
-    
+
     - name: LOKI - Setup targets
       shell: "docker ps --format '- targets: [\"{{ '{{' }}.ID{{ '}}' }}\"]\\n  labels:\\n    container_name: \"{{ '{{' }}.Names{{ '}}' }}\"' | sed -e '/`docker ps -aqf \"name=loki_promtail_1\"`/,+3d'  | sed -e '/`docker ps -aqf \"name=loki_loki_1\"`/,+3d'> /netsoc/promtail/targets.yaml"
 
     - name: LOKI - Remember Compose definition
       set_fact:
-        loki_definition: 
+        loki_definition:
           version: '3.8'
           networks:
             loki:
@@ -1064,17 +1062,51 @@
     - provision
     - loki
 
-- name: "LOKI TARGETS"
+
+- name: Generate Dashboards
+  hosts: localhost
+  tasks:
+    - name: "Clone Grafonnet"
+      git:
+        depth: 1
+        dest: /tmp/grafonnet/
+        repo: https://github.com/grafana/grafonnet-lib
+        version: 356bd73e4792ffe107725776ca8946895969c191
+    - name: "Clear destination folder"
+      file:
+        path: /tmp/grafana
+        state: absent
+    - name: "Create destination"
+      file:
+        path: /tmp/grafana
+        state: directory
+        mode: 0770
+    - shell: "jsonnet -J /tmp/grafonnet/ -co /tmp/grafana/{{ item[:-3] }} roles/grafana/dashboards-src/{{ item }}"
+      loop:
+        - pve.jsonnet
+  tags:
+    - provision
+    - dashboards
+
+- name: Grafana
+  become: yes
+  hosts: web.infra.netsoc.co
+  roles:
+    - grafana
+  vars:
+    host: grafana.netsoc.co
+  vars_files:
+    - "vars/secrets_mapping.yml"
+    - "vars/secrets.yml"
+  tags:
+    - provision
+    - grafana
+
+- name: "LOKI TARGETS" # Keep this at the bottom of the file at all times.
   hosts: web.infra.netsoc.co
   become: yes
-  tasks:  
+  tasks:
     - name: LOKI TARGETS - Setup targets
       shell: "docker ps --format '- targets: [\"{{ '{{' }}.ID{{ '}}' }}\"]\\n  labels:\\n    container_name: \"{{ '{{' }}.Names{{ '}}' }}\"' | sed -e '/`docker ps -aqf \"name=loki_promtail_1\"`/,+3d'  | sed -e '/`docker ps -aqf \"name=loki_loki_1\"`/,+3d' > /netsoc/promtail/targets.yaml"
   tags:
-    - traefik
-    - discord-bot
-    - provision
-    - netsoc-cloud
-    - ci
-    - wiki
-    - static-websites
+    - always

@@ -98,6 +98,57 @@
         playbook: nginx-ubuntu
       tags:
         - nginx-ubuntu
+    - name: MEAN Ubuntu
+      command:
+        cmd: >
+          packer build
+          -var "name={{ name }}"
+          -var "dist={{ dist }}"
+          -var "rel={{ rel }}"
+          -var "playbook={{ playbook }}"
+          -var "packer_output={{ packer_output }}"
+          /lxc/packer.json
+      vars:
+        name: mean
+        dist: ubuntu
+        rel: focal
+        playbook: mean-ubuntu
+      tags:
+        - mean-ubuntu
+    - name: Game Servers Ubuntu
+      command:
+        cmd: >
+          packer build
+          -var "name={{ name }}"
+          -var "dist={{ dist }}"
+          -var "rel={{ rel }}"
+          -var "playbook={{ playbook }}"
+          -var "packer_output={{ packer_output }}"
+          /lxc/packer.json
+      vars:
+        name: gameservers
+        dist: ubuntu
+        rel: focal
+        playbook: linuxgsm-ubuntu
+      tags:
+        - linuxgsm-ubuntu
+    - name: Devtools Ubuntu
+      command:
+        cmd: >
+          packer build
+          -var "name={{ name }}"
+          -var "dist={{ dist }}"
+          -var "rel={{ rel }}"
+          -var "playbook={{ playbook }}"
+          -var "packer_output={{ packer_output }}"
+          /lxc/packer.json
+      vars:
+        name: devtools
+        dist: ubuntu
+        rel: focal
+        playbook: devtools-ubuntu
+      tags:
+        - devtools-ubuntu
 
 # Packer exports containers as rootfs.tar.gz with the following structure
 #   rootfs/

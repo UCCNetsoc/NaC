@@ -3,8 +3,8 @@
 
 ## I'm a new SysAdmin, what the heck do I do?
 
-* `ssh` into the Ansible control server (currently `feynman.netsoc.co:2222`)
-  * `ssh <username>@feynman.netsoc.co -p 2222 -i <path to ssh key>`
+* `ssh` into the Ansible control server (currently `control.netsoc.co:2222`)
+  * `ssh <username>@control.netsoc.co -p 2222 -i <path to ssh key>`
   * If you have not supplied an SSH key to the Head SysAdmin already:
     * Open a PR adding your username and key to `setup-control-host.yml`
 
@@ -23,11 +23,9 @@
 * You can peek and edit the vault using `./vault-peek.sh` and `./vault-edit.sh`
 
 * You can list *.vm.netsoc.co by using `./vm-list.sh`
-* You can ssh into *.vm.netsoc.co by running `./vm-ssh.sh <hostname>`, i.e `./vm-ssh.sh nfs` for `nfs.vm.netsoc.co`
+* You can ssh into *.vm.netsoc.co by running `./vm-ssh.sh <hostname>`, i.e `./vm-ssh.sh web.infra.netsoc.co`
 
-* The Proxmox Web UI is available at [`feynman.netsoc.co:8006`](https://feynman.netsoc.co:8006). You may need to type `thisisunsafe` (if using Chrome) to get past the SSL warning 
-
-* Once you've gotten to grips with that, have a look at `docs/` especially `infra.md`
+* The Proxmox Web UI is available at [`control.netsoc.co:8006`](https://control.netsoc.co:8006). You may need to type `thisisunsafe` (if using Chrome) to get past the SSL warning 
 
 * For your development, you can use `sshfs` / VSCode Remote / `vim` on the control server / a git branch.
   * You _will_ need to run your playbooks on the control server
