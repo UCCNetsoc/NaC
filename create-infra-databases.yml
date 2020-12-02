@@ -18,7 +18,7 @@
               - vm
               - prometheus_base
               - prometheus_docker
-              - fluentd
+              - promtail
               - ipaclients
             host_vars:
               ansible_ssh_private_key_file: "./keys/infra/databases/id_rsa"
