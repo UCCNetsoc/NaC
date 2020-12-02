@@ -7,7 +7,7 @@
             "type": "lxc",
             "name": "{{user `name`}}",
             "config_file": "/etc/lxc/default.conf",
-            "container_name": "{{user `name`}}-{{user `dist`}}",
+            "container_name": "{{user `name`}}-{{user `dist`}}-{{user `uuid`}}",
             "template_name": "download",
             "template_parameters": [
                 "-d",
@@ -33,8 +33,8 @@
                 "-c",
                 "lxc"
             ],
-            "inventory_file_template": "container ansible_host={{user `name`}}-{{user `dist`}}",
-            "playbook_file": "/lxc/{{user `playbook`}}.yml"
+            "inventory_file_template": "container ansible_host={{user `name`}}-{{user `dist`}}-{{user `uuid`}}",
+            "playbook_file": "/tmp/{{user `uuid`}}/lxc/{{user `playbook`}}.yml"
         }
     ]
 }
