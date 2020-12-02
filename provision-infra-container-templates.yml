@@ -2,6 +2,9 @@
   become: yes
   hosts: lovelace
   tasks:
+    - name: Random number to avoid collisions
+      set_fact:
+        uuid: "{{ 999999999999999 | random | to_uuid }}"
     - name: Configure LXC to use a bridge
       copy:
         content: USE_LXC_BRIDGE="true"
@@ -11,10 +14,10 @@
       service:
         name: lxc-net
         state: started
-    - name: Make /lxc dir
+    - name: Make /tmp/{{uuid}} dir
       file:
         state: directory
-        path: /lxc
+        path: "/tmp/{{ uuid }}/lxc"
     - name: Configure general container settings
       copy:
         content: |
@@ -26,8 +29,8 @@
         mode: 0774
     - name: Output Directories Vars
       set_fact:
-        packer_output: /tmp/packer/output
-        template_output: /tmp/packer/templates
+        packer_output: "/tmp/{{ uuid }}/output"
+        template_output: "/tmp/{{ uuid }}/templates"
     - name: Ensure Output Dirs
       file:
         path: "{{ item }}"
@@ -53,13 +56,11 @@
   - name: Copy provisioning files
     copy:
       src: ./lxc/
-      dest: /lxc/
+      dest: "/tmp/{{ uuid }}/lxc/"
   tags:
     - always
 
-# Command useful for local testing, replace UPPERCASE vars with appropriate values
 # Additional base templates can be found here http://uk.images.linuxcontainers.org
-# packer build -var "name=NAME" -var "dist=DIST" -var "rel=REL" -var "playbook=PLAYBOOK" -var "packer_output=OUTPUT_DIR" /lxc/packer.json
 - name: Templates
   hosts: lovelace
   become: yes
@@ -73,7 +74,8 @@
           -var "rel={{ rel }}"
           -var "playbook={{ playbook }}"
           -var "packer_output={{ packer_output }}"
-          /lxc/packer.json
+          -var "uuid={{ uuid }}"
+          /tmp/{{ uuid }}/lxc/packer.json
       vars:
         name: ghostcms
         dist: ubuntu
@@ -90,7 +92,8 @@
           -var "rel={{ rel }}"
           -var "playbook={{ playbook }}"
           -var "packer_output={{ packer_output }}"
-          /lxc/packer.json
+          -var "uuid={{ uuid }}"
+          /tmp/{{ uuid }}/lxc/packer.json
       vars:
         name: nginx
         dist: ubuntu
@@ -107,7 +110,8 @@
           -var "rel={{ rel }}"
           -var "playbook={{ playbook }}"
           -var "packer_output={{ packer_output }}"
-          /lxc/packer.json
+          -var "uuid={{ uuid }}"
+          /tmp/{{ uuid }}/lxc/packer.json
       vars:
         name: mean
         dist: ubuntu
@@ -124,7 +128,8 @@
           -var "rel={{ rel }}"
           -var "playbook={{ playbook }}"
           -var "packer_output={{ packer_output }}"
-          /lxc/packer.json
+          -var "uuid={{ uuid }}"
+          /tmp/{{ uuid }}/lxc/packer.json
       vars:
         name: gameservers
         dist: ubuntu
@@ -141,7 +146,8 @@
           -var "rel={{ rel }}"
           -var "playbook={{ playbook }}"
           -var "packer_output={{ packer_output }}"
-          /lxc/packer.json
+          -var "uuid={{ uuid }}"
+          /tmp/{{ uuid }}/lxc/packer.json
       vars:
         name: devtools
         dist: ubuntu
@@ -197,16 +203,9 @@
   become: yes
   hosts: lovelace
   tasks:
-    - name: Stop lxc-net service
-      service:
-        name: lxc-net
-        state: stopped
-    - name: Tidy up outputs
+    - name: Tidy up directory
       file:
-        path: "{{ item }}"
+        path: "/tmp/{{ uuid }}"
         state: absent
-      loop:
-        - "{{ packer_output }}"
-        - "{{ template_output }}"
   tags:
    - always
