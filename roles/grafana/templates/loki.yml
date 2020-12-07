@@ -1,0 +1,23 @@
+# config file version
+apiVersion: 1
+
+# list of datasources to insert/update depending
+# what's available in the database
+datasources:
+  # <string, required> name of the datasource. Required
+  - name: Loki
+    # <string, required> datasource type. Required
+    type: loki
+    # <string, required> access mode. proxy or direct (Server or Browser in the UI). Required
+    access: proxy
+    # <string> url
+    url: https://loki.netsoc.co/
+     # <bool> enable/disable basic auth
+    basicAuth: true
+    # <string> basic auth username, if used
+    basicAuthUser: "{{ loki.username }}"
+    # <string> basic auth password, if used
+    basicAuthPassword: "{{ loki.password }}"
+    isDefault: false
+    # <bool> allow users to edit datasources from the UI.
+    editable: true
