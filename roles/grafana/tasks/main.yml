@@ -1,7 +1,7 @@
 ---
 - name: Create Directories
   file:
-    path: /netsoc/docker/{{ item }}
+    path: /netsoc/grafana/{{ item }}
     mode: 0770
     state: directory
   loop:
@@ -15,28 +15,28 @@
   copy:
     mode: 0770
     src: files/provisioning/ # without / copies provisioning itself not just contents
-    dest: /netsoc/docker/grafana/provisioning
+    dest: /netsoc/grafana/grafana/provisioning
 
 - name: "Template Discord Webhook"
   become: yes
   template:
     mode: 0770
     src: templates/discord.yaml
-    dest: /netsoc/docker/grafana/provisioning/notifiers/discord.yaml
+    dest: /netsoc/grafana/grafana/provisioning/notifiers/discord.yaml
 
 - name: "Template Loki Config"
   become: yes
   template:
     mode: 0770
     src: templates/loki.yml
-    dest: /netsoc/docker/grafana/provisioning/datasources/loki.yml
+    dest: /netsoc/grafana/grafana/provisioning/datasources/loki.yml
 
 - name: Copy Dashboards
   become: yes
   copy:
     mode: 0770
     src: /tmp/grafana/
-    dest: /netsoc/docker/grafana/data/dashboards/
+    dest: /netsoc/grafana/grafana/data/dashboards/
   tags:
     - dashboards
 
@@ -72,8 +72,8 @@
             - "traefik.http.routers.grafana.service=grafana-service"
             - "traefik.docker.network=traefik"
           volumes:
-            - "/netsoc/docker/grafana/provisioning/:/etc/grafana/provisioning/"
-            - "/netsoc/docker/grafana/data/:/var/lib/grafana/"
+            - "/netsoc/grafana/grafana/provisioning/:/etc/grafana/provisioning/"
+            - "/netsoc/grafana/grafana/data/:/var/lib/grafana/"
           ports:
             - 3000
           environment:
