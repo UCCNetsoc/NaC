@@ -164,7 +164,8 @@
           -var "rel={{ rel }}"
           -var "playbook={{ playbook }}"
           -var "packer_output={{ packer_output }}"
-          /lxc/packer.json
+          -var "uuid={{ uuid }}"
+          /tmp/{{ uuid }}/lxc/packer.json
       vars:
         name: lemp
         dist: ubuntu
@@ -181,7 +182,8 @@
           -var "rel={{ rel }}"
           -var "playbook={{ playbook }}"
           -var "packer_output={{ packer_output }}"
-          /lxc/packer.json
+          -var "uuid={{ uuid }}"
+          /tmp/{{ uuid }}/lxc/packer.json
       vars:
         name: wordpress
         dist: ubuntu
@@ -189,7 +191,24 @@
         playbook: wordpress-ubuntu
       tags:
         - wordpress-ubuntu
-
+    - name: Node Ubuntu
+      command:
+        cmd: >
+          packer build
+          -var "name={{ name }}"
+          -var "dist={{ dist }}"
+          -var "rel={{ rel }}"
+          -var "playbook={{ playbook }}"
+          -var "packer_output={{ packer_output }}"
+          -var "uuid={{ uuid }}"
+          /tmp/{{ uuid }}/lxc/packer.json
+      vars:
+        name: node
+        dist: ubuntu
+        rel: focal
+        playbook: node-ubuntu
+      tags:
+        - node-ubuntu
 
 # Packer exports containers as rootfs.tar.gz with the following structure
 #   rootfs/
