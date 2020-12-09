@@ -2,61 +2,22 @@
   hosts: container
   become: yes
   tasks:
-    - name: Install git
+    - name: Install Dependencies
       apt: 
-        name: git
-
-    - name: Install jq
-      apt: 
-        name: jq
-
-    - name: Install gcc
-      apt: 
-        name: gcc
-
-    - name: Install sqlite
-      apt: 
-        name: sqlite
-
-    - name: Install gdb
-      apt: 
-        name: gdb
-
-    - name: Install gnupg
-      apt: 
-        name: gnupg
-
-    - name: Install clang
-      apt: 
-        name: clang
-
-    - name: Install ruby
-      apt: 
-        name: ruby
-
-    - name: Install python
-      apt: 
-        name: python
-
-    - name: Install vim
-      apt: 
-        name: vim
-
-    - name: Install emacs
-      apt: 
-        name: emacs
-
-    - name: Install neovim
-      apt: 
-        name: neovim
-
-    - name: Install curl
-      apt: 
-        name: curl
-    
-    - name: Install software-properties-common
-      apt:
-        name: software-properties-common
+        name: 
+          - git
+          - jq
+          - gcc
+          - sqlite
+          - gdb
+          - gnupg
+          - clang
+          - ruby
+          - python
+          - vim
+          - emacs
+          - curl
+          - software-properties-common
 
     - name: Add node PPA
       shell: curl -sL https://deb.nodesource.com/setup_14.x | sudo -E bash -
