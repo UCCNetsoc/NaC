@@ -99,7 +99,9 @@
         traefik_static_config:
           log:
             level: ERROR
-          accessLog: {}
+            format: "json"
+          accessLog: 
+            format: "json"
           entrypoints:
             web:
               address: ':80'
@@ -287,7 +289,7 @@
             server:
               restart: on-failure
               image: traefik:v2.3.2
-              command: traefik --configFile=/traefik/config.yml
+              command: traefik --configFile=/traefik/config.yml --log.format=json
               volumes:
                 - "/var/run/docker.sock:/var/run/docker.sock"
                 - "/netsoc/traefik:/traefik/:shared"
