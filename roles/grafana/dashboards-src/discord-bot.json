@@ -1,0 +1,397 @@
+{
+  "annotations": {
+    "list": [
+      {
+        "builtIn": 1,
+        "datasource": "-- Grafana --",
+        "enable": true,
+        "hide": true,
+        "iconColor": "rgba(0, 211, 255, 1)",
+        "name": "Annotations & Alerts",
+        "type": "dashboard"
+      }
+    ]
+  },
+  "editable": true,
+  "gnetId": null,
+  "graphTooltip": 0,
+  "id": 5,
+  "links": [],
+  "panels": [
+    {
+      "datasource": "Loki",
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "align": null,
+            "filterable": false
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "container_id"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 108
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "ts"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 146
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "message"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 345
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "level"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 63
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "line"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 68
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "body"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 164
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "command"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 83
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "guild_id"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 178
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "author_id"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 170
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "channel_id"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 174
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "file"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 166
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "error"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 333
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "h": 25,
+        "w": 20,
+        "x": 0,
+        "y": 0
+      },
+      "id": 2,
+      "options": {
+        "showHeader": true,
+        "sortBy": [
+          {
+            "desc": true,
+            "displayName": "ts"
+          }
+        ]
+      },
+      "pluginVersion": "7.3.3",
+      "repeat": null,
+      "targets": [
+        {
+          "expr": "{container_name=\"discord_bot_instance_1\"} | json",
+          "legendFormat": "command",
+          "refId": "A"
+        }
+      ],
+      "timeFrom": null,
+      "timeShift": null,
+      "title": "Discord Bot Commands",
+      "transformations": [
+        {
+          "id": "labelsToFields",
+          "options": {}
+        },
+        {
+          "id": "organize",
+          "options": {
+            "excludeByName": {
+              "_file": false,
+              "_function": true,
+              "_line": false,
+              "api_announcement_query_limit": true,
+              "api_event_query_limit": true,
+              "api_port": true,
+              "api_public_message_cutoff": true,
+              "arcGis_Country": true,
+              "arcGis_CountryCode": true,
+              "arcGis_Date": true,
+              "arcGis_NewConfirmed": true,
+              "arcGis_NewDeaths": true,
+              "arcGis_NewRecovered": true,
+              "arcGis_Slug": true,
+              "arcGis_TotalConfirmed": true,
+              "arcGis_TotalDeaths": true,
+              "arcGis_TotalRecovered": true,
+              "bot_prefix": true,
+              "bot_quote_default_message_weight": true,
+              "bot_version": true,
+              "container_id": false,
+              "container_name": true,
+              "corona_default": true,
+              "corona_webhook": true,
+              "discord_channels_private_events": true,
+              "discord_channels_public_announcements": true,
+              "discord_channels_public_general": true,
+              "discord_charlimit": true,
+              "discord_committee_channel": true,
+              "discord_committee_server": true,
+              "discord_public_channel": true,
+              "discord_public_corona": true,
+              "discord_public_general": true,
+              "discord_public_server": true,
+              "discord_public_welcome": true,
+              "discord_roles": true,
+              "discord_servers_committee": true,
+              "discord_servers_public": true,
+              "discord_token": true,
+              "error": false,
+              "facebook_app_secret": true,
+              "facebook_appid": true,
+              "facebook_page_access_token": true,
+              "facebook_pageid": true,
+              "filename": true,
+              "freeimage_key": true,
+              "guild_id": false,
+              "id": true,
+              "line": true,
+              "minecraft_host": true,
+              "mysql_password": true,
+              "mysql_url": true,
+              "mysql_username": true,
+              "netsoc_sites": true,
+              "prom_dbname": true,
+              "prom_port": true,
+              "schedule_enable": true,
+              "sendgrid_token": true,
+              "stream": true,
+              "time": true,
+              "ts": false,
+              "tsNs": true,
+              "twitter_access_key": true,
+              "twitter_access_secret": true,
+              "twitter_key": true,
+              "twitter_secret": true,
+              "user_id": true
+            },
+            "indexByName": {
+              "_file": 60,
+              "_function": 8,
+              "_line": 61,
+              "api_announcement_query_limit": 40,
+              "api_event_query_limit": 20,
+              "api_port": 47,
+              "api_public_message_cutoff": 51,
+              "arcGis_Country": 70,
+              "arcGis_CountryCode": 71,
+              "arcGis_Date": 67,
+              "arcGis_NewConfirmed": 68,
+              "arcGis_NewDeaths": 65,
+              "arcGis_NewRecovered": 66,
+              "arcGis_Slug": 64,
+              "arcGis_TotalConfirmed": 62,
+              "arcGis_TotalDeaths": 69,
+              "arcGis_TotalRecovered": 63,
+              "author_id": 55,
+              "body": 54,
+              "bot_prefix": 14,
+              "bot_quote_default_message_weight": 26,
+              "bot_version": 48,
+              "channel_id": 57,
+              "command": 53,
+              "container_id": 5,
+              "container_name": 4,
+              "corona_default": 41,
+              "corona_webhook": 15,
+              "discord_channels_private_events": 27,
+              "discord_channels_public_announcements": 52,
+              "discord_channels_public_general": 35,
+              "discord_charlimit": 21,
+              "discord_committee_channel": 28,
+              "discord_committee_server": 49,
+              "discord_public_channel": 50,
+              "discord_public_corona": 36,
+              "discord_public_general": 22,
+              "discord_public_server": 16,
+              "discord_public_welcome": 11,
+              "discord_roles": 17,
+              "discord_servers_committee": 42,
+              "discord_servers_public": 37,
+              "discord_token": 38,
+              "error": 58,
+              "facebook_app_secret": 12,
+              "facebook_appid": 24,
+              "facebook_page_access_token": 43,
+              "facebook_pageid": 23,
+              "filename": 6,
+              "freeimage_key": 25,
+              "guild_id": 56,
+              "id": 9,
+              "level": 1,
+              "line": 59,
+              "message": 2,
+              "minecraft_host": 18,
+              "mysql_password": 31,
+              "mysql_url": 29,
+              "mysql_username": 44,
+              "netsoc_sites": 19,
+              "prom_dbname": 32,
+              "prom_port": 33,
+              "schedule_enable": 39,
+              "sendgrid_token": 45,
+              "stream": 3,
+              "time": 7,
+              "ts": 0,
+              "tsNs": 10,
+              "twitter_access_key": 13,
+              "twitter_access_secret": 30,
+              "twitter_key": 34,
+              "twitter_secret": 46,
+              "user_id": 72
+            },
+            "renameByName": {
+              "_file": "file",
+              "_line": "line"
+            }
+          }
+        }
+      ],
+      "transparent": true,
+      "type": "table"
+    }
+  ],
+  "schemaVersion": 26,
+  "style": "dark",
+  "tags": [],
+  "templating": {
+    "list": []
+  },
+  "time": {
+    "from": "now-90d",
+    "to": "now"
+  },
+  "timepicker": {},
+  "timezone": "",
+  "title": "Discord Bot",
+  "uid": "B6me1FJGz",
+  "version": 20
+}
