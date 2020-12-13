@@ -771,6 +771,7 @@
           - keycloak
           - drone-ansible
           - cloud
+          - webssh2
 
     - name: CI - Get current repos
       uri:
