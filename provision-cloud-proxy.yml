@@ -75,6 +75,8 @@
             http: # cloud http config
               endpoint:
                 - "https://api.netsoc.cloud/v1/proxmox/traefik-config?key={{ netsoc_cloud_config.proxmox.network.traefik_config_key }}"
+              pollInterval: 5s
+              pollTimeout: 10s
           api:
             dashboard: true
             insecure: true
@@ -84,6 +86,13 @@
         content: "{{ traefik_static_config | from_yaml }}"
         dest: /netsoc/traefik/config.yml
         
+    - name: TRAEFIK - Ensure Docker network
+      become: yes
+      docker_network:
+        name: traefik
+        attachable: yes
+        internal: false
+      
     - name: TRAEFIK - Remember Compose definition
       set_fact:
         traefik_definition: 
@@ -131,6 +140,7 @@
         remove_orphans: yes
         state: present
         definition: "{{ traefik_definition }}"
+
   vars_files:
     - "vars/network.yml"
     - "vars/secrets_mapping.yml"
@@ -138,4 +148,218 @@
   tags:
     - provision
     - traefik
+    - netsoc-cloud
+
+
+- name: WEBSSH2
+  hosts: proxy.netsoc.cloud
+  become: yes
+  tasks:
+    - name: WEBSSH2 - Ensure directories exist
+      file:
+        path: "/netsoc/{{ item }}"
+        owner: root
+        group: root
+        mode: '0755'
+        state: directory
+      with_items:
+        - webssh2
+
+    - name: WEBSSH2 & NETSOC CLOUD - Load Netsoc Cloud config
+      set_fact:
+        netsoc_cloud_config: "{{ lookup('file', './vars/netsoc_cloud_api_config.yml') | from_yaml }}"
+
+    - name: WEBSSH2 - Ensure config file
+      copy:
+        dest: "/netsoc/webssh2/config.json"
+        content: |
+          {
+          "listen": {
+            "ip": "0.0.0.0",
+            "port": 2222
+          },
+          "user": {
+            "name": null,
+            "password": null,
+            "privatekey": null
+          },
+          "ssh": {
+            "host": null,
+            "port": 22,
+            "localAddress": null,
+            "localPort": null,
+            "term": "xterm-color",
+            "readyTimeout": 20000,
+            "keepaliveInterval": 120000,
+            "keepaliveCountMax": 10,
+            "allowedSubnets": [
+              "{{ netsoc_cloud_config.proxmox.network.network }}"
+            ]
+          },
+          "terminal": {
+            "cursorBlink": true,
+            "scrollback": 10000,
+            "tabStopWidth": 8,
+            "bellStyle": "sound"
+          },
+          "header": {
+            "text": null,
+            "background": "green"
+          },
+          "session": {
+            "name": "SSH | Netsoc Cloud",
+            "secret": "{{ lookup('password', '/dev/null chars=ascii_lowercase,digits length=32') }}"
+          },
+          "options": {
+            "challengeButton": true,
+            "allowreauth": true
+          },
+          "algorithms": {
+            "kex": [
+              "ecdh-sha2-nistp256",
+              "ecdh-sha2-nistp384",
+              "ecdh-sha2-nistp521",
+              "diffie-hellman-group-exchange-sha256",
+              "diffie-hellman-group14-sha1"
+            ],
+            "cipher": [
+              "aes128-ctr",
+              "aes192-ctr",
+              "aes256-ctr",
+              "aes128-gcm",
+              "aes128-gcm@openssh.com",
+              "aes256-gcm",
+              "aes256-gcm@openssh.com",
+              "aes256-cbc"
+            ],
+            "hmac": [
+              "hmac-sha2-256",
+              "hmac-sha2-512",
+              "hmac-sha1"
+            ],
+            "compress": [
+              "none",
+              "zlib@openssh.com",
+              "zlib"
+            ]
+          },
+          "serverlog": {
+            "client": false,
+            "server": false
+          },
+          "accesslog": false,
+          "verify": false,
+          "safeShutdownDuration": 300
+          }
+
+    - name: WEBSSH2 - Remember Compose definition
+      set_fact:
+        webssh2_definition:
+          version: "3.8"
+          networks:
+            traefik:
+              external: true
+          services:
+            instance:
+              image: uccnetsoc/webssh2:latest
+              networks:
+                traefik:
+              volumes:
+                - "/netsoc/webssh2/config.json:/usr/src/config.json"
+              labels:
+                traefik.enable: "true"
+                traefik.http.routers.webssh2.rule: "Host(`ssh.netsoc.cloud`)"
+                traefik.http.routers.webssh2.entrypoints: "web-secure"
+                traefik.http.routers.webssh2.tls.certResolver: "letsencrypt"
+                traefik.http.services.webssh2-service.loadbalancer.server.port: "2222"
+                traefik.http.routers.webssh2.service: "webssh2-service"
+                traefik.docker.network: "traefik"
+              restart: on-failure
+
+
+    - name: WEBSSH2 - Setup compose
+      docker_compose:
+        project_name: webssh2
+        remove_orphans: yes
+        recreate: always
+        restarted: yes
+        pull: yes
+        state: present
+        definition: "{{ webssh2_definition }}"
+  vars_files:
+    - "vars/network.yml"
+    - "vars/secrets_mapping.yml"
+    - "vars/secrets.yml"
+  tags:
+    - webssh2
+    - provision
+    - netsoc-cloud
+
+- name: MONSTAFTP
+  hosts: proxy.netsoc.cloud
+  become: yes
+  tasks:
+    - name: WEBSSH2 - Ensure directories exist
+      file:
+        path: "/netsoc/{{ item }}"
+        owner: root
+        group: root
+        mode: '0755'
+        state: directory
+      with_items:
+        - monstaftp
+
+    - name: MONSTAFTP - Write config
+      copy:
+        dest: /netsoc/monstaftp/settings.json
+        content: |
+          {
+            "language": "en_us",
+            "resumeSessionInfoDisplaySeconds": 0,
+            "hideProUpgradeMessages": true,
+            "connectionRestrictions": {
+                "types": ["sftp"]
+            }
+          }
+
+    - name: MONSTAFTP - Remember Compose definition
+      set_fact:
+        monstaftp_definition:
+          version: "3.8"
+          networks:
+            traefik:
+              external: true
+          services:
+            instance:
+              image: cardonaje/monstaftp-docker:latest
+              networks:
+                traefik:
+              volumes:
+                - "/netsoc/monstaftp/settings.json:/var/www/mftp/settings/settings.json"
+              labels:
+                traefik.enable: "true"
+                traefik.http.routers.monstaftp.rule: "Host(`sftp.netsoc.cloud`)"
+                traefik.http.routers.monstaftp.entrypoints: "web-secure"
+                traefik.http.routers.monstaftp.tls.certResolver: "letsencrypt"
+                traefik.http.services.monstaftp-service.loadbalancer.server.port: "80"
+                traefik.http.routers.monstaftp.service: "monstaftp-service"
+                traefik.docker.network: "traefik"
+              restart: on-failure
+
+    - name: MONSTAFTP - Setup compose
+      docker_compose:
+        project_name: monstaftp
+        remove_orphans: yes
+        recreate: always
+        restarted: yes
+        pull: yes
+        state: present
+        definition: "{{ monstaftp_definition }}"
+  vars_files:
+    - "vars/network.yml"
+    - "vars/secrets_mapping.yml"
+    - "vars/secrets.yml"
+  tags:
+    - monstaftp
+    - provision
     - netsoc-cloud
