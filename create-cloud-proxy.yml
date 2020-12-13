@@ -56,11 +56,6 @@
                   sudo: ALL=(ALL) NOPASSWD:ALL
                   ssh_authorized_keys:
                     - "{{ lookup('file', './keys/cloud/proxy/id_rsa.pub') }}"
-                - name: "{{ netsoc_cloud_config.proxmox.network.vlan_jumphost.username }}"
-                  gecos: Netsoc Cloud Jumphost User
-                  shell: /bin/bash
-                  ssh_authorized_keys:
-                   - "{{ netsoc_cloud_config.proxmox.network.vlan_jumphost.public_key }}"
               apt: 
                 preserve_sources_list: true
                 primary:
