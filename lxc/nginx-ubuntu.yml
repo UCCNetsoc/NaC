@@ -1,3 +1,6 @@
+- name: ssh
+  import_playbook: requisite-ubuntu.yml
+
 - name: nginx
   hosts: container
   tasks:

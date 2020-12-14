@@ -1,0 +1,257 @@
+{
+  "annotations": {
+    "list": [
+      {
+        "builtIn": 1,
+        "datasource": "-- Grafana --",
+        "enable": true,
+        "hide": true,
+        "iconColor": "rgba(0, 211, 255, 1)",
+        "name": "Annotations & Alerts",
+        "type": "dashboard"
+      }
+    ]
+  },
+  "editable": true,
+  "gnetId": null,
+  "graphTooltip": 0,
+  "id": 6,
+  "links": [],
+  "panels": [
+    {
+      "datasource": "Loki",
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "align": null,
+            "filterable": false
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "ClientAddr"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 181
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "RequestMethod"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 113
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "RequestPath"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 191
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Method"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 73
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "OriginStatus"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 101
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "h": 18,
+        "w": 17,
+        "x": 0,
+        "y": 0
+      },
+      "id": 2,
+      "options": {
+        "showHeader": true,
+        "sortBy": [
+          {
+            "desc": true,
+            "displayName": "ts"
+          }
+        ]
+      },
+      "pluginVersion": "7.3.3",
+      "targets": [
+        {
+          "expr": "{container_name=\"traefik_server_1\"} | json",
+          "legendFormat": "",
+          "refId": "A"
+        }
+      ],
+      "timeFrom": null,
+      "timeShift": null,
+      "title": "Traefik Logs",
+      "transformations": [
+        {
+          "id": "labelsToFields",
+          "options": {}
+        },
+        {
+          "id": "organize",
+          "options": {
+            "excludeByName": {
+              "ClientHost": true,
+              "ClientPort": true,
+              "ClientUsername": true,
+              "DownstreamContentSize": true,
+              "DownstreamStatus": true,
+              "Duration": true,
+              "OriginContentSize": true,
+              "OriginDuration": true,
+              "Overhead": true,
+              "RequestContentSize": true,
+              "RequestCount": true,
+              "RequestPort": true,
+              "RequestProtocol": true,
+              "RequestScheme": true,
+              "RetryAttempts": true,
+              "ServiceAddr": true,
+              "ServiceURL_Fragment": true,
+              "ServiceURL_Opaque": true,
+              "ServiceURL_Path": true,
+              "ServiceURL_RawFragment": true,
+              "ServiceURL_RawPath": true,
+              "ServiceURL_RawQuery": true,
+              "ServiceURL_Scheme": true,
+              "StartLocal": true,
+              "StartUTC": true,
+              "container_id": true,
+              "container_name": true,
+              "entryPointName": true,
+              "filename": true,
+              "id": true,
+              "level": false,
+              "line": true,
+              "msg": true,
+              "stream": true,
+              "time": true,
+              "tsNs": true
+            },
+            "indexByName": {
+              "ClientAddr": 7,
+              "ClientHost": 17,
+              "ClientPort": 1,
+              "ClientUsername": 38,
+              "DownstreamContentSize": 2,
+              "DownstreamStatus": 23,
+              "Duration": 3,
+              "OriginContentSize": 8,
+              "OriginDuration": 39,
+              "OriginStatus": 18,
+              "Overhead": 24,
+              "RequestAddr": 35,
+              "RequestContentSize": 25,
+              "RequestCount": 40,
+              "RequestHost": 10,
+              "RequestMethod": 9,
+              "RequestPath": 11,
+              "RequestPort": 29,
+              "RequestProtocol": 4,
+              "RequestScheme": 30,
+              "RetryAttempts": 26,
+              "RouterName": 41,
+              "ServiceAddr": 36,
+              "ServiceName": 31,
+              "ServiceURL_Fragment": 19,
+              "ServiceURL_Host": 27,
+              "ServiceURL_Opaque": 28,
+              "ServiceURL_Path": 32,
+              "ServiceURL_RawFragment": 21,
+              "ServiceURL_RawPath": 33,
+              "ServiceURL_RawQuery": 20,
+              "ServiceURL_Scheme": 14,
+              "StartLocal": 22,
+              "StartUTC": 12,
+              "container_id": 15,
+              "container_name": 5,
+              "entryPointName": 16,
+              "filename": 6,
+              "id": 44,
+              "level": 42,
+              "line": 43,
+              "msg": 34,
+              "stream": 37,
+              "time": 13,
+              "ts": 0,
+              "tsNs": 45
+            },
+            "renameByName": {
+              "ClientAddr": "Client Address",
+              "OriginContentSize": "",
+              "OriginStatus": "Status",
+              "RequestHost": "",
+              "RequestMethod": "Method",
+              "ServiceURL_Fragment": ""
+            }
+          }
+        }
+      ],
+      "type": "table"
+    }
+  ],
+  "schemaVersion": 26,
+  "style": "dark",
+  "tags": [],
+  "templating": {
+    "list": []
+  },
+  "time": {
+    "from": "now-6h",
+    "to": "now"
+  },
+  "timepicker": {},
+  "timezone": "",
+  "title": "Traefik",
+  "uid": "QdNoBF1Mk",
+  "version": 2
+}

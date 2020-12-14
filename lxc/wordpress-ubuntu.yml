@@ -1,3 +1,5 @@
+- name: ssh
+  import_playbook: requisite-ubuntu.yml
 
 - name: Install WordPress
   hosts: container
@@ -155,7 +157,7 @@
             # pass PHP scripts to FastCGI server
             location ~ \.php$ {
               include snippets/fastcgi-php.conf;
-      
+
               # With php-fpm (or other unix sockets):
               fastcgi_pass unix:/var/run/php/php7.4-fpm.sock;
             }
@@ -188,9 +190,9 @@
       shell: |
         rm -r /var/www/html &&
         mv /var/www/wordpress /var/www/html &&
-        chown -R www-data:www-data /var/www/html && 
+        chown -R www-data:www-data /var/www/html &&
         find /var/www/html/ -type d -exec chmod 755 {} \; &&
-        find /var/www/html/ -type f -exec chmod 644 {} \; 
+        find /var/www/html/ -type f -exec chmod 644 {} \;
       args:
         warn: false
 
@@ -212,7 +214,7 @@
           if (!file_exists('wp-config.php')) {
             ini_set('display_errors', 1);
             ini_set('display_startup_errors', 1);
-            error_reporting(E_ALL); 
+            error_reporting(E_ALL);
 
             // Create connection
             $conn = new mysqli("localhost", "root", "password");
@@ -344,7 +346,7 @@
             EOD;
 
             $configFile = fopen(__DIR__ . '/wp-config.php', 'w');
-            
+
             fwrite($configFile, sprintf(
               $config,
               $dbPass,
