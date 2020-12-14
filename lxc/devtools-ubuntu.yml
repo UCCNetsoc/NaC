@@ -18,6 +18,18 @@
           - emacs
           - curl
           - software-properties-common
+          - gradle
+          - mercurial
+          - composer
+          - ipython3
+          - python-mysqldb
+          - python3-keras
+          - mariadb-client
+          - mariadb-server
+          - docker-ce
+          - docker-compose
+          - make
+
 
     - name: Add node PPA
       shell: curl -sL https://deb.nodesource.com/setup_14.x | sudo -E bash -
@@ -37,3 +49,9 @@
 
     - name: Install rustup
       shell: curl https://sh.rustup.rs -sSf | sh -s -- -y
+
+    - name: Install NVM
+      shell: curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.37.2/install.sh | bash
+
+    - name: Install Helm
+      shell: curl -o- https://raw.githubusercontent.com/helm/helm/master/scripts/get-helm-3 | bash
