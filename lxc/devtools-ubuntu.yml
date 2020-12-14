@@ -27,8 +27,7 @@
           - ipython3
           - python-mysqldb
           - python3-keras
-          - mariadb-client
-          - mariadb-server
+          - mysql-client
           - docker-ce
           - docker-compose
           - make
