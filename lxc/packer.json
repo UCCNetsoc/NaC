@@ -24,7 +24,7 @@
         {
             "type": "shell",
             "inline": [
-                "sleep 10"
+                "until ping -c1 www.google.com >/dev/null 2>&1; do :; done"
             ]
         },
         {
