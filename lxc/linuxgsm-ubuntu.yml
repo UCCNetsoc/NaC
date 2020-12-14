@@ -1,3 +1,6 @@
+- name: ssh
+  import_playbook: requisite-ubuntu.yml
+
 - name: Install LinuxGSM
   hosts: container
   become: yes
