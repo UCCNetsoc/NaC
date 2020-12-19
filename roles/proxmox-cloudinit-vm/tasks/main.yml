@@ -104,6 +104,7 @@
     update:         yes
     state:          present
 
+
 # proxmox_kvm doesn't give you a way of setting net, virtio, ide, sata, scsi with the update: yes flag
 # and maybe description
 # workaround below
@@ -122,6 +123,10 @@
 
 - name: Set VirtIO SCSI
   shell: qm set {{ vm_id }} --scsihw virtio-scsi-pci
+
+- name: Set balloon
+  shell: qm set {{ vm_id }} --balloon 512
+
 
 - name: Delete old images directory if (re)creating VM
   shell: |
