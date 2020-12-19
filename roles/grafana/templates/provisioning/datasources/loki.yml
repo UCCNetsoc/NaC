@@ -20,4 +20,4 @@ datasources:
     basicAuthPassword: "{{ loki.password }}"
     isDefault: false
     # <bool> allow users to edit datasources from the UI.
-    editable: true
+    editable: false
