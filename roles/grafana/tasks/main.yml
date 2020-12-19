@@ -1,7 +1,7 @@
 ---
 - name: Create Directories
   file:
-    path: /netsoc/grafana/{{ item }}
+    path: /netsoc/{{ item }}
     mode: 0770
     state: directory
   loop:
@@ -9,34 +9,42 @@
     - /grafana/data
     - /grafana/provisioning
     - /grafana/provisioning/notifiers
+    - /grafana/provisioning/datasources
 
 - name: "Copy config provisioning"
   become: yes
   copy:
     mode: 0770
     src: files/provisioning/ # without / copies provisioning itself not just contents
-    dest: /netsoc/grafana/grafana/provisioning
+    dest: /netsoc/grafana/provisioning
+
+- name: "Template Prometheus IP Address"
+  become: yes
+  template:
+    mode: 0770
+    src: templates/prometheus.yaml
+    dest: /netsoc/grafana/provisioning/datasources/prometheus.yaml
 
 - name: "Template Discord Webhook"
   become: yes
   template:
     mode: 0770
     src: templates/discord.yaml
-    dest: /netsoc/grafana/grafana/provisioning/notifiers/discord.yaml
+    dest: /netsoc/grafana/provisioning/notifiers/discord.yaml
 
 - name: "Template Loki Config"
   become: yes
   template:
     mode: 0770
     src: templates/loki.yml
-    dest: /netsoc/grafana/grafana/provisioning/datasources/loki.yml
+    dest: /netsoc/grafana/provisioning/datasources/loki.yml
 
 - name: Copy Dashboards
   become: yes
   copy:
     mode: 0770
     src: /tmp/grafana/
-    dest: /netsoc/grafana/grafana/data/dashboards/
+    dest: /netsoc/grafana/data/dashboards/
   tags:
     - dashboards
 
@@ -72,8 +80,8 @@
             - "traefik.http.routers.grafana.service=grafana-service"
             - "traefik.docker.network=traefik"
           volumes:
-            - "/netsoc/grafana/grafana/provisioning/:/etc/grafana/provisioning/"
-            - "/netsoc/grafana/grafana/data/:/var/lib/grafana/"
+            - "/netsoc/grafana/provisioning/:/etc/grafana/provisioning/"
+            - "/netsoc/grafana/data/:/var/lib/grafana/"
           ports:
             - 3000
           environment:
