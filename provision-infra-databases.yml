@@ -46,7 +46,7 @@
             mysql:
               hostname: "mysql.databases.infra.netsoc.co"
               image: mysql:8.0.20
-              restart: on-failure
+              restart: always
               environment:
                 MYSQL_ROOT_PASSWORD: "{{ mysql.infra.root_password }}"
               volumes:
@@ -56,7 +56,7 @@
             pg:
               hostname: "pg.databases.netsoc.co"
               image: postgres:12.3
-              restart: on-failure
+              restart: always
               environment:
                 POSTGRES_PASSWORD: "{{ postgres.infra.postgres_password }}"
               volumes:
@@ -158,7 +158,7 @@
                 KEYCLOAK_USER: "{{ keycloak.username }}"
                 KEYCLOAK_PASSWORD: "{{ keycloak.password }}"
                 KEYCLOAK_IMPORT: "/tmp/realm/realm.json"
-              restart: on-failure
+              restart: always
               ports:
                 - "8443:8443"
               volumes:
@@ -196,7 +196,7 @@
                 - "/sys/fs/cgroup:/sys/fs/cgroup:ro"
                 - "/etc/machine-id:/etc/machine-id"
                 - "/netsoc/ipa:/data:Z"
-              restart: on-failure
+              restart: always
               tmpfs:
                 - "/run"
                 - "/tmp"
