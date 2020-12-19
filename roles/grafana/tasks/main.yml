@@ -7,6 +7,7 @@
   loop:
     - /grafana
     - /grafana/data
+    - /grafana/data/dashboards
     - /grafana/provisioning
     - /grafana/provisioning/notifiers
     - /grafana/provisioning/datasources
@@ -18,35 +19,26 @@
     src: files/provisioning/ # without / copies provisioning itself not just contents
     dest: /netsoc/grafana/provisioning
 
-- name: "Template Prometheus IP Address"
+- name: "Template Prometheus Datasource"
   become: yes
   template:
     mode: 0770
-    src: templates/prometheus.yaml
+    src: templates/provisioning/datasources/prometheus.yaml
     dest: /netsoc/grafana/provisioning/datasources/prometheus.yaml
 
 - name: "Template Discord Webhook"
   become: yes
   template:
     mode: 0770
-    src: templates/discord.yaml
+    src: templates/provisioning/notifiers/discord.yaml
     dest: /netsoc/grafana/provisioning/notifiers/discord.yaml
 
 - name: "Template Loki Config"
   become: yes
   template:
     mode: 0770
-    src: templates/loki.yml
+    src: templates/provisioning/datasources/loki.yml
     dest: /netsoc/grafana/provisioning/datasources/loki.yml
-
-- name: Copy Dashboards
-  become: yes
-  copy:
-    mode: 0770
-    src: /tmp/grafana/
-    dest: /netsoc/grafana/data/dashboards/
-  tags:
-    - dashboards
 
 - name: Ensure Grafana Docker Container
   become: yes
