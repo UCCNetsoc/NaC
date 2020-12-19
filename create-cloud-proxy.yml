@@ -16,7 +16,7 @@
             qcow2_url: "https://cloud-images.ubuntu.com/releases/focal/release-20200921.1/ubuntu-20.04-server-cloudimg-amd64.img"
             qcow2_hash: sha256:d18a9d2b890d3c1401e70a281cae44b61816aa669c4936f7a99c168e572ec8cb
           cores: 2
-          memory: 2048
+          memory: 1024
           description:
             groups:
               - vm
