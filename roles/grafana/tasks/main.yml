@@ -57,7 +57,7 @@
           external: true
       services:
         grafana:
-          image: "grafana/grafana:7.3.3"
+          image: "grafana/grafana:7.3.6"
           user: root
           restart: on-failure
           networks:
