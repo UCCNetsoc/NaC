@@ -16,22 +16,6 @@
   tags:
     - initial
 
-- name: "Enroll in IPA server"
-  hosts: web.infra.netsoc.co
-  become: yes
-  roles:
-    - role: ipa-client-enroll
-      vars:
-        client:
-          addresses: # Use public IP so any lookups for this IP will hit the webserver bound on the public IP
-            - "{{ interfaces.infra.web.net1.addresses[0] | ipaddr('address') }}"
-  vars_files:
-    - "vars/network.yml"
-    - "vars/secrets_mapping.yml"
-    - "vars/secrets.yml"
-  tags:
-    - ipa-client-enroll
-
 # We don't do this on the web host because ansible needs a python driver installed on a system that uses these
 - name: "WIKI (DATABASES) - Create databases for services"
   hosts: databases.infra.netsoc.co
@@ -41,14 +25,14 @@
       postgresql_db:
         name: "{{ wikijs.postgres.db }}"
         state: present
-        login_host: "pg.databases.infra.netsoc.co"
+        login_host: "{{ databases.infra.postgres }}"
         login_password: "{{ postgres.infra.postgres_password }}"
 
     - name: WIKI - Ensure user
       postgresql_user:
         name: "{{ wikijs.postgres.username }}"
         password: "{{ wikijs.postgres.password }}"
-        login_host: "pg.databases.infra.netsoc.co"
+        login_host: "{{ databases.infra.postgres }}"
         login_password: "{{ postgres.infra.postgres_password }}"
       no_log: true
 
@@ -58,9 +42,10 @@
         role: "{{ wikijs.postgres.username }}"
         objs: ALL_IN_SCHEMA
         privs: SELECT,INSERT,UPDATE,DELETE
-        login_host: "pg.databases.infra.netsoc.co"
+        login_host: "{{ databases.infra.postgres }}"
         login_password: "{{ postgres.infra.postgres_password }}"
   vars_files:
+    - "vars/network.yml"
     - "vars/secrets_mapping.yml"
     - "vars/secrets.yml"
   tags:
@@ -249,15 +234,15 @@
               ipa:
                 loadBalancer:
                   servers:
-                    - url: "https://auth.infra.netsoc.co"
+                    - url: "https://{{ databases.infra.ipa }}"
               keycloak:
                 loadBalancer:
                   servers:
-                    - url: "https://auth.infra.netsoc.co:8443"
+                    - url: "https://{{ databases.infra.keycloak }}:8443"
               prometheus:
                 loadBalancer:
                   servers:
-                    - url: "http://prometheus.databases.infra.netsoc.co:9090"
+                    - url: "http://{{ databases.infra.prometheus }}:9090"
               unused:
                 loadBalancer:
                   servers:
@@ -455,7 +440,7 @@
       run_once: true
       mysql_db:
         name: "{{ netsocbot.mysql_database }}"
-        login_host: "mysql.databases.infra.netsoc.co"
+        login_host: "{{ databases.infra.mysql }}"
         login_password: "{{ mysql.infra.root_password }}"
         state: present
 
@@ -466,11 +451,12 @@
         password: "{{ netsocbot.mysql_password }}"
         priv: "{{ netsocbot.mysql_database }}.*:ALL"
         host: "%"
-        login_host: "mysql.databases.infra.netsoc.co"
+        login_host: "{{ databases.infra.mysql }}"
         login_password: "{{ mysql.infra.root_password }}"
         state: present
       no_log: true
   vars_files:
+    - "vars/network.yml"
     - "vars/secrets_mapping.yml"
     - "vars/secrets.yml"
   tags:
@@ -510,7 +496,7 @@
                 TWITTER_SECRET: "{{ netsocbot.twitter_secret }}"
                 TWITTER_ACCESS_KEY: "{{ netsocbot.twitter_access_key }}"
                 TWITTER_ACCESS_SECRET: "{{ netsocbot.twitter_access_secret }}"
-                MYSQL_URL: "mysql.databases.infra.netsoc.co:3306"
+                MYSQL_URL: "{{ databases.infra.mysql }}:3306"
                 MYSQL_USERNAME: "{{ netsocbot.mysql_user }}"
                 MYSQL_PASSWORD: "{{ netsocbot.mysql_password }}"
                 FREEIMAGE_KEY: "{{ netsocbot.freeimage_key }}"
@@ -558,14 +544,14 @@
     # - name: CI - Ensure Drone MySQL Database cleared
     #   mysql_db:
     #     name: "{{ drone.mysql_database }}"
-    #     login_host: "mysql.databases.infra.netsoc.co"
+    #     login_host: {{ databases.infra.mysql }}"
     #     login_password: "{{ mysql.infra.root_password }}"
     #     state: absent
 
     # - name: CI - Ensure Drone MySQL User cleared
     #   mysql_user:
     #     name: "{{ drone.mysql_database }}"
-    #     login_host: "mysql.databases.infra.netsoc.co"
+    #     login_host: "{{ databases.infra.mysql }}"
     #     login_password: "{{ mysql.infra.root_password }}"
     #     state: absent
 
@@ -574,7 +560,7 @@
       become: yes
       mysql_db:
         name: "{{ drone.mysql_database }}"
-        login_host: "mysql.databases.infra.netsoc.co"
+        login_host: "{{ databases.infra.mysql }}"
         login_password: "{{ mysql.infra.root_password }}"
         state: present
 
@@ -584,7 +570,7 @@
         password: "{{ drone.mysql_password }}"
         priv: "{{ drone.mysql_database}}.*:ALL"
         host: "%"
-        login_host: "mysql.databases.infra.netsoc.co"
+        login_host: "{{ databases.infra.mysql }}"
         login_password: "{{ mysql.infra.root_password }}"
         state: present
       no_log: true
@@ -593,11 +579,12 @@
       run_once: true
       become: yes
       mysql_variables:
-        login_host: "mysql.databases.infra.netsoc.co"
+        login_host: "{{ databases.infra.mysql }}"
         login_password: "{{ mysql.infra.root_password }}"
         variable: log_bin_trust_function_creators
         value: 1
   vars_files:
+    - "vars/network.yml"
     - "vars/secrets_mapping.yml"
     - "vars/secrets.yml"
   tags:

@@ -77,7 +77,7 @@ interfaces:
         addresses:
           - "{{ subnets.infra | ipaddr(25) }}"
         gateway4: "{{ gateway4.infra }}"
-        nameservers: "{{ nameservers.infra }}"
+        nameservers: "{{ nameservers.public }}"
         optional: true
         link-local: []
     web:
@@ -90,7 +90,7 @@ interfaces:
           - to: 0.0.0.0/0
             via: "{{ gateway4.infra }}"
             metric: 2047
-        nameservers: "{{ nameservers.infra }}"
+        nameservers: "{{ nameservers.public }}"
         optional: true
         link-local: []
       net1:
@@ -102,7 +102,7 @@ interfaces:
           - to: 0.0.0.0/0
             via: "{{ gateway4.infra }}"
             metric: 2048
-        nameservers: "{{ nameservers.infra }}"
+        nameservers: "{{ nameservers.public }}"
         optional: true
         link-local: []
     games:
@@ -112,6 +112,14 @@ interfaces:
         addresses:
           - "{{ subnets.infra | ipaddr(55) }}"
         gateway4: "{{ gateway4.infra }}"
-        nameservers: "{{ nameservers.infra }}"
+        nameservers: "{{ nameservers.public }}"
         optional: true
         link-local: []
+
+databases:
+  infra:
+    mysql: "{{ interfaces.infra.databases.net0.addresses[0] | ipaddr('address') }}"
+    postgres: "{{ interfaces.infra.databases.net0.addresses[0] | ipaddr('address')}}"
+    keycloak: "{{ interfaces.infra.databases.net0.addresses[0] | ipaddr('address') }}"
+    ipa: "{{ interfaces.infra.databases.net0.addresses[0] | ipaddr('address') }}"
+    prometheus: "{{ interfaces.infra.databases.net0.addresses[0] | ipaddr('address') }}"
