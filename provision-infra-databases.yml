@@ -87,8 +87,6 @@
         path: "/netsoc/{{ item }}"
         owner: root
         group: root
-        # Needs to be 775 as this folder is accessed internally by a dirsrv user
-        # https://github.com/freeipa/freeipa-container/issues/281
         mode: '0755'
         state: directory
       with_items:
