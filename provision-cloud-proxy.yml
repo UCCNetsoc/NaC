@@ -274,7 +274,7 @@
                 traefik.http.services.webssh2-service.loadbalancer.server.port: "2222"
                 traefik.http.routers.webssh2.service: "webssh2-service"
                 traefik.docker.network: "traefik"
-              restart: on-failure
+              restart: always
 
 
     - name: WEBSSH2 - Setup compose

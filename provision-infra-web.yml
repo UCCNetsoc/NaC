@@ -272,7 +272,7 @@
               external: true
           services:
             server:
-              restart: on-failure
+              restart: always
               image: traefik:v2.3.2
               command: traefik --configFile=/traefik/config.yml --log.format=json
               volumes:
@@ -350,7 +350,7 @@
                 traefik.http.middlewares.www-redirect.redirectregex.permanent: "true"
                 traefik.http.routers.website.middlewares: "rk-redirect@docker,rk-strip@docker,www-redirect@docker"
                 traefik.docker.network: "traefik"
-              restart: on-failure
+              restart: always
             blog:
               image: uccnetsoc/blog:latest
               networks:
@@ -365,7 +365,7 @@
                 traefik.http.services.blog-service.loadbalancer.server.port: "80"
                 traefik.http.routers.blog.service: "blog-service"
                 traefik.docker.network: "traefik"
-              restart: on-failure
+              restart: always
 
     - name: STATIC WEBSITES - Setup compose
       docker_compose:
@@ -414,7 +414,7 @@
                 traefik.http.services.wiki.loadbalancer.server.port: "3000"
                 traefik.http.routers.wiki.service: "wiki"
                 traefik.docker.network: "traefik"
-              restart: on-failure
+              restart: always
 
     - name: WIKI - Setup compose
       docker_compose:
@@ -477,7 +477,7 @@
           services:
             instance:
               image: uccnetsoc/discord-bot:latest
-              restart: on-failure
+              restart: always
               networks:
                 traefik:
               environment:
@@ -845,7 +845,7 @@
             api:
               image: uccnetsoc/cloud-api:latest
               entrypoint: /start.sh
-              restart: on-failure
+              restart: always
               networks:
                 traefik:
               volumes:
@@ -862,7 +862,7 @@
                 traefik.docker.network: traefik
             ui:
               image: uccnetsoc/cloud-ui:latest
-              restart: on-failure
+              restart: always
               networks:
                 traefik:
               labels:
@@ -1001,7 +1001,7 @@
                 loki:
               volumes:
                 - "/netsoc/loki:/loki"
-              restart: on-failure
+              restart: always
               labels:
                 traefik.enable: "true"
                 traefik.http.routers.loki.rule: "Host(`loki.netsoc.co`)"
