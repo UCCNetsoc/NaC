@@ -85,7 +85,7 @@
           log:
             level: ERROR
             format: "json"
-          accessLog: 
+          accessLog:
             format: "json"
           entrypoints:
             web:
@@ -1086,6 +1086,7 @@
   vars:
     host: grafana.netsoc.co
   vars_files:
+    - "vars/network.yml"
     - "vars/secrets_mapping.yml"
     - "vars/secrets.yml"
   tags:
