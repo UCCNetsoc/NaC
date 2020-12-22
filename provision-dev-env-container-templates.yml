@@ -45,6 +45,12 @@
           - git
           - lxc-pve-dev
           - pkg-config
+          - dnsmasq
+    - name: Disable dnsmasq
+      systemd:
+        name: dnsmasq
+        enabled: no
+        state: stopped
     - name: python3 lxc bindings
       pip:
         name: git+https://github.com/lxc/python3-lxc
