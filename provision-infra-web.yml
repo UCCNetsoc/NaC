@@ -85,7 +85,7 @@
           log:
             level: ERROR
             format: "json"
-          accessLog: 
+          accessLog:
             format: "json"
           entrypoints:
             web:
@@ -1052,32 +1052,6 @@
     - provision
     - loki
 
-
-- name: Generate Dashboards
-  hosts: localhost
-  tasks:
-    - name: "Clone Grafonnet"
-      git:
-        depth: 1
-        dest: /tmp/grafonnet/
-        repo: https://github.com/grafana/grafonnet-lib
-        version: 356bd73e4792ffe107725776ca8946895969c191
-    - name: "Clear destination folder"
-      file:
-        path: /tmp/grafana
-        state: absent
-    - name: "Create destination"
-      file:
-        path: /tmp/grafana
-        state: directory
-        mode: 0770
-    - shell: "jsonnet -J /tmp/grafonnet/ -co /tmp/grafana/{{ item[:-3] }} roles/grafana/dashboards-src/{{ item }}"
-      loop:
-        - pve.jsonnet
-  tags:
-    - provision
-    - dashboards
-
 - name: Grafana
   become: yes
   hosts: web.infra.netsoc.co
@@ -1086,10 +1060,26 @@
   vars:
     host: grafana.netsoc.co
   vars_files:
+    - "vars/network.yml"
     - "vars/secrets_mapping.yml"
     - "vars/secrets.yml"
   tags:
     - provision
+    - grafana
+
+- name: Grafana Dashboards
+  become: yes
+  hosts: web.infra.netsoc.co
+  tasks:
+    - name: Copy Dashboards
+      synchronize:
+        archive: no
+        recursive: yes
+        delete: yes
+        src: roles/grafana/files/data/dashboards/
+        dest: /netsoc/grafana/data/dashboards/
+  tags:
+    - dashboards
     - grafana
 
 - name: "LOKI TARGETS" # Keep this at the bottom of the file at all times.

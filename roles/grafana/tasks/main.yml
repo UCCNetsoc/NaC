@@ -1,44 +1,44 @@
 ---
 - name: Create Directories
   file:
-    path: /netsoc/grafana/{{ item }}
+    path: /netsoc/{{ item }}
     mode: 0770
     state: directory
   loop:
     - /grafana
     - /grafana/data
+    - /grafana/data/dashboards
     - /grafana/provisioning
     - /grafana/provisioning/notifiers
+    - /grafana/provisioning/datasources
 
 - name: "Copy config provisioning"
   become: yes
   copy:
     mode: 0770
     src: files/provisioning/ # without / copies provisioning itself not just contents
-    dest: /netsoc/grafana/grafana/provisioning
+    dest: /netsoc/grafana/provisioning
+
+- name: "Template Prometheus Datasource"
+  become: yes
+  template:
+    mode: 0770
+    src: templates/provisioning/datasources/prometheus.yaml
+    dest: /netsoc/grafana/provisioning/datasources/prometheus.yaml
 
 - name: "Template Discord Webhook"
   become: yes
   template:
     mode: 0770
-    src: templates/discord.yaml
-    dest: /netsoc/grafana/grafana/provisioning/notifiers/discord.yaml
+    src: templates/provisioning/notifiers/discord.yaml
+    dest: /netsoc/grafana/provisioning/notifiers/discord.yaml
 
 - name: "Template Loki Config"
   become: yes
   template:
     mode: 0770
-    src: templates/loki.yml
-    dest: /netsoc/grafana/grafana/provisioning/datasources/loki.yml
-
-- name: Copy Dashboards
-  become: yes
-  copy:
-    mode: 0770
-    src: /tmp/grafana/
-    dest: /netsoc/grafana/grafana/data/dashboards/
-  tags:
-    - dashboards
+    src: templates/provisioning/datasources/loki.yml
+    dest: /netsoc/grafana/provisioning/datasources/loki.yml
 
 - name: Ensure Grafana Docker Container
   become: yes
@@ -57,7 +57,7 @@
           external: true
       services:
         grafana:
-          image: "grafana/grafana:7.3.3"
+          image: "grafana/grafana:7.3.6"
           user: root
           restart: on-failure
           networks:
@@ -72,8 +72,8 @@
             - "traefik.http.routers.grafana.service=grafana-service"
             - "traefik.docker.network=traefik"
           volumes:
-            - "/netsoc/grafana/grafana/provisioning/:/etc/grafana/provisioning/"
-            - "/netsoc/grafana/grafana/data/:/var/lib/grafana/"
+            - "/netsoc/grafana/provisioning/:/etc/grafana/provisioning/"
+            - "/netsoc/grafana/data/:/var/lib/grafana/"
           ports:
             - 3000
           environment:
