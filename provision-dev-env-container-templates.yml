@@ -46,6 +46,13 @@
           - lxc-pve-dev
           - pkg-config
           - dnsmasq
+          - cloud-guest-utils
+    - name: Grow sda3
+      command: growpart /dev/sda 3
+    - name: Resize sda3
+      command: pvresize /dev/sda3
+    - name: Resize root partition
+      command: lvresize -l +100%FREE /dev/pve/root
     - name: Disable dnsmasq
       systemd:
         name: dnsmasq
