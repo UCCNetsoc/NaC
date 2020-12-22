@@ -5,19 +5,14 @@ apiVersion: 1
 # what's available in the database
 datasources:
   # <string, required> name of the datasource. Required
-  - name: Loki
+  - name: Prometheus
     # <string, required> datasource type. Required
-    type: loki
+    type: prometheus
     # <string, required> access mode. proxy or direct (Server or Browser in the UI). Required
     access: proxy
     # <string> url
-    url: https://loki.netsoc.co/
-     # <bool> enable/disable basic auth
-    basicAuth: true
-    # <string> basic auth username, if used
-    basicAuthUser: "{{ loki.username }}"
-    # <string> basic auth password, if used
-    basicAuthPassword: "{{ loki.password }}"
-    isDefault: false
+    url: "http://{{databases.infra.prometheus}}:9090"
+    isDefault: true
+    version: 1
     # <bool> allow users to edit datasources from the UI.
-    editable: true
+    editable: false
