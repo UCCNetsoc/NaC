@@ -59,6 +59,10 @@
       pip:
         name: ansible
         executable: pip3
+    - name: Restart lxc-net
+      systemd:
+        name: lxc-net
+        state: restarted
   roles:
     - packer
   tags:
@@ -252,6 +256,15 @@
         cmd: "tar -czf {{ template_output }}/netsoc-{{ item.path.split('/')[-2] }}.tar.gz -C {{ item.path | dirname }}/rootfs ."
         warn: false
       loop: '{{ files.files }}'
+  tags:
+    - always
+
+- name: Copy Templates to Proxmox
+  become: yes
+  hosts: dev
+  tasks:
+    - name: Copy templates
+      command: 'mv {{ template_output }}/* /var/lib/vz/template/cache/'
   tags:
     - always
 
