@@ -22,9 +22,13 @@ scrape_configs:
   - job_name: 'expexp_metrics'
     static_configs:
     {% for host in groups['prometheus_base'] -%}
-      - 
+      -
         targets:
+{%+ if "10.0.10.0/24" | network_in_usable(hostvars[host].ansible_host) %}
+          - {{hostvars[host].ansible_host | ipmath(5120) }}:9999
+{% else %}
           - {{hostvars[host].ansible_host}}:9999
+{% endif %}
         labels:
           instance: "{{host}}"
     {% endfor %}
@@ -33,12 +37,16 @@ scrape_configs:
     metrics_path: /proxy
     params:
       module:
-       - node 
+       - node
     static_configs:
     {% for host in groups['prometheus_base'] -%}
-      - 
+      -
         targets:
+{%+ if "10.0.10.0/24" | network_in_usable(hostvars[host].ansible_host) %}
+          - {{hostvars[host].ansible_host | ipmath(5120) }}:9999
+{% else %}
           - {{hostvars[host].ansible_host}}:9999
+{% endif %}
         labels:
           instance: "{{host}}"
     {% endfor %}
@@ -51,7 +59,7 @@ scrape_configs:
         - cadvisor
     static_configs:
     {% for host in groups['prometheus_docker'] -%}
-      - 
+      -
         targets:
           - {{hostvars[host].ansible_host}}:9999
         labels:
@@ -64,10 +72,10 @@ scrape_configs:
     metrics_path: /proxy
     params:
       module:
-       - apache 
+       - apache
     static_configs:
     {% for host in groups['prometheus_apache'] -%}
-      - 
+      -
         targets:
           - {{hostvars[host].ansible_host}}:9999
         labels:
@@ -80,10 +88,10 @@ scrape_configs:
     metrics_path: /proxy
     params:
       module:
-       - ipmi 
+       - ipmi
     static_configs:
     {% for host in groups['prometheus_ipmi'] -%}
-      - 
+      -
         targets:
           - {{hostvars[host].ansible_host}}:9999
         labels:
@@ -97,7 +105,7 @@ scrape_configs:
       module:
         - netcraft-survival
     static_configs:
-      - 
+      -
         targets:
         - games.vm.netsoc.co:9999
         labels:
@@ -108,10 +116,10 @@ scrape_configs:
     metrics_path: /proxy
     params:
       module:
-       - traefik 
+       - traefik
     static_configs:
     {% for host in groups['prometheus_traefik'] -%}
-      - 
+      -
         targets:
           - {{hostvars[host].ansible_host}}:9999
         labels:
