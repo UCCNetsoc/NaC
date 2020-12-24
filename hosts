@@ -20,6 +20,10 @@ lovelace_vm
 [proxmox_master]
 feynman
 
+[prometheus_base]
+feynman
+lovelace
+
 [proxmox_hosts]
 feynman
 lovelace

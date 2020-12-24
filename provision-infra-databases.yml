@@ -103,6 +103,7 @@
     - "vars/secrets.yml"
   tags:
     - provision
+    - prometheus
 
 - name: "DATABASES - FreeIPA/Keycloak"
   hosts: databases.infra.netsoc.co
