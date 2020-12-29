@@ -10,6 +10,10 @@
         content: USE_LXC_BRIDGE="true"
         dest: /etc/default/lxc-net
         mode: 0774
+    - name: Ensure dnsmasq is stopped
+      service:
+        name: dnsmasq
+        state: stopped
     - name: Start lxc-net service
       service:
         name: lxc-net
@@ -25,6 +29,9 @@
           lxc.net.0.link = lxcbr0
           lxc.net.0.flags = up
           lxc.net.0.hwaddr = 00:16:3e:xx:xx:xx
+          lxc.apparmor.profile = unconfined
+          security.nesting = true
+          lxc.cgroup.devices.allow = c 10:200 rwm
         dest: /etc/lxc/default.conf
         mode: 0774
     - name: Output Directories Vars
@@ -53,10 +60,10 @@
   become: yes
   hosts: lovelace
   tasks:
-  - name: Copy provisioning files
-    copy:
-      src: ./lxc/
-      dest: "/tmp/{{ uuid }}/lxc/"
+    - name: Copy provisioning files
+      copy:
+        src: ./lxc/
+        dest: "/tmp/{{ uuid }}/lxc/"
   tags:
     - always
 
