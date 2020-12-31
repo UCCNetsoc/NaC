@@ -13,7 +13,7 @@ lovelace
 # "OLD" NETSOC
 boole
 bigbertha
-leela
+leela_vm
 feynman_vm
 lovelace_vm
 
@@ -23,16 +23,18 @@ feynman
 [prometheus_base]
 feynman
 lovelace
+leela
 
 [proxmox_hosts]
 feynman
 lovelace
+leela
 
 
 [non_sudo]
 boole
 bigbertha
-leela
+leela_vm
 lovelace_vm
 
 [swarm_creators]
@@ -44,4 +46,4 @@ bigbertha
 lovelace_vm
 
 [swarm_workers]
-leela
+leela_vm
