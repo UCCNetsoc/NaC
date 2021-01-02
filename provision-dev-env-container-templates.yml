@@ -1,19 +1,15 @@
 - name: Setup
   become: yes
-  hosts: lovelace
+  hosts: dev
   tasks:
     - name: Random number to avoid collisions
       set_fact:
-        uuid: "{{ 999999999999999 | random | to_uuid }}"
+        uuid: '{{ 999999999999999 | random | to_uuid }}'
     - name: Configure LXC to use a bridge
       copy:
         content: USE_LXC_BRIDGE="true"
         dest: /etc/default/lxc-net
         mode: 0774
-    - name: Ensure dnsmasq is stopped
-      service:
-        name: dnsmasq
-        state: stopped
     - name: Start lxc-net service
       service:
         name: lxc-net
@@ -21,7 +17,7 @@
     - name: Make /tmp/{{uuid}} dir
       file:
         state: directory
-        path: "/tmp/{{ uuid }}/lxc"
+        path: '/tmp/{{ uuid }}/lxc'
     - name: Configure general container settings
       copy:
         content: |
@@ -29,47 +25,76 @@
           lxc.net.0.link = lxcbr0
           lxc.net.0.flags = up
           lxc.net.0.hwaddr = 00:16:3e:xx:xx:xx
-          lxc.apparmor.profile = unconfined
-          security.nesting = true
-          lxc.cgroup.devices.allow = c 10:200 rwm
         dest: /etc/lxc/default.conf
         mode: 0774
     - name: Output Directories Vars
       set_fact:
-        packer_output: "/tmp/{{ uuid }}/output"
-        template_output: "/tmp/{{ uuid }}/templates"
+        packer_output: '/tmp/{{ uuid }}/output'
+        template_output: '/tmp/{{ uuid }}/templates'
     - name: Ensure Output Dirs
       file:
-        path: "{{ item }}"
+        path: '{{ item }}'
         state: directory
       loop:
-        - "{{ packer_output }}"
-        - "{{ template_output }}"
-    - name: lxc-dev package
+        - '{{ packer_output }}'
+        - '{{ template_output }}'
+    - name: Install depenendencies
       apt:
-        name: lxc-pve-dev
+        name:
+          - python3-pip
+          - git
+          - lxc-pve-dev
+          - pkg-config
+          - dnsmasq
+          - cloud-guest-utils
+    - name: Grow sda3
+      command: growpart /dev/sda 3
+      ignore_errors: yes
+    - name: Resize sda3
+      command: pvresize /dev/sda3
+      ignore_errors: yes
+    - name: Resize root partition
+      command: lvresize -l +100%FREE /dev/pve/root
+      ignore_errors: yes
+    - name: Resize root fs
+      command: resize2fs /dev/mapper/pve-root
+      ignore_errors: yes
+    - name: Disable dnsmasq
+      systemd:
+        name: dnsmasq
+        enabled: no
+        state: stopped
     - name: python3 lxc bindings
       pip:
         name: git+https://github.com/lxc/python3-lxc
+        executable: pip3
+    - name: python3 ansible
+      pip:
+        name: ansible
+        executable: pip3
+    - name: Restart lxc-net
+      systemd:
+        name: lxc-net
+        state: restarted
   roles:
     - packer
   tags:
     - always
 
-- name: Delegate to Lovelace
+- name: Delegate to Dev VM
   become: yes
-  hosts: lovelace
+  hosts: dev
   tasks:
     - name: Copy provisioning files
       copy:
         src: ./lxc/
-        dest: "/tmp/{{ uuid }}/lxc/"
+        dest: '/tmp/{{ uuid }}/lxc/'
   tags:
     - always
 
 # Additional base templates can be found here http://uk.images.linuxcontainers.org
 - name: Templates
-  hosts: lovelace
+  hosts: dev
   become: yes
   tasks:
     - name: Ghost CMS Ubuntu
@@ -226,47 +251,43 @@
 # As such we must extract rootfs and then compress just its contents
 - name: Fix Archives
   become: yes
-  hosts: lovelace
+  hosts: dev
   tasks:
     - name: Get all templates
       find:
-        pattern: "rootfs.tar.gz"
-        path: "{{ packer_output }}"
+        pattern: 'rootfs.tar.gz'
+        path: '{{ packer_output }}'
         recurse: yes
       register: files
     - name: Extract
       shell:
-        cmd: "tar --preserve-permissions --numeric-owner -xzf {{ item.path }} -C {{ item.path | dirname }}"
+        cmd: 'tar --preserve-permissions --numeric-owner -xzf {{ item.path }} -C {{ item.path | dirname }}'
         warn: false
-      loop: "{{ files.files }}"
+      loop: '{{ files.files }}'
     - name: Compress
       shell:
         cmd: "tar -czf {{ template_output }}/netsoc-{{ item.path.split('/')[-2] }}.tar.gz -C {{ item.path | dirname }}/rootfs ."
         warn: false
-      loop: "{{ files.files }}"
+      loop: '{{ files.files }}'
   tags:
-   - always
+    - always
 
-- name: Copy Templates to Proxmox Hosts
+- name: Copy Templates to Proxmox
   become: yes
-  hosts: proxmox_hosts
+  hosts: dev
   tasks:
     - name: Copy templates
-      synchronize:
-        src: "{{ hostvars['lovelace']['template_output'] }}/"
-        dest: "/var/lib/vz/template/cache/"
-      delegate_to: lovelace
-      delegate_facts: true
+      command: 'mv {{ template_output }}/* /var/lib/vz/template/cache/'
   tags:
     - always
 
 - name: Cleanup
   become: yes
-  hosts: lovelace
+  hosts: dev
   tasks:
     - name: Tidy up directory
       file:
-        path: "/tmp/{{ uuid }}"
+        path: '/tmp/{{ uuid }}'
         state: absent
   tags:
-   - always
+    - always

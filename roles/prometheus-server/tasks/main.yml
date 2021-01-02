@@ -3,7 +3,7 @@
   become: yes
   file:
     path: "{{ prometheus_dir }}"
-    mode: 0770 
+    mode: 0770
     owner: nobody # Prometheus runs as nobody
     group: nogroup
     state: directory
@@ -12,7 +12,7 @@
   become: yes
   file:
     path: "{{ prometheus_dir }}/config"
-    mode: 0770 
+    mode: 0770
     owner: nobody
     group: nogroup
     state: directory
@@ -21,7 +21,7 @@
   become: yes
   file:
     path: "{{ prometheus_dir }}/data"
-    mode: 0770 
+    mode: 0770
     owner: nobody
     group: nogroup
     state: directory
@@ -30,7 +30,7 @@
   become: yes
   file:
     path: "{{ blackbox_exporter_dir }}"
-    mode: 0770 
+    mode: 0770
     owner: root
     group: root
     state: directory
@@ -39,7 +39,7 @@
   become: yes
   file:
     path: "{{ pve_dir }}"
-    mode: 0770 
+    mode: 0770
     owner: nobody # pve exporter runs as nobody
     group: nogroup
     state: directory
@@ -75,7 +75,7 @@
   notify:
     - restart pve exporter
 
-- name: "Ensure Docker monitoring network" 
+- name: "Ensure Docker monitoring network"
   become: yes
   docker_network:
     name: monitoring
@@ -93,7 +93,7 @@
     command:
       - "--config.file=/etc/prometheus/prometheus.yml"
       - "--storage.tsdb.path=/prometheus"
-      - "--storage.tsdb.retention.time=18m"
+      - "--storage.tsdb.retention.time=80w"
       - "--web.console.libraries=/usr/share/prometheus/console_libraries"
       - "--web.console.templates=/usr/share/prometheus/consoles"
     ports:
