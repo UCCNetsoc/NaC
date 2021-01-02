@@ -65,14 +65,3 @@
       shell: |
         pveum user list --output-format=json | jq .[].userid | grep {{ item.name }}@pam || pveum user add {{ item.name }}@pam --groups netsoc_sysadmin
       with_items: "{{ sysadmins }}"
-
-# Jsonnet is used for Grafonnet to configure Grafana Dashboards
-- name: "Install Jsonnet"
-  hosts: control
-  become: yes
-  roles:
-    - go
-  tasks:
-    - shell: |
-        export GOBIN=/usr/local/bin
-        go get github.com/google/go-jsonnet/cmd/jsonnet
