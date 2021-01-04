@@ -128,6 +128,14 @@
               #   service: unused
               #   tls:
               #     certResolver: letsencrypt
+              leela-fallback:
+                entrypoints:
+                  - web-secure
+                rule: PathPrefix(`/`) # matches everything
+                service: leela-fallback
+                priority: 10
+                tls:
+                  certResolver: letsencrypt
               ipa:
                 entrypoints:
                   - web-secure
@@ -247,6 +255,10 @@
                 loadBalancer:
                   servers:
                     - url: 'https://google.com'
+              leela-fallback:
+                loadBalancer:
+                  servers:
+                    - url: 'http://leela-vm.netsoc.co'
 
     - name: TRAEFIK - Write static config
       copy:
