@@ -62,6 +62,9 @@
             # proxmox control host
             - { type: CNAME,    name: control,               value: "cix-3.netsoc.co" }
 
+            # leela-vm
+            - { type: A,        name: "leela-vm",            value: "84.39.234.51" }
+
             # web
             - { type: CNAME,    name: web,                   value: "cix-2.netsoc.co" }
             - { type: CNAME,    name: netsoc.co,             value: "web.netsoc.co"  }
@@ -85,13 +88,13 @@
             - { type: CNAME,    name: discord,               value: "web.netsoc.co"  }
             - { type: CNAME,    name: esports,               value: "web.netsoc.co"  }
             - { type: CNAME,    name: cloud,                 value: "web.netsoc.co"  }
+            - { type: CNAME,    name: "*",                   value: "web.netsoc.co"  }
 
             # Historical CNAME Records
             - { type: CNAME, name: admin, value: bigbertha.netsoc.co }
             - { type: CNAME, name: alerts, value: bigbertha.netsoc.co }
             - { type: CNAME, name: bert.ci, value: bigbertha.netsoc.co }
             - { type: CNAME, name: consul, value: bigbertha.netsoc.co }
-            - { type: CNAME, name: docker, value: boole.netsoc.co }
             - { type: CNAME, name: es, value: bigbertha.netsoc.co }
             - { type: CNAME, name: "*.evan", value: leela.netsoc.co }
             - { type: CNAME, name: hlm, value: bigbertha.netsoc.co }
@@ -101,10 +104,7 @@
             - { type: CNAME, name: logs, value: bigbertha.netsoc.co }
             - { type: CNAME, name: lxd, value: bigbertha.netsoc.co }
             - { type: CNAME, name: mysql, value: bigbertha.netsoc.co }
-            - { type: CNAME, name: "*", value: bigbertha.netsoc.co }
-            - { type: CNAME, name: portainer, value: boole.netsoc.co }
             - { type: CNAME, name: prom, value: bigbertha.netsoc.co }
-            - { type: CNAME, name: sentry, value: boole.netsoc.co }
             - { type: CNAME, name: unf2b, value: leela.netsoc.co }
             - { type: CNAME, name: userdomains, value: leela.netsoc.co }
             - { type: CNAME, name: vault, value: bigbertha.netsoc.co }
