@@ -33,7 +33,7 @@
 
 
 # Proxmox goes ape if 2 VMs get cloned simulateneously and both choose the same ID (due to the sequential numbering system)
-# Use a hash of the name and add the hostname to make it unique instead 
+# Use a hash of the name and add the hostname to make it unique instead
 - set_fact:
     vm_hash_id: "{{ range(1000, 5000000) | random(seed=vm.name+'-'+inventory_hostname) }}"
 
@@ -165,7 +165,7 @@
     boot_disk_pool: "{{ boot_disk_pool_result.stdout.split(':')[0] | trim }}"
 
 - name: Move boot disk to target pool if target pool is different than current/clone pool
-  shell: 
+  shell:
     pvesh create /nodes/{{ inventory_hostname }}/qemu/{{ vm_id }}/move_disk -storage {{ vm.disks.pool }} -disk virtio0 -delete 1
   when: "vm.disks.pool != boot_disk_pool"
 
@@ -178,12 +178,12 @@
     efi_disk_pool: "{{ efi_disk_pool_result.stdout.split(':')[0]  | trim }}"
 
 - name: Move efi disk to target pool if target pool is different than current/clone pool
-  shell: 
+  shell:
     pvesh create /nodes/{{ inventory_hostname }}/qemu/{{ vm_id }}/move_disk -storage {{ vm.efi.pool }} -disk efidisk0 -delete 1
   when: "vm.efi.pool != efi_disk_pool"
 
 - name: Resize boot disk
-  shell: 
+  shell:
     pvesh set /nodes/{{ inventory_hostname }}/qemu/{{ vm_id }}/resize -disk virtio0 -size {{ vm.disks.boot.size }}
 
 - name: Add the extra disks if they don't exist already and resize
@@ -227,7 +227,7 @@
   copy:
     content: |
       #cloud-config
-      bootcmd: 
+      bootcmd:
       - rm -f /etc/netplan/50-cloud-init.yaml
       - rm -rf /var/lib/cloud
       - shutdown now
@@ -312,7 +312,7 @@
     node:           "{{ inventory_hostname }}"
     state:          started
 
-# - name: Reset protection 
+# - name: Reset protection
 #   shell: pvesh set /nodes/{{ inventory_hostname }}/qemu/{{ vm_id }}/config -protection {{ vm.protection | default('0') }}
 
 - name: Wait for SSH
@@ -320,3 +320,4 @@
     port: 22
     search_regex: OpenSSH
     host: "{{ vm.wait_for_ssh_ip | ipmath(0) }}" # ipmath(0) will remove the subnet mask if they added it in
+  when: vm.wait_for_ssh_ip is defined
