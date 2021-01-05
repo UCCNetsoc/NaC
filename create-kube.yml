@@ -163,7 +163,7 @@
                   match:
                     macaddress: "{{ (126235667136512 + groups['proxmox_hosts'].index(inventory_hostname)) | hwaddr('linux') }}"
                   addresses:
-                    - "{{ kube.worker.base_ip | ipmath(groups['proxmox_hosts'].index(inventory_hostname)) }}"
+                    - "{{ kube.worker.base_ip | ipmath(groups['proxmox_hosts'].index(inventory_hostname)) }}/{{ subnets.k8s | ipaddr('prefix') }}"
                   gateway4: "{{ gateway4.k8s }}"
                   nameservers: "{{ nameservers.public }}"
                   optional: true
