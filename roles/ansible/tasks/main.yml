@@ -11,7 +11,7 @@
 - name: Ensure python3-distutils
   apt:
     name: python3-distutils
-  
+
 - name: Ensure pip installed
   apt:
     name: python3-pip
@@ -21,14 +21,14 @@
   pip:
     name:
       - pip
-      - ansible
+      - ansible==2.9.10
       - proxmoxer
       - netaddr
     state: latest
     extra_args: --upgrade
 
 - name: Ensure Galaxy roles
-  command: ansible-galaxy collection install {{ item }} 
+  command: ansible-galaxy collection install {{ item }}
   with_items:
     - freeipa.ansible_freeipa
   ignore_errors: yes

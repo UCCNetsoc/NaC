@@ -12,11 +12,11 @@ public_ips:
 
 # vlan tags
 vlan:
-  wan:     10 
-  proxmox: 20 
-  infra:   30 
-  cloud:   40 
-  k8s:     50 
+  wan:     10
+  proxmox: 20
+  infra:   30
+  cloud:   40
+  k8s:     50
   extern:  60  # VRRP stuff
   router:  70  # Used for vyos clustering + failover
   oob:     80  # OOB, connected to CIX OOBnet and OOB ports on machines
@@ -33,12 +33,12 @@ gateway4:
   infra:    "10.0.{{ vlan.infra }}.1"
   k8s:      "10.{{ vlan.k8s }}.0.1"
   cloud:    "10.{{ vlan.cloud }}.0.1"
-  
+
 nameservers:
   infra:
     search:
       - "infra.netsoc.co"
-    addresses: 
+    addresses:
       - "{{ subnets.infra | ipmath(15) }}"
   public:
     search: []
@@ -81,7 +81,7 @@ interfaces:
         optional: true
         link-local: []
     web:
-      net0: 
+      net0:
         match:
           macaddress: "f2:f5:ee:2b:fb:05"
         addresses:
@@ -106,7 +106,7 @@ interfaces:
         optional: true
         link-local: []
     games:
-      net0: 
+      net0:
         match:
           macaddress: "46:fd:b4:6c:f8:69"
         addresses:
@@ -123,3 +123,19 @@ databases:
     keycloak: "{{ interfaces.infra.databases.net0.addresses[0] | ipaddr('address') }}"
     ipa: "{{ interfaces.infra.databases.net0.addresses[0] | ipaddr('address') }}"
     prometheus: "{{ interfaces.infra.databases.net0.addresses[0] | ipaddr('address') }}"
+
+# Separate from Infra
+kube:
+  master:
+    net0:
+      match:
+        macaddress: "16:84:e6:32:90:d7"
+      addresses:
+        - "{{ subnets.k8s | ipaddr(2) }}"
+      gateway4: "{{ gateway4.k8s }}"
+      nameservers: "{{ nameservers.public }}"
+      optional: true
+      link-local: []
+  worker:
+    base_mac: 46690932555776
+    base_ip: "{{ subnets.k8s | ipaddr(3) }}"
