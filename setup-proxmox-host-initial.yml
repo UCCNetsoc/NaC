@@ -3,10 +3,12 @@
   connection: localhost
   gather_facts: no
   pre_tasks:
-    - name: 'Ensure pip2'
+    - name: 'Install Dependencies'
       become: yes
       apt:
-        name: python-pip
+        name:
+          - python-pip
+          - sudo
 
     - name: 'Pin httplib2<0.16.0 to ensure duplicity works'
       pip:
@@ -39,7 +41,7 @@
     - ansible
     - ifupdown2
     - packer
-    - jq  # for manipulating the proxmox api pvesh when it was --output-format=json 
+    - jq  # for manipulating the proxmox api pvesh when it was --output-format=json
   # TODO(ocanty) - automate me
   # tasks:
   #   - name: Setup /etc/network/interfaces
