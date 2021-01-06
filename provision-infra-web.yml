@@ -1031,6 +1031,7 @@
                 - /var/lib/docker:/var/lib/docker
                 - /netsoc/promtail/:/promtail
               command: -config.file=/promtail/config.yaml
+              restart: always
               networks:
                 loki:
 
