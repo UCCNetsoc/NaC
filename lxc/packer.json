@@ -31,10 +31,12 @@
             "type": "ansible",
             "extra_arguments": [
                 "-c",
-                "lxc"
+                "lxc",
+                "--extra-vars",
+                "uuid={{user `uuid`}}"
             ],
             "inventory_file_template": "container ansible_host={{user `name`}}-{{user `dist`}}-{{user `uuid`}}",
-            "playbook_file": "/tmp/{{user `uuid`}}/lxc/{{user `playbook`}}.yml"
+            "playbook_file": "./lxc/{{user `playbook`}}.yml"
         }
     ]
 }
