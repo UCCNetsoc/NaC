@@ -12,7 +12,7 @@ ipaddress==1.0.23
 Jinja2==2.11.2
 jmespath==0.10.0
 jq==1.0.2
-lxc-python2==0.1
+git+git://github.com/lxc/python3-lxc@master#egg=python3-lxc
 MarkupSafe==1.1.1
 netaddr==0.8.0
 paramiko==2.7.1
