@@ -1,6 +1,6 @@
 - name: Setup
   become: yes
-  hosts: lovelace
+  hosts: control
   tasks:
     - name: Random number to avoid collisions
       set_fact:
@@ -21,7 +21,7 @@
     - name: Make /tmp/{{uuid}} dir
       file:
         state: directory
-        path: "/tmp/{{ uuid }}/lxc"
+        path: "/tmp/{{ uuid }}"
     - name: Configure general container settings
       copy:
         content: |
@@ -56,20 +56,17 @@
   tags:
     - always
 
-- name: Delegate to Lovelace
-  become: yes
-  hosts: lovelace
+- name: Ghost CMS Config Tool
+  hosts: control
   tasks:
-    - name: Copy provisioning files
-      copy:
-        src: ./lxc/
-        dest: "/tmp/{{ uuid }}/lxc/"
+    - name: Compile Config Tool
+      shell: "cd ./lxc/ && go build -o /tmp/{{uuid}}/ghost-cms-config-tool ghost-cms-config-tool.go"
   tags:
-    - always
+    - ghostcms-ubuntu
 
 # Additional base templates can be found here http://uk.images.linuxcontainers.org
 - name: Templates
-  hosts: lovelace
+  hosts: control
   become: yes
   tasks:
     - name: Ghost CMS Ubuntu
@@ -82,7 +79,7 @@
           -var "playbook={{ playbook }}"
           -var "packer_output={{ packer_output }}"
           -var "uuid={{ uuid }}"
-          /tmp/{{ uuid }}/lxc/packer.json
+          ./lxc/packer.json
       vars:
         name: ghostcms
         dist: ubuntu
@@ -100,7 +97,7 @@
           -var "playbook={{ playbook }}"
           -var "packer_output={{ packer_output }}"
           -var "uuid={{ uuid }}"
-          /tmp/{{ uuid }}/lxc/packer.json
+          ./lxc/packer.json
       vars:
         name: nginx
         dist: ubuntu
@@ -118,7 +115,7 @@
           -var "playbook={{ playbook }}"
           -var "packer_output={{ packer_output }}"
           -var "uuid={{ uuid }}"
-          /tmp/{{ uuid }}/lxc/packer.json
+          ./lxc/packer.json
       vars:
         name: mean
         dist: ubuntu
@@ -136,7 +133,7 @@
           -var "playbook={{ playbook }}"
           -var "packer_output={{ packer_output }}"
           -var "uuid={{ uuid }}"
-          /tmp/{{ uuid }}/lxc/packer.json
+          ./lxc/packer.json
       vars:
         name: gameservers
         dist: ubuntu
@@ -154,7 +151,7 @@
           -var "playbook={{ playbook }}"
           -var "packer_output={{ packer_output }}"
           -var "uuid={{ uuid }}"
-          /tmp/{{ uuid }}/lxc/packer.json
+          ./lxc/packer.json
       vars:
         name: devtools
         dist: ubuntu
@@ -172,7 +169,7 @@
           -var "playbook={{ playbook }}"
           -var "packer_output={{ packer_output }}"
           -var "uuid={{ uuid }}"
-          /tmp/{{ uuid }}/lxc/packer.json
+          ./lxc/packer.json
       vars:
         name: lemp
         dist: ubuntu
@@ -190,7 +187,7 @@
           -var "playbook={{ playbook }}"
           -var "packer_output={{ packer_output }}"
           -var "uuid={{ uuid }}"
-          /tmp/{{ uuid }}/lxc/packer.json
+          ./lxc/packer.json
       vars:
         name: wordpress
         dist: ubuntu
@@ -208,7 +205,7 @@
           -var "playbook={{ playbook }}"
           -var "packer_output={{ packer_output }}"
           -var "uuid={{ uuid }}"
-          /tmp/{{ uuid }}/lxc/packer.json
+          ./lxc/packer.json
       vars:
         name: node
         dist: ubuntu
@@ -226,7 +223,7 @@
 # As such we must extract rootfs and then compress just its contents
 - name: Fix Archives
   become: yes
-  hosts: lovelace
+  hosts: control
   tasks:
     - name: Get all templates
       find:
@@ -253,16 +250,14 @@
   tasks:
     - name: Copy templates
       synchronize:
-        src: "{{ hostvars['lovelace']['template_output'] }}/"
+        src: "{{ hostvars['control']['template_output'] }}/"
         dest: "/var/lib/vz/template/cache/"
-      delegate_to: lovelace
-      delegate_facts: true
   tags:
     - always
 
 - name: Cleanup
   become: yes
-  hosts: lovelace
+  hosts: control
   tasks:
     - name: Tidy up directory
       file:
