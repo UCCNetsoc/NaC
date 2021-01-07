@@ -2,30 +2,6 @@
 - name: "BACKUP JOBS"
   hosts: localhost
   tasks:
-    - name: BACKUP JOBS - Setup variables
-      set_fact:
-        gdrive: '{{ vault_gdrive }}'
-        #   user_id
-        #   client_id
-        #   client_secret
-        #   cache
-        #   location
-
-        backup:
-          weekday: 4 # Day of the week that the job should run ( 0-6 for Sunday-Saturday, *, etc ).
-          hour: 3 
-          minute: 0
-          directory: '/backups'
-        blacklist:
-          - 'router.vm.netsoc.co'
-        compress: 'lzo'
-        nac: '/root/NaC'
-        mode: snapshot
-        control:
-          host: 'feynman.netsoc.co'
-          name: 'feynman'
-          port: '2222'
-
     - name: BACKUP JOBS - Ensure duplicity config path
       file:
         path: '/root/.duplicity'
@@ -125,3 +101,4 @@
   vars_files:
     - 'vars/secrets.yml'
     - 'vars/secrets_mapping.yml'
+    - 'vars/backups.yml'
