@@ -73,7 +73,7 @@
             "properties": [
               {
                 "id": "custom.width",
-                "value": 304
+                "value": 245
               }
             ]
           },
@@ -109,7 +109,7 @@
             "properties": [
               {
                 "id": "custom.width",
-                "value": 97
+                "value": 73
               }
             ]
           },
@@ -208,12 +208,60 @@
                 "value": 19
               }
             ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "expected_code"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 187
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "user"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 80
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "received_code"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 161
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "channel_name"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 111
+              }
+            ]
           }
         ]
       },
       "gridPos": {
-        "h": 20,
-        "w": 22,
+        "h": 14,
+        "w": 21,
         "x": 0,
         "y": 0
       },
@@ -314,32 +362,35 @@
               "twitter_access_secret": true,
               "twitter_key": true,
               "twitter_secret": true,
-              "user_id": true
+              "user_id": true,
+              "username": true,
+              "uuid": true
             },
             "indexByName": {
-              "_file": 60,
+              "_file": 62,
               "_function": 8,
-              "_line": 61,
+              "_line": 63,
               "api_announcement_query_limit": 40,
               "api_event_query_limit": 20,
               "api_port": 47,
               "api_public_message_cutoff": 51,
-              "arcGis_Country": 70,
-              "arcGis_CountryCode": 71,
-              "arcGis_Date": 67,
-              "arcGis_NewConfirmed": 68,
-              "arcGis_NewDeaths": 65,
-              "arcGis_NewRecovered": 66,
-              "arcGis_Slug": 64,
-              "arcGis_TotalConfirmed": 62,
-              "arcGis_TotalDeaths": 69,
-              "arcGis_TotalRecovered": 63,
-              "author_id": 55,
+              "arcGis_Country": 72,
+              "arcGis_CountryCode": 73,
+              "arcGis_Date": 69,
+              "arcGis_NewConfirmed": 70,
+              "arcGis_NewDeaths": 67,
+              "arcGis_NewRecovered": 68,
+              "arcGis_Slug": 66,
+              "arcGis_TotalConfirmed": 64,
+              "arcGis_TotalDeaths": 71,
+              "arcGis_TotalRecovered": 65,
+              "author_id": 57,
               "body": 54,
               "bot_prefix": 14,
               "bot_quote_default_message_weight": 26,
               "bot_version": 48,
-              "channel_id": 57,
+              "channel_id": 59,
+              "channel_name": 56,
               "command": 53,
               "container_id": 5,
               "container_name": 4,
@@ -360,17 +411,19 @@
               "discord_servers_committee": 42,
               "discord_servers_public": 37,
               "discord_token": 38,
-              "error": 58,
+              "email": 75,
+              "error": 60,
+              "expected_code": 79,
               "facebook_app_secret": 12,
               "facebook_appid": 24,
               "facebook_page_access_token": 43,
               "facebook_pageid": 23,
               "filename": 6,
               "freeimage_key": 25,
-              "guild_id": 56,
+              "guild_id": 58,
               "id": 9,
               "level": 1,
-              "line": 59,
+              "line": 61,
               "message": 2,
               "minecraft_host": 18,
               "mysql_password": 31,
@@ -379,6 +432,7 @@
               "netsoc_sites": 19,
               "prom_dbname": 32,
               "prom_port": 33,
+              "received_code": 78,
               "schedule_enable": 39,
               "sendgrid_token": 45,
               "stream": 3,
@@ -389,7 +443,10 @@
               "twitter_access_secret": 30,
               "twitter_key": 34,
               "twitter_secret": 46,
-              "user_id": 72
+              "user": 55,
+              "user_id": 74,
+              "username": 76,
+              "uuid": 77
             },
             "renameByName": {
               "_file": "file",
@@ -416,5 +473,5 @@
   "timezone": "",
   "title": "Discord Bot",
   "uid": "discord-bot",
-  "version": 30
+  "version": 32
 }
