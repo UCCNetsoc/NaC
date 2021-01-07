@@ -4,10 +4,20 @@
 - name: Requirements
   hosts: container
   tasks:
-    - name: Install nodejs
+    - name: Install Deps
       apt:
-        name: nodejs
+        name:
+          - nodejs
+          - nginx
         state: present
+    - name: Remove nginx default page
+      file:
+        path: /etc/nginx/sites-enabled/default
+        state: absent
+    - name: Disable nginx
+      service:
+        name: nginx
+        enabled: no
     # I couldn't get npm to install any other way /shrug
     - name: Install npm
       raw: apt-get install -y npm
@@ -42,8 +52,30 @@
         mode: 0770
         content: |
           #!/bin/bash
-          sudo find /ghost/ ! -path "./versions/*" -type f -exec chmod 00664 {} \;
-          sudo find /ghost/ -type d -exec chmod 00775 {} \;
+          find /ghost/ ! -path "./versions/*" -type f -exec chmod 00664 {} \;
+          find /ghost/ -type d -exec chmod 00775 {} \;
+    - name: Copy config tool
+      copy:
+        src: "/tmp/{{ uuid }}/ghost-cms-config-tool"
+        dest: /srv/ghost-cms-config-tool
+        mode: 0775
+    - name: Config Tool Service
+      copy:
+        dest: /etc/systemd/system/config_tool.service
+        content: |
+          [Unit]
+          Description=Netsoc GhostCMS Host Config
+
+          [Service]
+          Type=simple
+          ExecStart=/srv/ghost-cms-config-tool
+
+          [Install]
+          WantedBy=multi-user.target
+    - name: Enable Config Tool
+      service:
+        name: config_tool
+        enabled: true
 
 - name: Install Ghost
   hosts: container
@@ -134,3 +166,10 @@
       shell:
         chdir: /ghost
         cmd: ghost setup linux-user systemd migrate
+
+- name: Requirements
+  hosts: container
+  tasks:
+    - name: Fix Permissions
+      shell:
+          cmd: /fix-permissions.sh

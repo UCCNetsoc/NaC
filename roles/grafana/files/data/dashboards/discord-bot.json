@@ -15,7 +15,6 @@
   "editable": true,
   "gnetId": null,
   "graphTooltip": 0,
-  "id": 5,
   "links": [],
   "panels": [
     {
@@ -74,7 +73,7 @@
             "properties": [
               {
                 "id": "custom.width",
-                "value": 345
+                "value": 304
               }
             ]
           },
@@ -110,7 +109,7 @@
             "properties": [
               {
                 "id": "custom.width",
-                "value": 164
+                "value": 97
               }
             ]
           },
@@ -134,7 +133,7 @@
             "properties": [
               {
                 "id": "custom.width",
-                "value": 178
+                "value": 29
               }
             ]
           },
@@ -146,7 +145,7 @@
             "properties": [
               {
                 "id": "custom.width",
-                "value": 170
+                "value": 57
               }
             ]
           },
@@ -158,7 +157,7 @@
             "properties": [
               {
                 "id": "custom.width",
-                "value": 174
+                "value": 70
               }
             ]
           },
@@ -170,7 +169,7 @@
             "properties": [
               {
                 "id": "custom.width",
-                "value": 166
+                "value": 36
               }
             ]
           },
@@ -182,15 +181,39 @@
             "properties": [
               {
                 "id": "custom.width",
-                "value": 333
+                "value": 55
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "username"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 39
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "uuid"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 19
               }
             ]
           }
         ]
       },
       "gridPos": {
-        "h": 25,
-        "w": 20,
+        "h": 20,
+        "w": 22,
         "x": 0,
         "y": 0
       },
@@ -204,7 +227,7 @@
           }
         ]
       },
-      "pluginVersion": "7.3.3",
+      "pluginVersion": "7.3.6",
       "repeat": null,
       "targets": [
         {
@@ -245,7 +268,7 @@
               "bot_prefix": true,
               "bot_quote_default_message_weight": true,
               "bot_version": true,
-              "container_id": false,
+              "container_id": true,
               "container_name": true,
               "corona_default": true,
               "corona_webhook": true,
@@ -393,5 +416,5 @@
   "timezone": "",
   "title": "Discord Bot",
   "uid": "discord-bot",
-  "version": 20
+  "version": 30
 }
