@@ -173,3 +173,11 @@ scrape_configs:
         regex: '^https?:\/\/(.*)\/'
       - target_label: __address__
         replacement: blackbox_exporter:9115
+
+  - job_name: 'discord-bot'
+    metrics_path: /metrics
+    static_configs:
+      - targets:
+        - 'bot.netsoc.co'
+        labels:
+          module: discord_bot
