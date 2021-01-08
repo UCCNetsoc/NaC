@@ -11,3 +11,11 @@
         dest: /etc/ssh/sshd_config.d/login.conf
         mode: 0770
         content: PermitRootLogin yes
+    - service:
+        name: systemd-resolved
+        enabled: no
+        state: stopped
+    - copy:
+        dest: /etc/resolv.conf
+        content: |
+            nameserver 1.1.1.1
