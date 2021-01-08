@@ -97,7 +97,7 @@
             "properties": [
               {
                 "id": "custom.width",
-                "value": 68
+                "value": 76
               }
             ]
           },
@@ -265,7 +265,7 @@
             "properties": [
               {
                 "id": "custom.width",
-                "value": 301
+                "value": 261
               }
             ]
           }
@@ -719,12 +719,12 @@
     "list": []
   },
   "time": {
-    "from": "now-12h",
+    "from": "now-30d",
     "to": "now"
   },
   "timepicker": {},
   "timezone": "",
   "title": "Discord Bot",
   "uid": "discord-bot",
-  "version": 34
+  "version": 36
 }
