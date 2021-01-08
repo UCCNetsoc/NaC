@@ -241,7 +241,7 @@
             "properties": [
               {
                 "id": "custom.width",
-                "value": 161
+                "value": 112
               }
             ]
           },
@@ -256,12 +256,24 @@
                 "value": 111
               }
             ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "email"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 301
+              }
+            ]
           }
         ]
       },
       "gridPos": {
         "h": 14,
-        "w": 21,
+        "w": 23,
         "x": 0,
         "y": 0
       },
@@ -457,6 +469,247 @@
       ],
       "transparent": true,
       "type": "table"
+    },
+    {
+      "aliasColors": {},
+      "bars": false,
+      "dashLength": 10,
+      "dashes": false,
+      "datasource": null,
+      "fieldConfig": {
+        "defaults": {
+          "custom": {}
+        },
+        "overrides": []
+      },
+      "fill": 1,
+      "fillGradient": 0,
+      "gridPos": {
+        "h": 9,
+        "w": 12,
+        "x": 0,
+        "y": 14
+      },
+      "hiddenSeries": false,
+      "id": 4,
+      "legend": {
+        "avg": false,
+        "current": false,
+        "max": false,
+        "min": false,
+        "show": true,
+        "total": false,
+        "values": false
+      },
+      "lines": true,
+      "linewidth": 1,
+      "nullPointMode": "null",
+      "options": {
+        "alertThreshold": true
+      },
+      "percentage": false,
+      "pluginVersion": "7.3.6",
+      "pointradius": 2,
+      "points": false,
+      "renderer": "flot",
+      "seriesOverrides": [],
+      "spaceLength": 10,
+      "stack": false,
+      "steppedLine": false,
+      "targets": [
+        {
+          "expr": "members_joined",
+          "format": "time_series",
+          "instant": false,
+          "interval": "",
+          "intervalFactor": 1,
+          "legendFormat": "members_joined",
+          "refId": "A"
+        }
+      ],
+      "thresholds": [],
+      "timeFrom": null,
+      "timeRegions": [],
+      "timeShift": null,
+      "title": "Members Joined This Acadeic Year",
+      "tooltip": {
+        "shared": true,
+        "sort": 0,
+        "value_type": "individual"
+      },
+      "type": "graph",
+      "xaxis": {
+        "buckets": null,
+        "mode": "time",
+        "name": null,
+        "show": true,
+        "values": []
+      },
+      "yaxes": [
+        {
+          "format": "short",
+          "label": null,
+          "logBase": 1,
+          "max": null,
+          "min": null,
+          "show": true
+        },
+        {
+          "format": "short",
+          "label": null,
+          "logBase": 1,
+          "max": null,
+          "min": null,
+          "show": true
+        }
+      ],
+      "yaxis": {
+        "align": false,
+        "alignLevel": null
+      }
+    },
+    {
+      "aliasColors": {},
+      "bars": false,
+      "dashLength": 10,
+      "dashes": false,
+      "datasource": null,
+      "fieldConfig": {
+        "defaults": {
+          "custom": {}
+        },
+        "overrides": []
+      },
+      "fill": 1,
+      "fillGradient": 0,
+      "gridPos": {
+        "h": 9,
+        "w": 11,
+        "x": 12,
+        "y": 14
+      },
+      "hiddenSeries": false,
+      "id": 6,
+      "legend": {
+        "avg": false,
+        "current": false,
+        "max": false,
+        "min": false,
+        "show": true,
+        "total": false,
+        "values": false
+      },
+      "lines": true,
+      "linewidth": 1,
+      "nullPointMode": "null",
+      "options": {
+        "alertThreshold": true
+      },
+      "percentage": false,
+      "pluginVersion": "7.3.6",
+      "pointradius": 2,
+      "points": false,
+      "renderer": "flot",
+      "seriesOverrides": [],
+      "spaceLength": 10,
+      "stack": false,
+      "steppedLine": false,
+      "targets": [
+        {
+          "expr": "message_count{channel=\"248421213628530688\",server=\"248421213628530688\"}",
+          "interval": "",
+          "legendFormat": "general",
+          "refId": "A"
+        },
+        {
+          "expr": "message_count{channel=\"494539080885993472\",server=\"248421213628530688\"}",
+          "interval": "",
+          "legendFormat": "announcements",
+          "refId": "B"
+        },
+        {
+          "expr": "message_count{channel=\"691756092379627621\",server=\"248421213628530688\"}",
+          "interval": "",
+          "legendFormat": "corona",
+          "refId": "C"
+        },
+        {
+          "expr": "message_count{channel=\"248422864062119947\",server=\"248421213628530688\"}",
+          "interval": "",
+          "legendFormat": "tech-chat",
+          "refId": "D"
+        },
+        {
+          "expr": "message_count{channel=\"763012234636034069\",server=\"248421213628530688\"}",
+          "interval": "",
+          "legendFormat": "programming",
+          "refId": "E"
+        },
+        {
+          "expr": "message_count{channel=\"248421871199059971\",server=\"248421213628530688\"}",
+          "interval": "",
+          "legendFormat": "general-gaming",
+          "refId": "F"
+        },
+        {
+          "expr": "message_count{channel=\"689518089536143362\",server=\"248421213628530688\"}",
+          "interval": "",
+          "legendFormat": "minecraft",
+          "refId": "G"
+        },
+        {
+          "expr": "message_count{channel=\"684009440441008128\",server=\"248421213628530688\"}",
+          "interval": "",
+          "legendFormat": "politics",
+          "refId": "H"
+        },
+        {
+          "expr": "message_count{channel=\"571834322596659208\",server=\"248421213628530688\"}",
+          "interval": "",
+          "legendFormat": "memes",
+          "refId": "I"
+        }
+      ],
+      "thresholds": [],
+      "timeFrom": null,
+      "timeRegions": [],
+      "timeShift": null,
+      "title": "Text Channel Activity",
+      "tooltip": {
+        "shared": true,
+        "sort": 0,
+        "value_type": "individual"
+      },
+      "type": "graph",
+      "xaxis": {
+        "buckets": null,
+        "mode": "time",
+        "name": null,
+        "show": true,
+        "values": []
+      },
+      "yaxes": [
+        {
+          "format": "short",
+          "label": null,
+          "logBase": 1,
+          "max": null,
+          "min": null,
+          "show": true
+        },
+        {
+          "format": "short",
+          "label": null,
+          "logBase": 1,
+          "max": null,
+          "min": null,
+          "show": true
+        }
+      ],
+      "yaxis": {
+        "align": false,
+        "alignLevel": null
+      }
     }
   ],
   "schemaVersion": 26,
@@ -466,12 +719,12 @@
     "list": []
   },
   "time": {
-    "from": "now-90d",
+    "from": "now-12h",
     "to": "now"
   },
   "timepicker": {},
   "timezone": "",
   "title": "Discord Bot",
   "uid": "discord-bot",
-  "version": 32
+  "version": 34
 }
