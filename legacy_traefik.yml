@@ -1,9 +1,0 @@
----
-- name: Deploy Traefik
-  hosts: bigbertha
-  roles:
-    - traefik
-  vars_files:
-    - vars/cloudflare_legacy.yml  # traefik certs
-    - vars/traefik.yml
-    - vars/secrets_legacy.yml
