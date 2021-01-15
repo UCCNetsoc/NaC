@@ -1,9 +1,0 @@
----
-- name: Ensure Logging Infra
-  hosts: boole
-  roles:
-    - elasticsearch
-    - kibana
-  vars_files:
-    - vars/logging.yml
-    - vars/secrets_legacy.yml
