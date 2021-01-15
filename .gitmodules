@@ -2,3 +2,6 @@
 [submodule "kubespray"]
 	path = kubespray
 	url = https://github.com/kubernetes-sigs/kubespray.git
+[submodule "roles/cloud-lxc-images"]
+	path = roles/cloud-lxc-images
+	url = https://github.com/UCCNetsoc/cloud-lxc-images
