@@ -60,16 +60,6 @@ interfaces:
         optional: true
         link-local: []
   infra:
-    auth:
-      net0:
-        match:
-          macaddress: "3e:b4:ff:cf:73:32"
-        addresses:
-          - "{{ subnets.infra | ipaddr(15) }}"
-        gateway4: "{{ gateway4.infra }}"
-        nameservers: "{{ nameservers.public }}" # because auth hosts DNS, it's initial nameservers need to be non-ours
-        optional: true
-        link-local: []
     databases:
       net0:
         match:
@@ -93,18 +83,6 @@ interfaces:
         nameservers: "{{ nameservers.public }}"
         optional: true
         link-local: []
-      net1:
-        match:
-          macaddress: "1A:A0:49:7A:C1:A2"
-        addresses:
-          - "{{ public_ips.cix[2] }}"
-        routes:
-          - to: 0.0.0.0/0
-            via: "{{ gateway4.infra }}"
-            metric: 2048
-        nameservers: "{{ nameservers.public }}"
-        optional: true
-        link-local: []
     games:
       net0:
         match:
@@ -123,19 +101,3 @@ databases:
     keycloak: "{{ interfaces.infra.databases.net0.addresses[0] | ipaddr('address') }}"
     ipa: "{{ interfaces.infra.databases.net0.addresses[0] | ipaddr('address') }}"
     prometheus: "{{ interfaces.infra.databases.net0.addresses[0] | ipaddr('address') }}"
-
-# Separate from Infra
-kube:
-  master:
-    net0:
-      match:
-        macaddress: "16:84:e6:32:90:d7"
-      addresses:
-        - "{{ subnets.k8s | ipaddr(2) }}"
-      gateway4: "{{ gateway4.k8s }}"
-      nameservers: "{{ nameservers.public }}"
-      optional: true
-      link-local: []
-  worker:
-    base_mac: 46690932555776
-    base_ip: "{{ subnets.k8s | ipaddr(3) }}"
