@@ -16,9 +16,8 @@ vlan:
   proxmox: 20
   infra:   30
   cloud:   40
-  k8s:     50
-  extern:  60  # VRRP stuff
-  router:  70  # Used for vyos clustering + failover
+  extern:  60  # For future VRRP
+  router:  70  # For future vyos clustering + failover
   oob:     80  # OOB, connected to CIX OOBnet and OOB ports on machines
   mgmt:    90  #
 
@@ -27,7 +26,6 @@ subnets:
   proxmox:  "10.0.{{ vlan.proxmox }}.0/24"
   infra:    "10.0.{{ vlan.infra }}.0/24"
   cloud:    "10.{{ vlan.cloud }}.0.0/16"
-  k8s:      "10.{{ vlan.k8s }}.0.0/16"
 
 gateway4:
   infra:    "10.0.{{ vlan.infra }}.1"
@@ -48,17 +46,6 @@ nameservers:
 vmbr: "vmbr0"
 
 interfaces:
-  cloud:
-    proxy:
-      net0:
-        match:
-          macaddress: "5a:ac:41:c9:57:8a"
-        addresses:
-          - "{{ subnets.cloud | ipaddr(2) }}"
-        gateway4: "{{ gateway4.cloud }}"
-        nameservers: "{{ nameservers.public }}"
-        optional: true
-        link-local: []
   infra:
     databases:
       net0:
