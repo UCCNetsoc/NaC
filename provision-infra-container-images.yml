@@ -4,11 +4,11 @@
   tasks:
     - name: Random number to avoid collisions
       set_fact:
-        uuid: "{{ ansible_date_time.iso8601_micro | to_uuid }}"
-    - name: Make /tmp/images/{{uuid}} dir
+        images_uuid: "{{ ansible_date_time.iso8601_micro | to_uuid }}"
+    - name: Make /tmp/images/{{images_uuid}} dir
       file:
         state: directory
-        path: "/tmp/images/{{ uuid }}"
+        path: "/tmp/images/{{ images_uuid }}"
   tags:
     - always
 
@@ -18,7 +18,7 @@
   tasks:
     - block:
       - set_fact:
-          image_output: "/tmp/images/{{ uuid }}/"
+          image_output: "/tmp/images/{{ images_uuid }}/"
       - include_role:
           name: cloud-lxc-images
   ignore_errors: yes
@@ -42,7 +42,7 @@
   tasks:
     - name: Tidy up directory
       file:
-        path: "/tmp/images/{{ uuid }}"
+        path: "/tmp/images/{{ images_uuid }}"
         state: absent
   tags:
    - always
