@@ -25,7 +25,6 @@
               ansible_ssh_private_key_file: "./keys/infra/web/id_rsa"
           net:
             net0: "virtio={{ interfaces.infra.web.net0.match.macaddress }},tag={{ vlan.infra }},bridge={{ vmbr }}"
-            net1: "virtio={{ interfaces.infra.web.net1.match.macaddress }},tag={{ vlan.wan }},bridge={{ vmbr }}"
           disks:
             pool: local-lvm
             boot:
