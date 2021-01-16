@@ -19,7 +19,7 @@
       - "--housekeeping_interval=15s"
       - "--disable_metrics disk,tcp,udp"
     state: started
-    restart_policy: on-failure
+    restart_policy: always
     ports:
       - "9338:8080"
     volumes:
