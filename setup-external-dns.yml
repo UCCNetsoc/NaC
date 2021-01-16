@@ -32,10 +32,10 @@
             - { type: CNAME,  name: "netsoc.cloud",   value: "web.netsoc.co"  }
 
             # Any traffic to VM goes to the proxy/jumphost
-            - { type: CNAME,  name: proxy,            value: "cix-4.netsoc.co"    }
-            - { type: CNAME,  name: ssh,              value: "cix-4.netsoc.co"    }
-            - { type: CNAME,  name: sftp,             value: "cix-4.netsoc.co"    }
-            - { type: CNAME,  name: "*",              value: "proxy.netsoc.cloud" }
+            - { type: CNAME,  name: proxy,            value: "web.netsoc.co"  }
+            - { type: CNAME,  name: ssh,              value: "web.netsoc.co"  }
+            - { type: CNAME,  name: sftp,             value: "web.netsoc.co"  }
+            - { type: CNAME,  name: "*",              value: "web.netsoc.co"  }
           "netsoc.co":
             # A
             - { type: A,      name: "cix-0",          value: "84.39.234.50" }
