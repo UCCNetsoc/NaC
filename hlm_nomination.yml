@@ -1,8 +1,0 @@
----
-- name: Ensure hlm.netsoc.co
-  hosts: bigbertha
-  roles:
-    - hlm.netsoc.co
-  vars_files:
-    - vars/email.yml
-    - vars/secrets_legacy.yml
