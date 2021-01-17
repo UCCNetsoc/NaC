@@ -5,37 +5,6 @@
   tasks:
     - set_fact:
         records:
-          "netsoc.dev":
-            # A
-            - { type: A,      name: "cix-0",          value: "84.39.234.50" }
-            - { type: A,      name: "cix-1",          value: "84.39.234.51" }
-            - { type: A,      name: "cix-2",          value: "84.39.234.52" }
-            - { type: A,      name: "cix-3",          value: "84.39.234.53" }
-            - { type: A,      name: "cix-4",          value: "84.39.234.54" }
-
-            # Historical hostnames
-            - { type: A,      name: "bigbertha",      value: "84.39.234.50" }
-            - { type: A,      name: "boole",          value: "84.39.234.54" }
-            - { type: A,      name: "feynman",        value: "84.39.234.53" }
-            - { type: A,      name: "leela",          value: "84.39.234.51" }
-            - { type: A,      name: "lovelace",       value: "84.39.234.52" }
-
-            - { type: A,      name: 80-443-swarm-ingress,  value: "84.39.234.53" }
-
-            # CNAMEs
-            - { type: CNAME,  name: grafana,          value: "bigbertha.netsoc.dev" }
-
-            - { type: CNAME,  name: events,           value: "cix-2.netsoc.co"  }
-          "netsoc.cloud":
-            # API traffic goes to the web host
-            - { type: CNAME,  name: api,              value: "web.netsoc.co"  }
-            - { type: CNAME,  name: "netsoc.cloud",   value: "web.netsoc.co"  }
-
-            # Any traffic to VM goes to the proxy/jumphost
-            - { type: CNAME,  name: proxy,            value: "web.netsoc.co"  }
-            - { type: CNAME,  name: ssh,              value: "web.netsoc.co"  }
-            - { type: CNAME,  name: sftp,             value: "web.netsoc.co"  }
-            - { type: CNAME,  name: "*",              value: "web.netsoc.co"  }
           "netsoc.co":
             # A
             - { type: A,      name: "cix-0",          value: "84.39.234.50" }
@@ -52,24 +21,28 @@
             - { type: A,      name: "feynman",        value: "84.39.234.53" }
             - { type: A,      name: "leela",          value: "84.39.234.51" }
             - { type: A,      name: "lovelace",       value: "84.39.234.52" }
+
             - { type: A,      name: "elon",           value: "143.239.87.40" }
             - { type: A,      name: "tesla",          value: "143.239.87.41" }
 
-            # New - post proxmoxification
-            - { type: A,        name: 80-443-swarm-ingress,  value: "84.39.234.53" }
+            # For old ldap
+            - { type: CNAME,    name: ldap, value: elon.netsoc.co }
+
+            # To cix-3.netsoc.co
+            - { type: CNAME,    name: control,               value: "cix-3.netsoc.co" }
             - { type: CNAME,    name: minecraft,             value: "cix-3.netsoc.co" }
 
-            # proxmox control host
-            - { type: CNAME,    name: control,               value: "cix-3.netsoc.co" }
-
-            # leela-vm
-            - { type: A,        name: leela-vm,              value: "84.39.234.51" }
+            # To cix-1.netsoc.co 
+            - { type: CNAME,    name: leela-vm,              value: "cix-1.netsoc.co" }
             - { type: CNAME,    name: admin,                 value: "leela-vm.netsoc.co" }
             - { type: CNAME,    name: mysql,                 value: "leela-vm.netsoc.co" }
-            # web
-            - { type: CNAME,    name: web,                   value: "cix-2.netsoc.co" }
-            - { type: CNAME,    name: netsoc.co,             value: "web.netsoc.co"  }
+            - { type: CNAME,    name: "*.evan",              value: "leela-vm.netsoc.co" }
+            - { type: CNAME,    name: www.*.evan,            value: "leela-vm.netsoc.co" }
+            
+            # To cix-1.netsoc.co
+            - { type: CNAME,    name: web,                   value: "cix-1.netsoc.co" }
 
+            - { type: CNAME,    name: netsoc.co,             value: "web.netsoc.co"  }
             - { type: CNAME,    name: ipa,                   value: "web.netsoc.co"  }
             - { type: CNAME,    name: keycloak,              value: "web.netsoc.co"  }
             - { type: CNAME,    name: traefik,               value: "web.netsoc.co"  }
@@ -90,27 +63,7 @@
             - { type: CNAME,    name: esports,               value: "web.netsoc.co"  }
             - { type: CNAME,    name: cloud,                 value: "web.netsoc.co"  }
             - { type: CNAME,    name: "*",                   value: "web.netsoc.co"  }
-
-            # Historical CNAME Records
-            - { type: CNAME, name: alerts, value: bigbertha.netsoc.co }
-            - { type: CNAME, name: bert.ci, value: bigbertha.netsoc.co }
-            - { type: CNAME, name: consul, value: bigbertha.netsoc.co }
-            - { type: CNAME, name: es, value: bigbertha.netsoc.co }
-            - { type: CNAME, name: "*.evan", value: leela.netsoc.co }
-            - { type: CNAME, name: hlm, value: bigbertha.netsoc.co }
-            - { type: CNAME, name: impressive, value: bigbertha.netsoc.co }
-            - { type: CNAME, name: irc, value: bigbertha.netsoc.co }
-            - { type: CNAME, name: ldap, value: elon.netsoc.co }
-            - { type: CNAME, name: logs, value: bigbertha.netsoc.co }
-            - { type: CNAME, name: lxd, value: bigbertha.netsoc.co }
-            - { type: CNAME, name: prom, value: bigbertha.netsoc.co }
-            - { type: CNAME, name: unf2b, value: leela.netsoc.co }
-            - { type: CNAME, name: userdomains, value: leela.netsoc.co }
-            - { type: CNAME, name: vault, value: bigbertha.netsoc.co }
-            - { type: CNAME, name: warpcon.co, value: leela.netsoc.co }
-            - { type: CNAME, name: www.*.evan, value: leela.netsoc.co }
-            - { type: CNAME, name: www.*, value: bigbertha.netsoc.co }
-            - { type: CNAME, name: www.warpcon.co, value: leela.netsoc.co }
+            - { type: CNAME,    name: www.*,                 value: "web.netsoc.co"  }
 
             # MX
             - { type: MX, name: "netsoc.co", value: "mx.zoho.com" }
@@ -128,29 +81,39 @@
             - { type: CNAME, name: "s2._domainkey", value: "s2.domainkey.u18778499.wl250.sendgrid.net" }
 
             # SRV
-            - { type: SRV, name: "minecraft", proto: "tcp", service: "minecraft", port: "1194", priority: 0, weight: 5, value: "cix-3.netsoc.co"}
+            - { type: SRV, name: "minecraft", proto: "tcp", service: "minecraft", port: "1194", priority: 0, weight: 5, value: "minecraft.netsoc.co"}
+          "netsoc.cloud":
+            - { type: CNAME,  name: "netsoc.cloud",   value: "web.netsoc.co"  }
+            - { type: CNAME,  name: api,              value: "web.netsoc.co"  }
+            - { type: CNAME,  name: proxy,            value: "web.netsoc.co"  }
+            - { type: CNAME,  name: ssh,              value: "web.netsoc.co"  }
+            - { type: CNAME,  name: sftp,             value: "web.netsoc.co"  }
+            - { type: CNAME,  name: "*",              value: "web.netsoc.co"  }
+          "netsoc.dev":
+            # A
+            - { type: CNAME,      name: "*",          value: "web.netsoc.co" }
         cf_headers:
           X-Auth-Email: "{{ cloudflare.api.email }}"
           Authorization: "Bearer {{ cloudflare.api.dns_api_token }}"
           Content-Type: "application/json"
         grafana_basic_auth: "{{ grafana.username }}:{{ grafana.password }}"
 
-    - name: "Set Grafana dashboard annotation"
-      uri:
-        url: https://grafana.netsoc.co/api/annotations
-        method: POST
-        headers:
-          Content-Type: "application/json"
-          Accept: "application/json"
-          Authorization: "Basic {{ grafana_basic_auth | b64encode }}"
-        body_format: json
-        body: '{
-          "panelId": 10,
-          "dashboardId": 25,
-          "time": {{ ansible_date_time.epoch | int * 1000 }},
-          "tags": [ "ansible" ],
-          "text": "Ansible setup-external-dns.yml playbook started",
-        }'
+    # - name: "Set Grafana dashboard annotation"
+    #   uri:
+    #     url: https://grafana.netsoc.co/api/annotations
+    #     method: POST
+    #     headers:
+    #       Content-Type: "application/json"
+    #       Accept: "application/json"
+    #       Authorization: "Basic {{ grafana_basic_auth | b64encode }}"
+    #     body_format: json
+    #     body: '{
+    #       "panelId": 10,
+    #       "dashboardId": 25,
+    #       "time": {{ ansible_date_time.epoch | int * 1000 }},
+    #       "tags": [ "ansible" ],
+    #       "text": "Ansible setup-external-dns.yml playbook started",
+    #     }'
 
     - name: Get zone details for all domains in `records`
       uri:

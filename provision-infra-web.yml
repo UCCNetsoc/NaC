@@ -134,20 +134,19 @@
         traefik_file_config:
           http:
             routers:
-              # This needs the DNS challenge to work, and wildcards are insecure anyway :/
-              # wildcard:
-              #   entrypoints:
-              #     - web-secure
-              #   rule: Host(`*.netsoc.co`)
-              #   service: unused
-              #   tls:
-              #     certResolver: letsencrypt
               leela-fallback:
                 entrypoints:
                   - web-secure
                 rule: PathPrefix(`/`) # matches everything
-                service: leela-fallback
+                service: leela-http
                 priority: 10
+                tls:
+                  certResolver: letsencrypt
+              student-media:
+                entrypoints:
+                  - web-secure
+                rule: Host(`motley.ie`,`www.motley.ie`,`www.uccexpress.ie`,`uccexpress.ie`)
+                service: leela-https
                 tls:
                   certResolver: letsencrypt
               ipa:
@@ -269,10 +268,14 @@
                 loadBalancer:
                   servers:
                     - url: 'https://google.com'
-              leela-fallback:
+              leela-https:
                 loadBalancer:
                   servers:
-                    - url: 'http://leela-vm.netsoc.co'
+                    - url: 'https://10.0.30.135'
+              leela-http:
+                loadBalancer:
+                  servers:
+                    - url: 'http://10.0.30.135'
 
     - name: TRAEFIK - Write static config
       copy:
@@ -362,17 +365,17 @@
                 traefik:
               labels:
                 traefik.enable: "true"
-                traefik.http.routers.website.rule: "Host(`netsoc.co`) || Host(`www.netsoc.co`)"
+                traefik.http.routers.website.rule: "Host(`netsoc.co, `www.netsoc.co`)"
                 traefik.http.routers.website.entrypoints: "web-secure"
                 traefik.http.routers.website.tls.certResolver: "letsencrypt"
                 traefik.http.services.website-service.loadbalancer.server.port: "80"
                 traefik.http.routers.website.service: "website-service"
-                traefik.http.middlewares.rk-redirect.redirectregex.regex: "^https://netsoc.co/(r(?:[^k].*)|[^r].*)?$$"
-                traefik.http.middlewares.rk-redirect.redirectregex.replacement: "https://netsoc.co/rk/$${1}"
+                traefik.http.middlewares.rk-redirect.redirectregex.regex: "^(http|https)://netsoc.co/(r(?:[^k].*)|[^r].*)?$$"
+                traefik.http.middlewares.rk-redirect.redirectregex.replacement: "https://netsoc.co/rk/$${2}"
                 traefik.http.middlewares.rk-redirect.redirectregex.permanent: "true"
                 traefik.http.middlewares.rk-strip.stripprefix.prefixes: "/rk"
-                traefik.http.middlewares.www-redirect.redirectregex.regex: "^https://www.netsoc.co/(.*)"
-                traefik.http.middlewares.www-redirect.redirectregex.replacement: "https://netsoc.co/$${1}"
+                traefik.http.middlewares.www-redirect.redirectregex.regex: "^(http|https)://www.netsoc.co/(.*)"
+                traefik.http.middlewares.www-redirect.redirectregex.replacement: "^(http|https)://netsoc.co/$${2}"
                 traefik.http.middlewares.www-redirect.redirectregex.permanent: "true"
                 traefik.http.routers.website.middlewares: "rk-redirect@docker,rk-strip@docker,www-redirect@docker"
                 traefik.docker.network: "traefik"

@@ -29,7 +29,6 @@ subnets:
 
 gateway4:
   infra:    "10.0.{{ vlan.infra }}.1"
-  k8s:      "10.{{ vlan.k8s }}.0.1"
   cloud:    "10.{{ vlan.cloud }}.0.1"
 
 nameservers:
