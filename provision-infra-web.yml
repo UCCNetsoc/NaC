@@ -114,6 +114,12 @@
                 email: netsoc@uccsocieties.ie
                 storage: /traefik/acme.json
                 tlsChallenge: {}
+            letsencrypt-cf:
+              acme:
+                email: netsoc@uccsocieties.ie
+                storage: /traefik/acme-cf.json
+                dnsChallenge:
+                  provider: cloudflare
           providers:
             file:
               directory: /traefik/file_config/
@@ -138,10 +144,98 @@
                 entrypoints:
                   - web-secure
                 rule: PathPrefix(`/`) # matches everything
-                service: leela-http
-                priority: 10
+                service: leela-https
+                priority: 1
                 tls:
                   certResolver: letsencrypt
+                  domains:
+                    - main: colm.design
+                      sans:
+                        - colm.cf
+                        - colm.design
+                        - hausurecords.com
+                        - hau.su
+                        - olwen.ie
+                        - www.olwen.ie
+                        - ghostking.rip
+                        - l.hausurecords.com
+              leela-fallback-https:
+                entrypoints:
+                  - web-secure
+                rule: >-
+                  Host(
+                  `cardinaldesign.io`,
+                  `colm.cf`,
+                  `colm.design`,
+                  `ghostking.rip`,
+                  `ghostkingisdead.com`,
+                  `hau.su`,
+                  `hausurecords.com`,
+                  `kaizokucon.ie`,
+                  `l.hausurecords.com`,
+                  `laravel.iamevan.me`,
+                  `noahsc.xyz`,
+                  `notes.evan.netsoc.co`,
+                  `olwen.ie`,
+                  `reeling.party`,
+                  `sysadmin.iamevan.me`,
+                  `thehappybus.club`,
+                  `thehappybus.evan.netsoc.co`,
+                  `uccflow.net`,
+                  `ultimateeastcoastusatrip.ie`,
+                  `warpcon.co`,
+                  `wordpress.iamevan.me`,
+                  `www.cardinaldesign.io`,
+                  `www.colm.cf`,
+                  `www.colm.design`,
+                  `www.ghostking.rip`,
+                  `www.ghostkingisdead.com`,
+                  `www.hausurecords.com`,
+                  `www.iamevan.me`,
+                  `www.kaizokucon.ie`,
+                  `www.laravel.iamevan.me`,
+                  `www.monica.evan.netsoc.co`,
+                  `www.noahsc.xyz`,
+                  `www.notes.evan.netsoc.co`,
+                  `www.olwen.ie`,
+                  `www.reeling.party`,
+                  `www.silentmovies.media`,
+                  `www.sysadmin.iamevan.me`,
+                  `www.thehappybus.club`,
+                  `www.uccflow.net`,
+                  `www.ultimateeastcoastusatrip.ie`,
+                  `www.warpcon.co`,
+                  `www.wordpress.iamevan.me`)
+                service: leela-https
+                tls:
+                  certResolver: letsencrypt
+              leela-fallback-http:
+                entrypoints:
+                  - web-secure
+                rule: >-
+                  Host(
+                  `vune.ie`,
+                  `www.vune.ie`,
+                  `*.vune.ie`,
+                  `dsn.ie`,
+                  `iamevan.me`,
+                  `www.iamevan.me`,
+                  `refund.noahsc.xyz`,
+                  `syncthing.evan.netsoc.co`,
+                  `silentmovies.media`,
+                  `ultimateeastcoastusatrip.ie`,
+                  `warpcon.com`)
+                service: leela-http
+                tls:
+                  certResolver: letsencrypt
+              user-sites:
+                entrypoints:
+                  - web-secure
+                rule: HostRegexp(`{subdomain:[a-zA-Z0-9]*}.netsoc.co`, `www.{subdomain:[a-zA-Z0-9]*}.netsoc.co`)
+                service: leela-http
+                priority: 2
+                tls:
+                  certResolver: letsencrypt-cf
               student-media:
                 entrypoints:
                   - web-secure
@@ -324,7 +418,6 @@
                 # passworded dashboard
                 traefik.http.routers.dashboard.entrypoints: "web-secure"
                 traefik.http.routers.dashboard.rule: "Host(`traefik.netsoc.co`)"
-                traefik.http.routers.dashboard.tls: ""
                 traefik.http.routers.dashboard.tls.certResolver: "letsencrypt"
                 traefik.http.routers.dashboard.service: "dashboard-service"
                 traefik.http.services.dashboard-service.loadbalancer.server.port: "8080"
