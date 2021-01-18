@@ -145,21 +145,21 @@
                   - web-secure
                 rule: PathPrefix(`/`) # matches everything
                 service: leela-https
-                priority: 1
+                priority: 1 # last possible match
                 tls:
                   certResolver: letsencrypt
-                  domains:
-                    - main: colm.design
-                      sans:
-                        - colm.cf
-                        - colm.design
-                        - hausurecords.com
-                        - hau.su
-                        - olwen.ie
-                        - www.olwen.ie
-                        - ghostking.rip
-                        - l.hausurecords.com
-              leela-fallback-https:
+                  # domains:
+                  #   - main: colm.design
+                  #     sans:
+                  #       - colm.cf
+                  #       - colm.design
+                  #       - hausurecords.com
+                  #       - hau.su
+                  #       - olwen.ie
+                  #       - www.olwen.ie
+                  #       - ghostking.rip
+                  #       - l.hausurecords.com
+              leela-fallback-https: 
                 entrypoints:
                   - web-secure
                 rule: >-
@@ -168,7 +168,7 @@
                   `colm.cf`,
                   `colm.design`,
                   `ghostking.rip`,
-                  `ghostkingisdead.com`,
+                  `ghostkingisdead.com`,  
                   `hau.su`,
                   `hausurecords.com`,
                   `kaizokucon.ie`,
@@ -178,37 +178,23 @@
                   `notes.evan.netsoc.co`,
                   `olwen.ie`,
                   `reeling.party`,
-                  `sysadmin.iamevan.me`,
-                  `thehappybus.club`,
                   `thehappybus.evan.netsoc.co`,
-                  `uccflow.net`,
                   `ultimateeastcoastusatrip.ie`,
-                  `warpcon.co`,
-                  `wordpress.iamevan.me`,
                   `www.cardinaldesign.io`,
-                  `www.colm.cf`,
                   `www.colm.design`,
                   `www.ghostking.rip`,
                   `www.ghostkingisdead.com`,
                   `www.hausurecords.com`,
-                  `www.iamevan.me`,
-                  `www.kaizokucon.ie`,
-                  `www.laravel.iamevan.me`,
-                  `www.monica.evan.netsoc.co`,
                   `www.noahsc.xyz`,
                   `www.notes.evan.netsoc.co`,
                   `www.olwen.ie`,
                   `www.reeling.party`,
-                  `www.silentmovies.media`,
-                  `www.sysadmin.iamevan.me`,
-                  `www.thehappybus.club`,
-                  `www.uccflow.net`,
-                  `www.ultimateeastcoastusatrip.ie`,
-                  `www.warpcon.co`,
-                  `www.wordpress.iamevan.me`)
+                  `www.ultimateeastcoastusatrip.ie`)
                 service: leela-https
                 tls:
                   certResolver: letsencrypt
+              # `iamevan.me`,
+              # `www.iamevan.me`,
               leela-fallback-http:
                 entrypoints:
                   - web-secure
@@ -216,19 +202,15 @@
                   Host(
                   `vune.ie`,
                   `www.vune.ie`,
-                  `*.vune.ie`,
                   `dsn.ie`,
-                  `iamevan.me`,
-                  `www.iamevan.me`,
                   `refund.noahsc.xyz`,
-                  `syncthing.evan.netsoc.co`,
+                  `www.silentmovies.media`,
                   `silentmovies.media`,
-                  `ultimateeastcoastusatrip.ie`,
-                  `warpcon.com`)
+                  `ultimateeastcoastusatrip.ie`)
                 service: leela-http
                 tls:
                   certResolver: letsencrypt
-              user-sites:
+              leela-fallback-user-sites:
                 entrypoints:
                   - web-secure
                 rule: HostRegexp(`{subdomain:[a-zA-Z0-9]*}.netsoc.co`, `www.{subdomain:[a-zA-Z0-9]*}.netsoc.co`)
@@ -605,7 +587,7 @@
               environment:
                 DISCORD_TOKEN: "{{ netsocbot.discord_token }}"
                 DISCORD_ROLES: "631196785913888768,720021252676518079"
-                DISCORD_PUBLIC_SERVER: "248421213628530688"
+                DISCORD_PUBLIC_SERVER : "248421213628530688"
                 DISCORD_PUBLIC_CHANNEL: "494539080885993472"
                 DISCORD_PUBLIC_GENERAL: "248421213628530688"
                 DISCORD_PUBLIC_CORONA: "691756092379627621"
