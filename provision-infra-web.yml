@@ -148,17 +148,13 @@
                 priority: 1 # last possible match
                 tls:
                   certResolver: letsencrypt
-                  # domains:
-                  #   - main: colm.design
-                  #     sans:
-                  #       - colm.cf
-                  #       - colm.design
-                  #       - hausurecords.com
-                  #       - hau.su
-                  #       - olwen.ie
-                  #       - www.olwen.ie
-                  #       - ghostking.rip
-                  #       - l.hausurecords.com
+              leela-fallback-evan:
+                entrypoints:
+                  - web-secure
+                rule: Host(`iamevan.me`, `www.iamevan.me`)
+                service: leela-https
+                tls:
+                  certResolver: letsencrypt
               leela-fallback-https: 
                 entrypoints:
                   - web-secure
@@ -193,8 +189,6 @@
                 service: leela-https
                 tls:
                   certResolver: letsencrypt
-              # `iamevan.me`,
-              # `www.iamevan.me`,
               leela-fallback-http:
                 entrypoints:
                   - web-secure
@@ -213,11 +207,13 @@
               leela-fallback-user-sites:
                 entrypoints:
                   - web-secure
-                rule: HostRegexp(`{subdomain:[a-zA-Z0-9]*}.netsoc.co`, `www.{subdomain:[a-zA-Z0-9]*}.netsoc.co`)
+                rule: HostRegexp(`{subdomain:*}.netsoc.co`, `www.{subdomain:*}.netsoc.co`)
                 service: leela-http
                 priority: 2
                 tls:
                   certResolver: letsencrypt-cf
+                  domains:
+                    - main: "*.netsoc.co"
               student-media:
                 entrypoints:
                   - web-secure
