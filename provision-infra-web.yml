@@ -109,17 +109,21 @@
           serversTransport:
             insecureSkipVerify: true
           certificatesResolvers:
-            letsencrypt:
+            letsencrypt-tls:
               acme:
                 email: netsoc@uccsocieties.ie
                 storage: /traefik/acme.json
                 tlsChallenge: {}
-            letsencrypt-cf:
+            letsencrypt-dns:
               acme:
                 email: netsoc@uccsocieties.ie
                 storage: /traefik/acme-cf.json
                 dnsChallenge:
                   provider: cloudflare
+                  delayBeforeCheck: 10
+                  resolvers:
+                    - "1.1.1.1:53"
+                    - "1.0.0.1:53"
           providers:
             file:
               directory: /traefik/file_config/
@@ -128,7 +132,7 @@
               exposedByDefault: false
             http: # cloud http config
               endpoint:
-                - "https://api.netsoc.cloud/v1/proxmox/traefik-config?key={{ netsoc_cloud_config.proxmox.network.traefik_config_key }}"
+                - "https://api.netsoc.cloud/v1/proxmox/traefik-config?key={{ netsoc_cloud_config.proxmox.network.traefik.config_key }}"
               pollInterval: 5s
               pollTimeout: 10s
           api:
@@ -147,14 +151,14 @@
                 service: leela-https
                 priority: 1 # last possible match
                 tls:
-                  certResolver: letsencrypt
+                  certResolver: letsencrypt-tls
               leela-fallback-evan:
                 entrypoints:
                   - web-secure
                 rule: Host(`iamevan.me`, `www.iamevan.me`)
                 service: leela-https
                 tls:
-                  certResolver: letsencrypt
+                  certResolver: letsencrypt-tls
               leela-fallback-https: 
                 entrypoints:
                   - web-secure
@@ -188,7 +192,7 @@
                   `www.ultimateeastcoastusatrip.ie`)
                 service: leela-https
                 tls:
-                  certResolver: letsencrypt
+                  certResolver: letsencrypt-tls
               leela-fallback-http:
                 entrypoints:
                   - web-secure
@@ -203,24 +207,26 @@
                   `ultimateeastcoastusatrip.ie`)
                 service: leela-http
                 tls:
-                  certResolver: letsencrypt
+                  certResolver: letsencrypt-tls
               leela-fallback-user-sites:
                 entrypoints:
                   - web-secure
-                rule: HostRegexp(`{subdomain:*}.netsoc.co`, `www.{subdomain:*}.netsoc.co`)
+                rule: HostRegexp(`{subdomain:[a-zA-Z0-9-]+}.netsoc.co`, `www.{subdomain:[a-zA-Z0-9-]+}.netsoc.co`)
                 service: leela-http
                 priority: 2
                 tls:
-                  certResolver: letsencrypt-cf
+                  certResolver: letsencrypt-dns
                   domains:
-                    - main: "*.netsoc.co"
+                    - main: "netsoc.co"
+                      sans:
+                        - "*.netsoc.co"
               student-media:
                 entrypoints:
                   - web-secure
                 rule: Host(`motley.ie`,`www.motley.ie`,`www.uccexpress.ie`,`uccexpress.ie`)
                 service: leela-https
                 tls:
-                  certResolver: letsencrypt
+                  certResolver: letsencrypt-tls
               ipa:
                 entrypoints:
                   - web-secure
@@ -229,14 +235,14 @@
                   - ipa-rewrite
                 service: ipa
                 tls:
-                  certResolver: letsencrypt
+                  certResolver: letsencrypt-dns
               keycloak:
                 entrypoints:
                   - web-secure
                 rule: Host(`keycloak.netsoc.co`)
                 service: keycloak
                 tls:
-                  certResolver: letsencrypt
+                  certResolver: letsencrypt-dns
               discord-router:
                 entrypoints:
                   - web-secure
@@ -245,7 +251,7 @@
                   - discord-redirect
                 service: unused
                 tls:
-                  certResolver: letsencrypt
+                  certResolver: letsencrypt-dns
               constitution-router:
                 entrypoints:
                   - web-secure
@@ -254,7 +260,7 @@
                   - constitution-redirect
                 service: unused
                 tls:
-                  certResolver: letsencrypt
+                  certResolver: letsencrypt-dns
               esports-router:
                 entrypoints:
                   - web-secure
@@ -263,7 +269,7 @@
                   - esports-redirect
                 service: unused
                 tls:
-                  certResolver: letsencrypt
+                  certResolver: letsencrypt-dns
               prometheus:
                 entrypoints:
                   - web-secure
@@ -272,7 +278,7 @@
                   - prometheus-auth
                 service: prometheus
                 tls:
-                  certResolver: letsencrypt
+                  certResolver: letsencrypt-dns
               mentorships-router:
                 entrypoints:
                   - web-secure
@@ -281,7 +287,7 @@
                   - mentorships-redirect
                 service: unused
                 tls:
-                  certResolver: letsencrypt
+                  certResolver: letsencrypt-dns
               tutorial-router:
                 entrypoints:
                   - web-secure
@@ -290,7 +296,7 @@
                   - tutorial-redirect
                 service: unused
                 tls:
-                  certResolver: letsencrypt
+                  certResolver: letsencrypt-dns
             middlewares:
               discord-redirect:
                 redirectRegex:
@@ -396,7 +402,7 @@
                 # passworded dashboard
                 traefik.http.routers.dashboard.entrypoints: "web-secure"
                 traefik.http.routers.dashboard.rule: "Host(`traefik.netsoc.co`)"
-                traefik.http.routers.dashboard.tls.certResolver: "letsencrypt"
+                traefik.http.routers.dashboard.tls.certResolver: "letsencrypt-dns"
                 traefik.http.routers.dashboard.service: "dashboard-service"
                 traefik.http.services.dashboard-service.loadbalancer.server.port: "8080"
                 traefik.http.middlewares.dashboard-auth.basicauth.users: "{{ traefik.username }}:{{ traefik.password | password_hash('bcrypt') | replace('$', '$$') }}"
@@ -417,6 +423,7 @@
   tags:
     - provision
     - traefik
+    - netsoc-cloud
 
 - name: "STATIC WEBSITES"
   hosts: web.infra.netsoc.co
@@ -438,7 +445,7 @@
                 traefik.enable: "true"
                 traefik.http.routers.website.rule: "Host(`netsoc.co, `www.netsoc.co`)"
                 traefik.http.routers.website.entrypoints: "web-secure"
-                traefik.http.routers.website.tls.certResolver: "letsencrypt"
+                traefik.http.routers.website.tls.certResolver: "letsencrypt-dns"
                 traefik.http.services.website-service.loadbalancer.server.port: "80"
                 traefik.http.routers.website.service: "website-service"
                 traefik.http.middlewares.rk-redirect.redirectregex.regex: "^(http|https)://netsoc.co/(r(?:[^k].*)|[^r].*)?$$"
@@ -461,7 +468,7 @@
                 traefik.enable: "true"
                 traefik.http.routers.blog.rule: "Host(`blog.netsoc.co`)"
                 traefik.http.routers.blog.entrypoints: "web-secure"
-                traefik.http.routers.blog.tls.certResolver: "letsencrypt"
+                traefik.http.routers.blog.tls.certResolver: "letsencrypt-dns"
                 traefik.http.services.blog-service.loadbalancer.server.port: "80"
                 traefik.http.routers.blog.service: "blog-service"
                 traefik.docker.network: "traefik"
@@ -510,7 +517,7 @@
                 traefik.enable: "true"
                 traefik.http.routers.wiki.rule: "Host(`wiki.netsoc.co`)"
                 traefik.http.routers.wiki.entrypoints: "web-secure"
-                traefik.http.routers.wiki.tls.certResolver: "letsencrypt"
+                traefik.http.routers.wiki.tls.certResolver: "letsencrypt-dns"
                 traefik.http.services.wiki.loadbalancer.server.port: "3000"
                 traefik.http.routers.wiki.service: "wiki"
                 traefik.docker.network: "traefik"
@@ -609,7 +616,7 @@
                 traefik.enable: "true"
                 traefik.http.routers.netsocbot.rule: "Host(`bot.netsoc.co`)"
                 traefik.http.routers.netsocbot.entrypoints: "web-secure"
-                traefik.http.routers.netsocbot.tls.certResolver: "letsencrypt"
+                traefik.http.routers.netsocbot.tls.certResolver: "letsencrypt-dns"
                 traefik.http.services.netsocbot-service.loadbalancer.server.port: "80"
                 traefik.http.routers.netsocbot.service: "netsocbot-service"
                 traefik.docker.network: "traefik"
@@ -730,7 +737,7 @@
                 traefik.enable: "true"
                 traefik.http.routers.drone.entrypoints: web-secure
                 traefik.http.routers.drone.rule: Host(`ci.netsoc.co`)
-                traefik.http.routers.drone.tls.certResolver: letsencrypt
+                traefik.http.routers.drone.tls.certResolver: letsencrypt-dns
                 traefik.http.routers.drone.service: drone-service
                 traefik.http.services.drone-service.loadbalancer.server.port: 80
                 traefik.docker.network: traefik
@@ -958,7 +965,7 @@
                 traefik.enable: "true"
                 traefik.http.routers.netsoc-cloud-api.entrypoints: web-secure
                 traefik.http.routers.netsoc-cloud-api.rule: Host(`api.netsoc.cloud`)
-                traefik.http.routers.netsoc-cloud-api.tls.certResolver: letsencrypt
+                traefik.http.routers.netsoc-cloud-api.tls.certResolver: letsencrypt-dns
                 traefik.http.routers.netsoc-cloud-api.service: netsoc-cloud-api
                 traefik.http.services.netsoc-cloud-api.loadbalancer.server.port: "80"
                 traefik.docker.network: traefik
@@ -971,7 +978,9 @@
                 traefik.enable: "true"
                 traefik.http.routers.netsoc-cloud-ui.entrypoints: web-secure
                 traefik.http.routers.netsoc-cloud-ui.rule: Host(`netsoc.cloud`)
-                traefik.http.routers.netsoc-cloud-ui.tls.certResolver: letsencrypt
+                traefik.http.routers.netsoc-cloud-ui.tls.certResolver: letsencrypt-dns
+                traefik.http.routers.netsoc-cloud-ui.tls.domains[0].main: "netsoc.cloud"
+                traefik.http.routers.netsoc-cloud-ui.tls.domains[0].sans: "*.netsoc.cloud"
                 traefik.http.routers.netsoc-cloud-ui.service: netsoc-cloud-ui
                 traefik.http.services.netsoc-cloud-ui.loadbalancer.server.port: "80"
                 traefik.docker.network: traefik
@@ -1112,7 +1121,7 @@
                 traefik.enable: "true"
                 traefik.http.routers.webssh2.rule: "Host(`ssh.netsoc.cloud`)"
                 traefik.http.routers.webssh2.entrypoints: "web-secure"
-                traefik.http.routers.webssh2.tls.certResolver: "letsencrypt"
+                traefik.http.routers.webssh2.tls.certResolver: "letsencrypt-dns"
                 traefik.http.services.webssh2-service.loadbalancer.server.port: "2222"
                 traefik.http.routers.webssh2.service: "webssh2-service"
                 traefik.docker.network: "traefik"
@@ -1182,7 +1191,7 @@
                 traefik.enable: "true"
                 traefik.http.routers.monstaftp.rule: "Host(`sftp.netsoc.cloud`)"
                 traefik.http.routers.monstaftp.entrypoints: "web-secure"
-                traefik.http.routers.monstaftp.tls.certResolver: "letsencrypt"
+                traefik.http.routers.monstaftp.tls.certResolver: "letsencrypt-dns"
                 traefik.http.services.monstaftp-service.loadbalancer.server.port: "80"
                 traefik.http.routers.monstaftp.service: "monstaftp-service"
                 traefik.docker.network: "traefik"
@@ -1320,7 +1329,7 @@
                 traefik.enable: "true"
                 traefik.http.routers.loki.rule: "Host(`loki.netsoc.co`)"
                 traefik.http.routers.loki.entrypoints: "web-secure"
-                traefik.http.routers.loki.tls.certResolver: "letsencrypt"
+                traefik.http.routers.loki.tls.certResolver: "letsencrypt-dns"
                 traefik.http.services.loki.loadbalancer.server.port: "3100"
                 traefik.http.routers.loki.service: "loki"
                 traefik.http.middlewares.loki-auth.basicauth.users: "{{ loki.username }}:{{ loki.hash }}"
@@ -1343,7 +1352,7 @@
             #     traefik.enable: "true"
             #     traefik.http.routers.grafana.rule: "Host(`grafana.netsoc.co`)"
             #     traefik.http.routers.grafana.entrypoints: "web-secure"
-            #     traefik.http.routers.grafana.tls.certResolver: "letsencrypt"
+            #     traefik.http.routers.grafana.tls.certResolver: "letsencrypt-dns"
             #     traefik.http.services.grafana.loadbalancer.server.port: "3000"
             #     traefik.http.routers.grafana.service: "grafana"
             #     traefik.docker.network: "traefik"
