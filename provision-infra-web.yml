@@ -443,7 +443,7 @@
                 traefik:
               labels:
                 traefik.enable: "true"
-                traefik.http.routers.website.rule: "Host(`netsoc.co, `www.netsoc.co`)"
+                traefik.http.routers.website.rule: "Host(`netsoc.co`, `www.netsoc.co`)"
                 traefik.http.routers.website.entrypoints: "web-secure"
                 traefik.http.routers.website.tls.certResolver: "letsencrypt-dns"
                 traefik.http.services.website-service.loadbalancer.server.port: "80"
