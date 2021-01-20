@@ -159,7 +159,7 @@
                 service: leela-https
                 tls:
                   certResolver: letsencrypt-tls
-              leela-fallback-https: 
+              leela-fallback-https:
                 entrypoints:
                   - web-secure
                 rule: >-
@@ -168,7 +168,7 @@
                   `colm.cf`,
                   `colm.design`,
                   `ghostking.rip`,
-                  `ghostkingisdead.com`,  
+                  `ghostkingisdead.com`,
                   `hau.su`,
                   `hausurecords.com`,
                   `kaizokucon.ie`,
@@ -612,6 +612,7 @@
                 FACEBOOK_PAGEID: "{{ netsocbot.fb.pageid }}"
                 FACEBOOK_PAGE_ACCESS_TOKEN: "{{ netsocbot.fb.accesstoken }}"
                 SCHEDULE_ENABLE: "False"
+                MINECRAFT_HOST: "{{ interfaces.infra.games.net0.addresses[0] | ipaddr('address') }}:1194"
               labels:
                 traefik.enable: "true"
                 traefik.http.routers.netsocbot.rule: "Host(`bot.netsoc.co`)"
