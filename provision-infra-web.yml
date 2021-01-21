@@ -884,7 +884,7 @@
 
     - name: CI
       pause:
-        prompt: "Make sure at the UCCNetworkingSociety user has signed into Drone and hit Synchronize then hit enter"
+        prompt: "Make sure the UCCNetworkingSociety user has signed into Drone and hit Synchronize then hit enter"
 
     - name: CI - Enable listed repos. (may fail if repos haven't synced yet/missing, will retry)
       uri:
