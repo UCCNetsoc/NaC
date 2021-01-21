@@ -545,21 +545,20 @@
   tasks:
     - name: DISCORD BOT - Ensure MySQL Database
       run_once: true
-      mysql_db:
-        name: "{{ netsocbot.mysql_database }}"
-        login_host: "{{ databases.infra.mysql }}"
-        login_password: "{{ mysql.infra.root_password }}"
+      postgresql_db:
+        name: "{{ netsocbot.sql_database }}"
+        login_host: "{{ databases.infra.postgres }}"
+        login_password: "{{ postgres.infra.postgres_password }}"
         state: present
 
     - name: DISCORD BOT - Ensure Bot MySQL User
       run_once: true
-      mysql_user:
-        name: "{{ netsocbot.mysql_user }}"
-        password: "{{ netsocbot.mysql_password }}"
-        priv: "{{ netsocbot.mysql_database }}.*:ALL"
-        host: "%"
-        login_host: "{{ databases.infra.mysql }}"
-        login_password: "{{ mysql.infra.root_password }}"
+      postgresql_user:
+        name: "{{ netsocbot.sql_user }}"
+        password: "{{ netsocbot.sql_password }}"
+        priv: "{{ netsocbot.sql_database }}.*:ALL"
+        login_host: "{{ databases.infra.postgres }}"
+        login_password: "{{ postgres.infra.postgres_password }}"
         state: present
       no_log: true
   vars_files:
@@ -603,9 +602,10 @@
                 TWITTER_SECRET: "{{ netsocbot.twitter_secret }}"
                 TWITTER_ACCESS_KEY: "{{ netsocbot.twitter_access_key }}"
                 TWITTER_ACCESS_SECRET: "{{ netsocbot.twitter_access_secret }}"
-                MYSQL_URL: "{{ databases.infra.mysql }}:3306"
-                MYSQL_USERNAME: "{{ netsocbot.mysql_user }}"
-                MYSQL_PASSWORD: "{{ netsocbot.mysql_password }}"
+                SQL_HOST: "{{ databases.infra.postgres }}"
+                SQL_PORT: 5432
+                SQL_USERNAME: "{{ netsocbot.sql_user }}"
+                SQL_PASSWORD: "{{ netsocbot.sql_password }}"
                 FREEIMAGE_KEY: "{{ netsocbot.freeimage_key }}"
                 FACEBOOK_APPID: "{{ netsocbot.fb.appid }}"
                 FACEBOOK_APP_SECRET: "{{ netsocbot.fb.appsecret }}"
