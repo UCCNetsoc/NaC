@@ -531,7 +531,7 @@
       "timeFrom": null,
       "timeRegions": [],
       "timeShift": null,
-      "title": "Members Joined This Acadeic Year",
+      "title": "Members Joined",
       "tooltip": {
         "shared": true,
         "sort": 0,
@@ -674,7 +674,7 @@
       "timeFrom": null,
       "timeRegions": [],
       "timeShift": null,
-      "title": "Text Channel Activity",
+      "title": "Text Channel Activity (From 21/1/2021)",
       "tooltip": {
         "shared": true,
         "sort": 0,
@@ -726,5 +726,5 @@
   "timezone": "",
   "title": "Discord Bot",
   "uid": "discord-bot",
-  "version": 36
+  "version": 38
 }

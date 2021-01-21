@@ -667,8 +667,8 @@
       become: yes
       mysql_db:
         name: "{{ drone.mysql_database }}"
-        login_host: "{{ databases.infra.mysql }}"
-        login_password: "{{ mysql.infra.root_password }}"
+        login_host: "{{ databases.infra.postgres }}"
+        login_password: "{{ postgres.infra.postgres_password }}"
         state: present
 
     - name: CI - Ensure Drone MySQL User
