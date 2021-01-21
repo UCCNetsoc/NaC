@@ -665,31 +665,21 @@
     - name: CI - Ensure Drone MySQL Database
       run_once: true
       become: yes
-      mysql_db:
+      postgresql_db:
         name: "{{ drone.mysql_database }}"
         login_host: "{{ databases.infra.postgres }}"
         login_password: "{{ postgres.infra.postgres_password }}"
         state: present
 
     - name: CI - Ensure Drone MySQL User
-      mysql_user:
+      postgresql_user:
         name: "{{ drone.mysql_user }}"
         password: "{{ drone.mysql_password }}"
-        priv: "{{ drone.mysql_database}}.*:ALL"
-        host: "%"
-        login_host: "{{ databases.infra.mysql }}"
-        login_password: "{{ mysql.infra.root_password }}"
+        login_host: "{{ databases.infra.postgres }}"
+        login_password: "{{ postgres.infra.postgres_password }}"
         state: present
       no_log: true
 
-    - name: CI - Set log_bin_trust_function_creators=1
-      run_once: true
-      become: yes
-      mysql_variables:
-        login_host: "{{ databases.infra.mysql }}"
-        login_password: "{{ mysql.infra.root_password }}"
-        variable: log_bin_trust_function_creators
-        value: 1
   vars_files:
     - "vars/network.yml"
     - "vars/secrets_mapping.yml"
@@ -723,8 +713,8 @@
                 DRONE_SERVER_HOST: "ci.netsoc.co"
                 DRONE_TLS_AUTOCERT: "false"
                 DRONE_SERVER_PROTO: https
-                DRONE_DATABASE_DRIVER: "mysql"
-                DRONE_DATABASE_DATASOURCE: "{{ drone.mysql_user }}:{{ drone.mysql_password }}@tcp({{ interfaces.infra.databases.net0.addresses[0] | ipaddr('address') }}:3306)/{{ drone.mysql_database }}?parseTime=true"
+                DRONE_DATABASE_DRIVER: "postgres"
+                DRONE_DATABASE_DATASOURCE: "postgres://{{ drone.mysql_user }}:{{ drone.mysql_password }}@{{ interfaces.infra.databases.net0.addresses[0] | ipaddr('address') }}:5432/{{ drone.mysql_database }}?sslmode=disable"
                 DRONE_JSONNET_ENABLED: "true"
                 DRONE_STATUS_NAME: uccnetsoc/ci/drone
                 DRONE_USER_CREATE: "username:UCCNetworkingSociety,admin:true,token:{{ drone.admin_token }}"
@@ -894,7 +884,7 @@
 
     - name: CI
       pause:
-        prompt: "Make sure at least one user of UCCNetsoc org has signed into Drone and hit Synchronize then hit enter"
+        prompt: "Make sure at the UCCNetworkingSociety user has signed into Drone and hit Synchronize then hit enter"
 
     - name: CI - Enable listed repos. (may fail if repos haven't synced yet/missing, will retry)
       uri:
@@ -907,7 +897,7 @@
           Authorization: "Bearer {{ drone.admin_token }}"
       register: result
       until: result.status == 200
-      retries: 50
+      retries: 10
       delay: 1
       with_items: "{{ ci_repos }}"
 
