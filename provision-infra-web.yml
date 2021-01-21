@@ -556,7 +556,6 @@
       postgresql_user:
         name: "{{ netsocbot.sql_user }}"
         password: "{{ netsocbot.sql_password }}"
-        priv: "{{ netsocbot.sql_database }}.*:ALL"
         login_host: "{{ databases.infra.postgres }}"
         login_password: "{{ postgres.infra.postgres_password }}"
         state: present
