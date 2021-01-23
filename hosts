@@ -12,8 +12,6 @@ lovelace
 leela
 
 # "OLD" NETSOC
-boole
-bigbertha
 leela_vm
 feynman_vm
 lovelace_vm
@@ -31,20 +29,3 @@ feynman
 lovelace
 leela
 
-
-[non_sudo]
-boole
-bigbertha
-leela_vm
-lovelace_vm
-
-[swarm_creators]
-boole
-
-[swarm_managers]
-boole
-bigbertha
-lovelace_vm
-
-[swarm_workers]
-leela_vm
