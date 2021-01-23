@@ -54,7 +54,7 @@
     pubkey:         "{{ lxc.authorized_keys | default(null) }}"
     timeout:        "{{ lxc.timeout | default('300') }}"
     storage:        "{{ lxc.storage }}"
-    disk:           "{{ lxc.disk }}"
+    disk:           "{{ lxc.disks.rootfs.size }}"
     nameserver:     "1.1.1.1"
     cores:          "{{ lxc.cores | default(1) }}"
     memory:         "{{ lxc.memory | default(512) }}"
@@ -119,5 +119,5 @@
 
 - name: PROXMOX LXC - Resize rootfs
   shell:
-    pvesh set /nodes/{{ ansible_hostname }}/lxc/{{ lxc_id }}/resize -disk rootfs -size {{ lxc.disk }}
+    pvesh set /nodes/{{ ansible_hostname }}/lxc/{{ lxc_id }}/resize -disk rootfs -size {{ lxc.disks.rootfs.size }}
   when: lxc.rootfs is defined and lxc_needs_creation is false
