@@ -20,16 +20,19 @@ vlan:
   router:  70  # For future vyos clustering + failover
   oob:     80  # OOB, connected to CIX OOBnet and OOB ports on machines
   mgmt:    90  #
+  dhcp:   255
 
 subnets:
   wan:      "10.0.{{ vlan.wan }}.0/24"
   proxmox:  "10.0.{{ vlan.proxmox }}.0/24"
   infra:    "10.0.{{ vlan.infra }}.0/24"
   cloud:    "10.{{ vlan.cloud }}.0.0/16"
+  dhcp:     "10.{{ vlan.dhcp }}.0.0/16"
 
 gateway4:
   infra:    "10.0.{{ vlan.infra }}.1"
   cloud:    "10.{{ vlan.cloud }}.0.1"
+  dhcp:     "10.{{ vlan.dhcp }}.0.1"
 
 nameservers:
   infra:
