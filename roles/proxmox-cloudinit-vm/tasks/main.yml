@@ -192,7 +192,7 @@
 
 - name: Resize boot disk
   shell:
-    pvesh set /nodes/{{ inventory_hostname }}/qemu/{{ vm_id }}/resize -disk virtio0 -size {{ vm.disk }}G
+    pvesh set /nodes/{{ inventory_hostname }}/qemu/{{ vm_id }}/resize -disk virtio0 -size {{ vm.disks.boot.size }}G
 
 - name: Add the extra disks if they don't exist already and resize
   shell: |
@@ -203,10 +203,10 @@
     pvesh set /nodes/{{ inventory_hostname }}/qemu/{{ vm_id }}/resize -disk virtio{{ index+1 }} -size {{ item.size }}G
   args:
     executable: /bin/bash
-  loop: "{{ vm.disks_extra | default('[]') }}"
+  loop: "{{ vm.disks.extra | default('[]') }}"
   loop_control:
     index_var: index
-  when: "vm.disks_extra is defined"
+  when: "vm.disks.extra is defined"
 
 # TODO, storage moving for extra discs
 

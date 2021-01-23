@@ -70,7 +70,9 @@
               cores: 1
               memory: 256
               swap: 256
-              disk: 10
+              disks:
+                rootfs:
+                  size: 10
               net:
                 net0: "name=eth0,ip=dhcp,tag={{ vlan.dhcp }},bridge={{ vmbr }},firewall=1"
               features: "fuse=1,nesting=1,keyctl=1"
@@ -93,7 +95,9 @@
               cores: 1
               memory: 256
               swap: 256
-              disk: 10
+              disks:
+                rootfs:
+                  size: 10
               net:
                 net0: "name=eth0,ip=dhcp,tag={{ vlan.dhcp }},bridge={{ vmbr }},firewall=1"
               features: "fuse=1,nesting=1,keyctl=1"
@@ -115,7 +119,9 @@
               cores: 1
               memory: 256
               swap: 256
-              disk: 10
+              disks:
+                rootfs:
+                  size: 10
               net:
                 net0: "name=eth0,ip=dhcp,tag={{ vlan.dhcp }},bridge={{ vmbr }},firewall=1"
               features: "fuse=1,nesting=1,keyctl=1"
@@ -139,7 +145,9 @@
               cores: 1
               memory: 1024
               swap: 256
-              disk: 10
+              disks:
+                boot:
+                  size: 10
               net:
                 net0: "model=virtio,tag={{ vlan.dhcp }},bridge={{ vmbr }},firewall=1"
               cloudinit:
