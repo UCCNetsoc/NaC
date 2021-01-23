@@ -159,7 +159,7 @@
                 service: leela-https
                 tls:
                   certResolver: letsencrypt-tls
-              leela-fallback-https: 
+              leela-fallback-https:
                 entrypoints:
                   - web-secure
                 rule: >-
@@ -168,7 +168,7 @@
                   `colm.cf`,
                   `colm.design`,
                   `ghostking.rip`,
-                  `ghostkingisdead.com`,  
+                  `ghostkingisdead.com`,
                   `hau.su`,
                   `hausurecords.com`,
                   `kaizokucon.ie`,
@@ -545,21 +545,19 @@
   tasks:
     - name: DISCORD BOT - Ensure MySQL Database
       run_once: true
-      mysql_db:
-        name: "{{ netsocbot.mysql_database }}"
-        login_host: "{{ databases.infra.mysql }}"
-        login_password: "{{ mysql.infra.root_password }}"
+      postgresql_db:
+        name: "{{ netsocbot.sql_database }}"
+        login_host: "{{ databases.infra.postgres }}"
+        login_password: "{{ postgres.infra.postgres_password }}"
         state: present
 
     - name: DISCORD BOT - Ensure Bot MySQL User
       run_once: true
-      mysql_user:
-        name: "{{ netsocbot.mysql_user }}"
-        password: "{{ netsocbot.mysql_password }}"
-        priv: "{{ netsocbot.mysql_database }}.*:ALL"
-        host: "%"
-        login_host: "{{ databases.infra.mysql }}"
-        login_password: "{{ mysql.infra.root_password }}"
+      postgresql_user:
+        name: "{{ netsocbot.sql_user }}"
+        password: "{{ netsocbot.sql_password }}"
+        login_host: "{{ databases.infra.postgres }}"
+        login_password: "{{ postgres.infra.postgres_password }}"
         state: present
       no_log: true
   vars_files:
@@ -603,15 +601,17 @@
                 TWITTER_SECRET: "{{ netsocbot.twitter_secret }}"
                 TWITTER_ACCESS_KEY: "{{ netsocbot.twitter_access_key }}"
                 TWITTER_ACCESS_SECRET: "{{ netsocbot.twitter_access_secret }}"
-                MYSQL_URL: "{{ databases.infra.mysql }}:3306"
-                MYSQL_USERNAME: "{{ netsocbot.mysql_user }}"
-                MYSQL_PASSWORD: "{{ netsocbot.mysql_password }}"
+                SQL_HOST: "{{ databases.infra.postgres }}"
+                SQL_PORT: 5432
+                SQL_USERNAME: "{{ netsocbot.sql_user }}"
+                SQL_PASSWORD: "{{ netsocbot.sql_password }}"
                 FREEIMAGE_KEY: "{{ netsocbot.freeimage_key }}"
                 FACEBOOK_APPID: "{{ netsocbot.fb.appid }}"
                 FACEBOOK_APP_SECRET: "{{ netsocbot.fb.appsecret }}"
                 FACEBOOK_PAGEID: "{{ netsocbot.fb.pageid }}"
                 FACEBOOK_PAGE_ACCESS_TOKEN: "{{ netsocbot.fb.accesstoken }}"
                 SCHEDULE_ENABLE: "False"
+                MINECRAFT_HOST: "{{ interfaces.infra.games.net0.addresses[0] | ipaddr('address') }}:1194"
               labels:
                 traefik.enable: "true"
                 traefik.http.routers.netsocbot.rule: "Host(`bot.netsoc.co`)"
@@ -665,31 +665,21 @@
     - name: CI - Ensure Drone MySQL Database
       run_once: true
       become: yes
-      mysql_db:
+      postgresql_db:
         name: "{{ drone.mysql_database }}"
-        login_host: "{{ databases.infra.mysql }}"
-        login_password: "{{ mysql.infra.root_password }}"
+        login_host: "{{ databases.infra.postgres }}"
+        login_password: "{{ postgres.infra.postgres_password }}"
         state: present
 
     - name: CI - Ensure Drone MySQL User
-      mysql_user:
+      postgresql_user:
         name: "{{ drone.mysql_user }}"
         password: "{{ drone.mysql_password }}"
-        priv: "{{ drone.mysql_database}}.*:ALL"
-        host: "%"
-        login_host: "{{ databases.infra.mysql }}"
-        login_password: "{{ mysql.infra.root_password }}"
+        login_host: "{{ databases.infra.postgres }}"
+        login_password: "{{ postgres.infra.postgres_password }}"
         state: present
       no_log: true
 
-    - name: CI - Set log_bin_trust_function_creators=1
-      run_once: true
-      become: yes
-      mysql_variables:
-        login_host: "{{ databases.infra.mysql }}"
-        login_password: "{{ mysql.infra.root_password }}"
-        variable: log_bin_trust_function_creators
-        value: 1
   vars_files:
     - "vars/network.yml"
     - "vars/secrets_mapping.yml"
@@ -723,8 +713,8 @@
                 DRONE_SERVER_HOST: "ci.netsoc.co"
                 DRONE_TLS_AUTOCERT: "false"
                 DRONE_SERVER_PROTO: https
-                DRONE_DATABASE_DRIVER: "mysql"
-                DRONE_DATABASE_DATASOURCE: "{{ drone.mysql_user }}:{{ drone.mysql_password }}@tcp({{ interfaces.infra.databases.net0.addresses[0] | ipaddr('address') }}:3306)/{{ drone.mysql_database }}?parseTime=true"
+                DRONE_DATABASE_DRIVER: "postgres"
+                DRONE_DATABASE_DATASOURCE: "postgres://{{ drone.mysql_user }}:{{ drone.mysql_password }}@{{ interfaces.infra.databases.net0.addresses[0] | ipaddr('address') }}:5432/{{ drone.mysql_database }}?sslmode=disable"
                 DRONE_JSONNET_ENABLED: "true"
                 DRONE_STATUS_NAME: uccnetsoc/ci/drone
                 DRONE_USER_CREATE: "username:UCCNetworkingSociety,admin:true,token:{{ drone.admin_token }}"
@@ -894,7 +884,7 @@
 
     - name: CI
       pause:
-        prompt: "Make sure at least one user of UCCNetsoc org has signed into Drone and hit Synchronize then hit enter"
+        prompt: "Make sure the UCCNetworkingSociety user has signed into Drone and hit Synchronize then hit enter"
 
     - name: CI - Enable listed repos. (may fail if repos haven't synced yet/missing, will retry)
       uri:
@@ -907,7 +897,7 @@
           Authorization: "Bearer {{ drone.admin_token }}"
       register: result
       until: result.status == 200
-      retries: 50
+      retries: 10
       delay: 1
       with_items: "{{ ci_repos }}"
 
