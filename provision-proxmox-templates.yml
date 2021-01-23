@@ -1,0 +1,152 @@
+# - name: "idk"
+#   hosts: feynman
+#   roles:
+#     - role: proxmox-cloudinit-template
+#       vars:
+#         vm:
+#           name: "ubuntu-20.04.1.vps.template.netsoc.cloud"
+#           clone:
+#             pool: netsoc-cloud
+#             qcow2_url: "https://cloud-images.ubuntu.com/releases/focal/release-20200921.1/ubuntu-20.04-server-cloudimg-amd64.img"
+#             qcow2_hash: sha256:d18a9d2b890d3c1401e70a281cae44b61816aa669c4936f7a99c168e572ec8cb
+#           cores: 2
+#           memory: 2048
+#           description:
+#             title: "Ubuntu Server 20.04.1 LTS"
+#             subtitle: "An easy to use server distro"
+#             description: |
+#               Ubuntu is a Linux distribution based on Debian mostly composed of free and open-source software.
+#               Ubuntu is officially released in three editions: Desktop, Server, and Core for Internet of things devices and robots.
+#               All the editions can run on the computer alone, or in a virtual machine
+#             logo_url: "https://wiki.netsoc.co/assets/cloud/template-ubuntu.png"
+#             wake_on_request: no
+#             specs:
+#               standard:
+#                 cores: 2
+#                 disk_space: 10
+#                 memory: 2048
+#           disks:
+#             pool: netsoc-cloud
+#           efi:
+#             pool: netsoc-cloud
+#   vars_files:
+#     - vars/network.yml
+#     - vars/secrets_mapping.yml
+#     - vars/secrets.yml
+
+- name: Add Provisionee host
+  hosts: feynman
+  tasks:
+    - add_host:
+        name: provisionee
+  tags:
+    - always
+
+- name: Provision Netsoc Cloud templates
+  hosts: feynman, provisionee
+  gather_facts: no
+  roles:
+    - role: proxmox-templates
+      vars:
+        proxmox_host: feynman
+        provisionee_host: provisionee
+        templates:
+          - lxc:
+              name: "ubuntu.container.template.netsoc.cloud"
+              storage: netsoc-cloud
+              template:
+                storage: netsoc-cloud
+                image: "ubuntu-20.04-standard_20.04-1_amd64.tar.gz"
+              description:
+                title: "Ubuntu Server 20.04.1 LTS"
+                subtitle: "An easy to use server distro"
+                description: |
+                  Ubuntu is a Linux distribution based on Debian mostly composed of free and open-source software.
+                  Ubuntu is officially released in three editions: Desktop, Server, and Core for Internet of things devices and robots.
+                  All the editions can run on the computer alone, or in a virtual machine
+                logo_url: "https://wiki.netsoc.co/assets/cloud/template-ubuntu.png"
+                wake_on_request: no
+              unprivileged: yes
+              cores: 1
+              memory: 256
+              swap: 256
+              disk: 10
+              net:
+                net0: "name=eth0,ip=dhcp,tag={{ vlan.dhcp }},bridge={{ vmbr }},firewall=1"
+              features: "fuse=1,nesting=1,keyctl=1"
+            tasks: "./netsoc-cloud/templates/ubuntu.yml"
+          - lxc:
+              name: "ubuntu-docker.container.template.netsoc.cloud"
+              storage: netsoc-cloud
+              template:
+                storage: netsoc-cloud
+                image: "ubuntu-20.04-standard_20.04-1_amd64.tar.gz"
+              description:
+                title: "Docker (on Ubuntu 20.04)"
+                subtitle: "Get started using your own containers in seconds"
+                description: |
+                  Docker is a Linux container management toolkit with a “social” aspect, letting users publish container images and consume those published by others.
+                  Containers are isolated from one another and bundle their own software, libraries and configuration files; they can communicate with each other through well-defined channels.
+                logo_url: "https://wiki.netsoc.co/assets/cloud/template-ubuntu.png"
+                wake_on_request: no
+              unprivileged: yes
+              cores: 1
+              memory: 256
+              swap: 256
+              disk: 10
+              net:
+                net0: "name=eth0,ip=dhcp,tag={{ vlan.dhcp }},bridge={{ vmbr }},firewall=1"
+              features: "fuse=1,nesting=1,keyctl=1"
+            tasks: "./netsoc-cloud/templates/ubuntu-docker.yml"
+          - lxc:
+              name: "ubuntu-wordpress.container.template.netsoc.cloud"
+              storage: netsoc-cloud
+              template:
+                storage: netsoc-cloud
+                image: "ubuntu-20.04-standard_20.04-1_amd64.tar.gz"
+              description:
+                title: "WordPress"
+                subtitle: "The most popular blog and CMS system"
+                description: |
+                  WordPress is a free and open-source content management system (CMS) written in PHP and paired with a MySQL or MariaDB database.
+                logo_url: "https://wiki.netsoc.co/assets/cloud/template-wordpress.png"
+                wake_on_request: no
+              unprivileged: yes
+              cores: 1
+              memory: 256
+              swap: 256
+              disk: 10
+              net:
+                net0: "name=eth0,ip=dhcp,tag={{ vlan.dhcp }},bridge={{ vmbr }},firewall=1"
+              features: "fuse=1,nesting=1,keyctl=1"
+            tasks: "./netsoc-cloud/templates/ubuntu-wordpress.yml"
+          - vm:
+              name: "ubuntu.vps.template.netsoc.cloud"
+              storage: netsoc-cloud
+              template:
+                storage: netsoc-cloud
+                image_url: https://cloud-images.ubuntu.com/releases/focal/release-20200921.1/ubuntu-20.04-server-cloudimg-amd64.img
+                image_hash: sha256:d18a9d2b890d3c1401e70a281cae44b61816aa669c4936f7a99c168e572ec8cb
+              description:
+                title: "Ubuntu Server 20.04.1 LTS"
+                subtitle: "An easy to use server distro"
+                description: |
+                  Ubuntu is a Linux distribution based on Debian mostly composed of free and open-source software.
+                  Ubuntu is officially released in three editions: Desktop, Server, and Core for Internet of things devices and robots.
+                  All the editions can run on the computer alone, or in a virtual machine
+                logo_url: "https://wiki.netsoc.co/assets/cloud/template-ubuntu.png"
+                wake_on_request: no
+              cores: 1
+              memory: 1024
+              swap: 256
+              disk: 10
+              net:
+                net0: "model=virtio,tag={{ vlan.dhcp }},bridge={{ vmbr }},firewall=1"
+              cloudinit:
+                storage: "netsoc-cloud"
+  vars_files:
+    - vars/network.yml
+    - vars/secrets_mapping.yml
+    - vars/secrets.yml
+  tags:
+    - always
