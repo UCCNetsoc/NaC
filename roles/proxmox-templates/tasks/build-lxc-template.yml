@@ -115,3 +115,9 @@
     id=`pvesh get /nodes/{{ ansible_hostname }}/lxc/ --output-format=json | jq '.[] | select(.name=="{{ template.lxc.name }}").vmid' -r --exit-status`
     pvesh create /nodes/{{ ansible_hostname }}/lxc/$id/template
   when: "inventory_hostname == proxmox_host"
+
+- name: PROXMOX TEMPLATES (LXC) - Delete SSH keypair
+  file:
+    path: /tmp/ansible_{{ template.lxc.name }}.id_ssh
+    state: absent
+  when: "inventory_hostname == proxmox_host"

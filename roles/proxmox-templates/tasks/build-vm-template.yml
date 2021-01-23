@@ -156,3 +156,9 @@
     id=`pvesh get /nodes/{{ proxmox_host }}/qemu/ --output-format=json | jq '.[] | select(.name=="{{ template.vm.name }}").vmid' -r --exit-status`
     pvesh create /nodes/{{ proxmox_host }}/qemu/$id/config -template 1
   when: "inventory_hostname == proxmox_host"
+
+- name: PROXMOX TEMPLATES (VM) - Delete SSH keypair
+  file:
+    path: /tmp/ansible_{{ template.vm.name }}.id_ssh
+    state: absent
+  when: "inventory_hostname == proxmox_host"
