@@ -1,0 +1,117 @@
+- name: PROXMOX TEMPLATES (LXC) - Gather facts
+  setup:
+  when: "inventory_hostname == proxmox_host"
+
+- name: PROXMOX TEMPLATES (LXC) - Generate SSH keypair
+  openssh_keypair:
+    path: /tmp/ansible_{{ template.lxc.name }}.id_ssh
+    force: True
+  when: "inventory_hostname == proxmox_host"
+
+- name: PROXMOX TEMPLATES (LXC) - Create LXC
+  include_role:
+    name: proxmox-lxc
+  vars:
+    recreate: yes
+    lxc: "{{ template.lxc | combine({'authorized_keys': lookup('file', '/tmp/ansible_' + template.lxc.name + '.id_ssh.pub')}) }}"
+  when: "inventory_hostname == proxmox_host"
+
+- name: PROXMOX TEMPLATES (LXC) - Start container
+  proxmox:
+    proxmox_default_behavior: "no_defaults"
+    api_host:       "localhost"
+    api_user:       "{{ proxmox.username }}"
+    api_password:   "{{ proxmox.password }}"
+    node:           "{{ inventory_hostname }}"
+    hostname:       "{{ template.lxc.name }}"
+    state:          started
+  ignore_errors:  yes
+  when: "inventory_hostname == proxmox_host"
+
+- name: PROXMOX TEMPLATES (LXC) - Wait for net
+  pause:
+    seconds: 5
+  when: "inventory_hostname == proxmox_host"
+
+
+- name: PROXMOX TEMPLATES (LXC) - Get IP 
+  shell: |
+    id=`pvesh get /nodes/{{ ansible_hostname }}/lxc/ --output-format=json | jq '.[] | select(.name=="{{ template.lxc.name }}").vmid' -r --exit-status`
+    lxc-info -n $id -iH
+  args:
+    executable: /bin/sh
+  register: provisionee_ip_out
+  when: "inventory_hostname == proxmox_host"
+
+- name: PROXMOX TEMPLATES (LXC) - Remember IP 
+  set_fact:
+    provisionee_ip: "{{ provisionee_ip_out.stdout | trim }}"
+  when: "inventory_hostname == proxmox_host"
+
+- name: PROXMOX TEMPLATES (LXC) - Wait for SSH
+  wait_for:
+    port: 22
+    search_regex: OpenSSH
+    host: "{{ provisionee_ip }}"
+  when: "inventory_hostname == proxmox_host"
+
+- name: PROXMOX TEMPLATES (LXC) - Gather facts
+  setup:
+  when: "inventory_hostname == proxmox_host"
+
+- name: PROXMOX TEMPLATES (LXC) - Configure ansible_host, etc for LXC provisionee group
+  set_fact:
+    ansible_host: "{{ hostvars[proxmox_host]['provisionee_ip'] }}"
+    ansible_ssh_user: root
+    ansible_ssh_private_key_file: "/tmp/ansible_{{ template.lxc.name }}.id_ssh"
+    ansible_ssh_common_args: '-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null'
+  when: "inventory_hostname == provisionee_host"
+
+- name: PROXMOX TEMPLATES (LXC) - Gather facts on LXC
+  setup:
+  when: "inventory_hostname == provisionee_host"
+
+# The butt-pucker zone
+- name: PROXMOX TEMPLATES (LXC) - Test provisionee_host to ensure user is not an idiot and provisioning the proxmox host instead of the container (1/2)
+  shell: "! which pvesh" # errors if the pvesh binary exists
+  when: "inventory_hostname == provisionee_host and inventory_hostname != proxmox_host"
+
+- name: PROXMOX TEMPLATES (LXC) - Test provisionee_host to ensure user is not an idiot and provisioning the proxmox host instead of the container (2/2)
+  shell: "! which pveam" # errors if the pveam binary exists
+  when: "inventory_hostname == provisionee_host and inventory_hostname != proxmox_host"
+
+- name: PROXMOX TEMPLATES (LXC) - Provision LXC
+  include_tasks: "{{ template.tasks }}"
+  when: "inventory_hostname == provisionee_host and inventory_hostname != proxmox_host"
+  # ^^^ !!! DO NOT REMOVE THIS LINE !!! ^^^
+  # WILL CAUSE CATASTROPHIC DAMAGE TO THE PROXMOX HOST IF REMOVED
+
+- name: PROXMOX TEMPLATES (LXC) - Delete host keys
+  file:
+    path: /root/.ssh/id_rsa
+    state: absent
+  when: "inventory_hostname == provisionee_host"
+
+- name: PROXMOX TEMPLATES (LXC) - Delete SSH key on host
+  file:
+    path: /tmp/ansible_{{ template.lxc.name }}.id_ssh
+    state: absent
+  when: "inventory_hostname == proxmox_host"
+
+- name: PROXMOX TEMPLATES (LXC) - Stop LXC
+  proxmox:
+    proxmox_default_behavior: "no_defaults"
+    node: "{{ proxmox_host }}"
+    api_host:       "localhost"
+    api_user:       "{{ proxmox.username }}"
+    api_password:   "{{ proxmox.password }}"
+    hostname: "{{ template.lxc.name }}"
+    state: stopped
+    force: yes
+  when: "inventory_hostname == proxmox_host"
+
+- name: PROXMOX TEMPLATES (LXC) - Convert LXC into template
+  shell: |
+    id=`pvesh get /nodes/{{ ansible_hostname }}/lxc/ --output-format=json | jq '.[] | select(.name=="{{ template.lxc.name }}").vmid' -r --exit-status`
+    pvesh create /nodes/{{ ansible_hostname }}/lxc/$id/template
+  when: "inventory_hostname == proxmox_host"

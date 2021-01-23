@@ -1,0 +1,15 @@
+
+- setup:
+  when: "inventory_hostname != provisionee_host"
+
+- include_tasks: "build-lxc-template.yml"
+  loop: "{{ templates }}"
+  loop_control:
+    loop_var: "template"
+  when: "template.lxc is defined and ('all' in ansible_run_tags or template.lxc.name in ansible_run_tags)"
+
+- include_tasks: "build-vm-template.yml"
+  loop: "{{ templates }}"
+  loop_control:
+    loop_var: "template"
+  when: "template.vm is defined and ('all' in ansible_run_tags or template.vm.name in ansible_run_tags)"
