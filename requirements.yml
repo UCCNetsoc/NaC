@@ -1,4 +1,7 @@
-- src: cloudalchemy.node-exporter
-  version: 0.21.3
 collections:
 - name: community.general
+- name: ansible.posix
+
+roles:
+- src: cloudalchemy.node-exporter
+  version: 0.21.3
