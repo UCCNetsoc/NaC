@@ -991,6 +991,8 @@
   tags:
     - provision
     - netsoc-cloud
+    - netsoc-cloud-api
+    - netsoc-cloud-ui
 
 - name: NETSOC CLOUD - WEBSSH2
   hosts: web.infra.netsoc.co
