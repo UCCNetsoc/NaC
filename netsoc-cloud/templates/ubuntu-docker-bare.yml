@@ -1,0 +1,78 @@
+- name: Ensure /etc/docker
+  file:
+    path: /etc/docker
+    state: directory
+
+- name: Ensure /etc/docker/daemon.json
+  copy:
+    dest: /etc/docker/daemon.json
+    content: |
+      {
+        "storage-driver": "fuse-overlayfs"
+      }
+
+- name: Ensure Docker dependencies
+  apt:
+    pkg:
+      - apt-transport-https
+      - ca-certificates
+      - curl
+      - software-properties-common
+      - fuse-overlayfs
+      - libfuse3-dev
+      - gnupg
+    state: latest
+    install_recommends: no
+
+- name: Ensure Docker GPG key
+  apt_key:
+    url: https://download.docker.com/linux/ubuntu/gpg
+
+- name: Ensure Docker APT repo
+  apt_repository:
+    repo: deb [arch=amd64] https://download.docker.com/linux/ubuntu {{ansible_distribution_release}} stable
+
+- name: Ensure Docker
+  apt:
+    name: docker-ce
+    state: latest
+    update_cache: yes
+
+- name: Ensure Docker Compose dependencies
+  apt:
+    name: python3-pip
+    state: latest
+
+- name: Ensure Docker Compose
+  pip:
+    name: docker-compose
+    state: latest
+    executable: pip3
+
+- name: Ensure Docker Py
+  pip:
+    name: docker
+    state: latest
+
+- name: Create override folder for containerd
+  file:
+    path: /etc/systemd/system/containerd.service.d
+    state: directory
+
+- name: Stop LXC issues (stop loading kernel modules, this container will be unprivileged)
+  copy:
+    content: |
+      [Service]
+      ExecStartPre=
+    dest:  /etc/systemd/system/containerd.service.d/override.conf
+
+- name: Reload Docker daemon
+  systemd:
+    state: reloaded
+    daemon_reload: yes
+    name: docker
+
+- name: Enable Docker daemon
+  service:
+    name: docker
+    enabled: yes

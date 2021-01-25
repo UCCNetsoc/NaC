@@ -1,0 +1,73 @@
+- import_tasks: "./netsoc-cloud/templates/ubuntu-base.yml"
+
+- name: Install Dependencies
+  shell: "apt-get install -y {{ item }}"
+  with_items:
+    - build-essential
+    - clang
+    - curl
+    - emacs
+    - gcc
+    - gdb
+    - git
+    - gnupg 
+    - gradle
+    - jq
+    - htop
+    - iotop
+    - make
+    - maven
+    - mercurial
+    - mysql-client
+    - nano
+    - php7.4-cli
+    - protobuf-compiler
+    - ruby
+    - screen
+    - software-properties-common
+    - sqlite
+    - tmux
+    - vim
+    - python3-pip
+
+- name: Install Jupyter
+  pip:
+    name: jupyter
+
+- name: Install composer
+  shell: |
+    php -r "copy('https://getcomposer.org/installer', 'composer-setup.php');"
+    php -r "if (hash_file('sha384', 'composer-setup.php') === '756890a4488ce9024fc62c56153228907f1545c228516cbf63f885e036d37e9a59d27d63f46af1d4d07ee0f76181c7d3') { echo 'Installer verified'; } else { echo 'Installer corrupt'; unlink('composer-setup.php'); } echo PHP_EOL;"
+    php composer-setup.php
+    php -r "unlink('composer-setup.php');"
+
+- name: Add node PPA
+  shell: curl -sL https://deb.nodesource.com/setup_14.x | sudo -E bash -
+
+- name: Install nodejs
+  apt:
+    name: nodejs
+    update_cache: yes
+
+- name: Add golang PPA
+  shell: |
+    echo -e '\n' | add-apt-repository ppa:longsleep/golang-backports
+
+- name: Install golang
+  apt:
+    name: golang-go
+    update_cache: yes
+
+- name: Install rustup
+  shell: curl https://sh.rustup.rs -sSf | sh -s -- -y
+
+- name: Install NVM
+  shell: curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.37.2/install.sh | bash
+
+- name: Install Helm
+  shell: curl -o- https://raw.githubusercontent.com/helm/helm/master/scripts/get-helm-3 | bash
+
+
+- import_tasks: "./netsoc-cloud/templates/ubuntu-docker-bare.yml"
+
+- import_tasks: "./netsoc-cloud/templates/ubuntu-final.yml"

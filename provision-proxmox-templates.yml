@@ -1,39 +1,3 @@
-# - name: "idk"
-#   hosts: feynman
-#   roles:
-#     - role: proxmox-cloudinit-template
-#       vars:
-#         vm:
-#           name: "ubuntu-20.04.1.vps.template.netsoc.cloud"
-#           clone:
-#             pool: netsoc-cloud
-#             qcow2_url: "https://cloud-images.ubuntu.com/releases/focal/release-20200921.1/ubuntu-20.04-server-cloudimg-amd64.img"
-#             qcow2_hash: sha256:d18a9d2b890d3c1401e70a281cae44b61816aa669c4936f7a99c168e572ec8cb
-#           cores: 2
-#           memory: 2048
-#           description:
-#             title: "Ubuntu Server 20.04.1 LTS"
-#             subtitle: "An easy to use server distro"
-#             description: |
-#               Ubuntu is a Linux distribution based on Debian mostly composed of free and open-source software.
-#               Ubuntu is officially released in three editions: Desktop, Server, and Core for Internet of things devices and robots.
-#               All the editions can run on the computer alone, or in a virtual machine
-#             logo_url: "https://wiki.netsoc.co/assets/cloud/template-ubuntu.png"
-#             wake_on_request: no
-#             specs:
-#               standard:
-#                 cores: 2
-#                 disk_space: 10
-#                 memory: 2048
-#           disks:
-#             pool: netsoc-cloud
-#           efi:
-#             pool: netsoc-cloud
-#   vars_files:
-#     - vars/network.yml
-#     - vars/secrets_mapping.yml
-#     - vars/secrets.yml
-
 - name: Add Provisionee host
   hosts: feynman
   tasks:
@@ -45,6 +9,7 @@
 - name: Provision Netsoc Cloud templates
   hosts: feynman, provisionee
   gather_facts: no
+  any_errors_fatal: true
   roles:
     - role: proxmox-templates
       vars:
@@ -64,7 +29,8 @@
                   Ubuntu is a Linux distribution based on Debian mostly composed of free and open-source software.
                   Ubuntu is officially released in three editions: Desktop, Server, and Core for Internet of things devices and robots.
                   All the editions can run on the computer alone, or in a virtual machine
-                logo_url: "https://wiki.netsoc.co/assets/cloud/template-ubuntu.png"
+                logo_url: |
+                  data:image/png;base64,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
                 wake_on_request: no
               unprivileged: yes
               cores: 1
@@ -89,12 +55,13 @@
                 description: |
                   Docker is a Linux container management toolkit with a “social” aspect, letting users publish container images and consume those published by others.
                   Containers are isolated from one another and bundle their own software, libraries and configuration files; they can communicate with each other through well-defined channels.
-                logo_url: "https://wiki.netsoc.co/assets/cloud/template-ubuntu.png"
+                logo_url: |
+                  data:image/png;base64,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
                 wake_on_request: no
               unprivileged: yes
-              cores: 1
-              memory: 256
-              swap: 256
+              cores: 2
+              memory: 512
+              swap: 512
               disks:
                 rootfs:
                   size: 10
@@ -102,6 +69,45 @@
                 net0: "name=eth0,ip=dhcp,tag={{ vlan.dhcp }},bridge={{ vmbr }},firewall=1"
               features: "fuse=1,nesting=1,keyctl=1"
             tasks: "./netsoc-cloud/templates/ubuntu-docker.yml"
+          - lxc:
+              name: "ubuntu-linuxtools.container.template.netsoc.cloud"
+              storage: netsoc-cloud
+              template:
+                storage: netsoc-cloud
+                image: "ubuntu-20.04-standard_20.04-1_amd64.tar.gz"
+              description:
+                title: "Linux Tools (on Ubuntu Server 20.04)"
+                subtitle: "Docker, Git and support for most programming languages"
+                description: |
+                  Build to your heart's desires with this fully equipped machine:
+
+                  * Docker
+                  * Git, Mercurial
+                  * Emacs, Nano, Vim, Neovim
+                  * Tmux, Screen
+                  * Make, Maven, Gradle
+                  * C/C++ (clang, gcc)
+                  * Python, pip, Jupyter/IPython
+                  * Java
+                  * PHP (composer)
+                  * Ruby
+                  * NodeJS, NPM, NVM
+                  * Go
+                  * Rust
+                logo_url: |
+                  data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAABACAYAAACqaXHeAAAABGdBTUEAALGPC/xhBQAAACBjSFJNAAB6JgAAgIQAAPoAAACA6AAAdTAAAOpgAAA6mAAAF3CculE8AAAAB3RJTUUH5QEZBhMBiEkcggAAAAZiS0dEAP8A/wD/oL2nkwAAC5dJREFUeNrdWwd0lNUSvoCIigdRnzwU1KcHCEk2m2zN9t53s7tpENIghGqAwIuEABIg0gSkdxFU4IGKCE/UR1dUFKR3iLTQS4CEkLIp8+b+gI1Nb7uZc/6TnOxm95/vfvPNzP3nEtJApjRYicEW+qRQrhWzeJLZvhzRSbyK8Sr144jO+nPFS/lSjVZjCnlKrjOTJmNas52kjEglwXLtvwL40rH+PHGm1uIsGZKSBtNnzYMZcxZAStoYMNkjSll8aRaCM10g1/om9O3fXG9zeq/jMQmJpFWbl4lCb2kbJFLE4UrvkmhMroxJ0+DosROQX1AAZWVleAEUFhVB5m9nEIz5oDLaS5ARhwKD5W9JNaZ29LOszkjvcl6iNhKl3vokV6JS+HHFaxCA3H6DhsHOH3dBYWERlGeu4mLYu+8ADEsdDTypJh//dyNXrDRjSDwtVuk933GrI5KkjxnXTKTUd0I6T0S6Z9kjY2DVp2sh+/YdqKrl3rsHGzZ+A93jEgE/57o/TzJXKNcFdI9NaKG3emBY2MKQok+3J0jZF5C6iUj3X+U6S/Hk6bPgzNlzDNVrYpcuX4G5Cz8A1IxSP67oGFsoGypWGtrjS0RtCvEM56li6yzOVkh3Ld7kF1yxKi9p6HDY9cseKCpyQW2tuLgEDh4+AqmjxwKKYwGCu5kjUjp0FsczHToFkDtXzzaO4zqzg8T3TGwerNB1RZpOR/W+HNYjHj5ftx7u3s2Bura8+/fhm01bICahHwQIZLcwLBYjIFyLM7wFTbENZvawKOanTGt+iS2UD8AVOaAyhpS8P3s+nL+QVWO6V9WuXrsOi5YuB0NIeBmK5CkEIxVFt8OVc5nEZA+vX+elqO4qg/UpnkRlwi//iidV308ePhL27N0PLlcxNJSVlJTA0eMnYNS4CRCs1BfhvezAbBGhNtqe7diZTdJGjaxruttJdFxCc4FMw0LqzUbKX+sW2xvWf/U15Obeg8ay/PwC2LJtB/TqmwSBQvltrCaX8yVqITLhCYXOUnvH9VbHw5U3/RPVPRnpflRjdpTOWbAYLl66DJ5iN27ehA8/XglmZzcaFmfYAtk7YpXh9ZFpo1CgHTUsZlQGLGYsz3DEyhB0/H8Cmbbg7ZHpcODgYVTmYvA0Ky0thZOnTsO4Ce+BWG104T3/iAVYNPrQ5uU3/Uj6+HFVczyiezR5049Ha/eOSPWZKDI3o3v1hY3fboa8vDzwdCsoLIQd3/8IfQYmQ2CwIgez0zIMXZ/Wr7GIQm2oHAC+VE2wkuuA8bRGqjEXz124BK5cvQbeZreyb8NHK1cDhiwNi83YhfogK0hsr97lOy/TmojZEdEKV30qNi7F6zZ85ZF0r05YbNuxk1aSZcjmj1QG23OoDe6dj4uLIyy+DBmgkSMAl2bOXdigqa2+jNYlK1Z/Blg93sEqNew1nyBiDgl9HACuWIE53tgCaTIZ1ZSp4b3ZcnJy4YeffsbKdAN8u2krhEf3BGyzP5IodU8JMMzd1PQWYnF2a0trbar2RUVFXuk4bal3/7oPBqeMAMxcgPEPWKmC0R5Bf9+PYd4RRdFNsWMNJY7I2A6YQw/MmrfIK52n3SO9d6XBBl3YAvAJFELXoODff7L4kgvWsCiWQu+md1DqbcQYEvEqxv+hhR8s8yrH72Oj9DWm6aj4RKS5mHGeOvz3CzNbltnRjS3VutlzVCAA2GB4FQBU5Y8dPwkj0zMAxbtcxx9dGAJZJkckG9O79wNw81Y2LPtkFRPblOKPaF7R5d8UAKAbqHRvsc/AIRDAl1a66k0GAJrPz567AJOnzQSJ2vQXkWvyAOTk5sLaL/8Lzu5xf1H16l5eBwAtw/cdOARDh4+CIJGyWnT3egBoAzZ/8VJQm+w1orvXAkB3eTZt3Q6xvfvTG671qnsNAA82NDIhPWMSCOU66FyHjns8APfu5TFPj7AXqXJObzIA0I2LjElTIShYUad09woA6IPSqTPnMB1bfa26RwNA21aJxlTvK++xANA0V9HK09f8uKKmCQAtct4ZPwk6B/Dd3ixbKGMKoD5vJTPvaXJ1gMvlgpFjMtwCQEPCHhkNF7IuAr0XjdkBIqWhCQKQ7h4A+rfImATMENlMRUj3J8dPnFprFngFANRJSn/6+K3I9WC+gE6MDBqWWm64NDkAUkePgzt378KRo8dh+ux5kIxaQEOgyTOgC1vIbGgePnKMefwdEt6D0YOmK4J/A4D+TqlOR+g+WP4JdGLxoRP+ra7qBC9ggADemzGHef2XPXth0L9TISahP+htYUy12IAALG80ACZOnQEl2BkyrTEy4W5ODpzOPMNMk9YZAO62xbUWJ7FHRHdEAA7OWbCk0QAI79GTec5Px2D+PG+0Z+++WgshiyfJsoVFBbh/MGK0kZCIHi9g6bk9DW/M5XI1Shbw5YjAERmDVeJEmDZzLmzZ/h0Dxtlz5+lTXvd6EPjwqowBPMlhFNnXgxU69w9HZWrdE/jGmfQGsi5earRC6JHyd2LxICQiGq5du85kBZnW/DgD0HF/qQAEsUHAUgoqBILFl64RSNTPcMVKN9OejjDiy5UQnkRlCAyW36AqXPowFhsagEcXBSAucQBTE9BdYfocwCfwD8d9eULghXNB+54fmBb5QKCRXy4AKKJ56FvcCx19iNYcUv6Qs9bsaI1ILVabHGXbvtsJpfU091cZADQUTI4I2Lrje8i+fRv6Jg39g/6cYAjU80ExggWW5T5gmNsVhPFB4MsvXx/YQvk6udb8kkhRwdD1wEGDCaJM8E2dUTE366yhZas/+4JR4oYSQRrndD545ZrP4cTJ01BYWMjUBOjAA/rjCnMdXDAu6AqWZT4gTwmAAA2/EupL9gjlWl7HLmzijOxRyUygxU5Iq38QgUzri6q5ipn9xeJk1+66mf2trBAaPmrsX2YTNm3dASLVn9QfHRX2DALNRD/ghnLBl1u+ACKLCgME0o18qVq45ZuNRG2s4oD1oOQU0rrdqwQp8/zD6e+9cp21eMr7s+AMqnFdjMO6A4A6SfP9Tz/vhu9++InZIl+y7OPHhM9fIgR/sbAix0tx8Y5xRIphYqW+PSEtid4aWv1ZQbMjnKSmpTWjIYGhMYnO/9MM8Z9P18Ltasz/V0cDaCfIlaghDOuB05m/uW+DK0h7KHbXcdHmYapjR0TFtqBD3bWfEdaYqDj+6QSIskonQGqTBmnRE584EHgIhk8Vihxc9Xyk+9eo9Bal3vK0RGWo23nh6PhepNlzr9DzAcwZID+O+GesqV3vTpnGrFR1U2ZV0mBVHomh4yWYtQ5xxKokqdrInDEyOepxapyeAhswaEgzsUr/Bn7xOGTEOWtYFHy8cg0ztFCXAFR24XdfCRTKZyDd/Xom9GtuqEmc1/ikiNZEB5FbosKKMWWuCAxW3O09YDBsx9qhAJuY+gTAlyPOYwtkX+J365U6aytavzSKJSUlkxdf8yEqg60NR6yMQjruFKsMRekZk+H4yVMVhkVNAHhAd8k+TM195VrLi/QeQqPiGv/ckNpgI2PGjCZIRdpOj0JqZmLbWbYUC5jrN25Ue1e4nEbmIrJsChY0XZKShzQz2BzE44ye3bE4I57AIoqPN/whVm/Z8X0GwqYt2+F+fv7fACiG0WMnVAqAH0eUi6B+hp+p0lmcTyp0VuLRtmTxQtLuDV+iMduf5YiUYUjbbUKFrpDS/fDRY0xr+2jmZ/b8ReVud9FzxSiyv2Bo9UR1f775c+1JpCfQvcqnTWyh5PzZk7TBegWZ8LYfV3RCbwsrXbDkQ6bVpgDsP3iY2e56rNLjic9jqs0QKfVvDk4e1oxmHq81jclOQrtFt0DFDkLHFiCdrzm7xZa9O2U6LP9kFQwYkkLj+1Fay0Z1X4HvleisjpZybRM5RY6MJ/4cET1x1horOwc6uh4dvomOlyEgZfjzDjq+mS/TxCh0lrbtXvclMRUdbKhD+z+2ZCW6adVWdQAAACV0RVh0ZGF0ZTpjcmVhdGUAMjAyMS0wMS0yNVQwNjoxOTowMSswMDowMFk679gAAAAldEVYdGRhdGU6bW9kaWZ5ADIwMjEtMDEtMjVUMDY6MTk6MDErMDA6MDAoZ1dkAAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAAABJRU5ErkJggg==
+                wake_on_request: no
+              unprivileged: yes
+              cores: 2
+              memory: 512
+              swap: 512
+              disks:
+                rootfs:
+                  size: 10
+              net:
+                net0: "name=eth0,ip=dhcp,tag={{ vlan.dhcp }},bridge={{ vmbr }},firewall=1"
+              features: "fuse=1,nesting=1,keyctl=1"
+            tasks: "./netsoc-cloud/templates/ubuntu-linuxtools.yml"
           - lxc:
               name: "ubuntu-wordpress.container.template.netsoc.cloud"
               storage: netsoc-cloud
@@ -113,7 +119,8 @@
                 subtitle: "The most popular blog and CMS system"
                 description: |
                   WordPress is a free and open-source content management system (CMS) written in PHP and paired with a MySQL or MariaDB database.
-                logo_url: "https://wiki.netsoc.co/assets/cloud/template-wordpress.png"
+                logo_url: |
+                  data:image/png;base64,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
                 wake_on_request: no
               unprivileged: yes
               cores: 1
@@ -140,11 +147,11 @@
                   Ubuntu is a Linux distribution based on Debian mostly composed of free and open-source software.
                   Ubuntu is officially released in three editions: Desktop, Server, and Core for Internet of things devices and robots.
                   All the editions can run on the computer alone, or in a virtual machine
-                logo_url: "https://wiki.netsoc.co/assets/cloud/template-ubuntu.png"
+                logo_url: |
+                  data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAABACAYAAACqaXHeAAAABGdBTUEAALGPC/xhBQAAACBjSFJNAAB6JgAAgIQAAPoAAACA6AAAdTAAAOpgAAA6mAAAF3CculE8AAAACXBIWXMAAAsSAAALEgHS3X78AAAAB3RJTUUH5QEZBhMBiEkcggAAAAZiS0dEAP8A/wD/oL2nkwAADAhJREFUeNrNWwtwU2UWjq7OLILOlALl4aoIyxtWltn3jouDIC95Ko8KhaU8BBaW6iK4AoIIqKu4gC4Ii4DIusAoojKACygCy1NeCgtIm6SPpK80faVN2iRnzzk9aW+be5Pc2ySQmW8mkya395z/P9/5zvnPNZli8Eof2CKAJoj2iMcQ0xGvIz5EHEacR1wVXEAcQexAvIGYgeiHeFiuwde7rV9yk3cgmiK6IyYjNiCOIyyIEkQVwocADfjkO/RdK+IEYhMiFdEL0Uz+x21peEvEcMRGWdWKEIbqRSXiGmIzYhSi1S13hGKb082MR3yGyEf4o2h4Q9C1CxH7EBMRrePuCIXhP0Y8gfgY4Yyh0VqgMNmLGIK4Jy48odjuRGwrEZkxXvFIkC3E2TGmu0GM/xGiL+IAwnOLDVeiSjJLf8RdUXeCIqWlCMHF18AnEhHNazAwMdR3byCmSiaKqvF0wXkIW/wNTwTzyAfBOqEXWJK7QcbQNpA+oHmo3+UhFiDuazQvKIyfjyiIt/EZT7aD3FdSoOzop+C+eQkq/3cWivdsgOxZfcP9nkh5ccAJjd328+JuPGFwKyhY+zx4HXao9/L5oPLqWcie+3i4nUBOWGgoHMT4OyXmbXE3Hg3LmvF78Fiugdar9OAOyBj+k5ow0b4W6ZJpQt6683zfqBMe3eyABEHz2hjn94HP5Tv5f5sNfneFpgPIOZlTf13zm9D/9wfEgIhSpML49pLqorKadJMZg5PAMrYLZP+pH8d1/t/ToHDDS1D43iLIX5OGn02C7DmP43c6sxMK/rEQ/FUeTQdU2y2QNfsxuNk/IZL7oEKrU1hSVCi8VVHJ84NagWV8N8hdOgHJ6z2o/P4kVOdng6+8BPyeSvBXexBV/N7nKoXqghxwnTwA1pTeYF8yHnxlxZoOIEK0TuwVjgcCqEasDijGcKs/QBSeQcPrtrT1mR5QdmQ3GoyG+P0QyYuckYfb3zKmE7hOf6n5HcfmV3BXtdJzbzmIJzV3gfyhpWh746lrSGvImv47MI9qzyRV8sWWiI0PvCrOf815P3tOP6j49ggbLKaDt7gAij9ZL6HSXO89fo5oE+QAxeqPN1zY4M2QYCnE2HX/cAny3pwN6RifFNdV2Td1OYBiv2TfVhQ+3dERPXFHzALnv9+Gog9Wgf2lp8E84sFw7K+FUsSUoF2gWP29ho0f/TA4P1rN8c0xevUMWCf9HHmgBRRtf51jXa8TXKcOQu6yieiIHryjzKM74DV7o6MfMrL6ARystwsUqz9c8qbubU8rz8ZXlNUZgAYXffgGC5rM1F+C+/p5FjHeojx+X/7ffVD65UeM8hNfgPvatyh6csHvrVZ4wQ++0iL+vuvMIQ4NT8YVcO5cww4xuAsciDG1u0De3COdHP2ER4rt3QW1K18vVdkskPOXobxaeaumQdGONyFnwQgkx57IDw+wrmcgVxBh5swfxrvFff1CyB3jc5VB4cbFnFoNOmEb4l6lA7obEj3I9raFI6HKZta82ZLPNqOmb4uOSmJn1YidhlWdVHv0N0ydmVN+gfH+GlTnZWrrgLwssC8aG2kaVBNHvZUOmKy7h4eeJyYuP7lfW62Zr4B9WUqN4bxSiRGm0QR2GGkB942Lmtd3nTuMOqO7ET5wI54NOKCJdG91x37+2/PAX1mubjzGqm3BSB2Gq/cAcp4frOkEksoF77xglAwpDJoFZO9xvVufFB6Rkur2LLBB7vJJxo1vkGFoJ2iFQ+XlE6wZDITCWZLHgaLHos8BCZyefKXO4FVBFi/611ssiAwSVPBOwBBybFupSowkoXNXpEZSFKn1EgeZ5MSmJLIKLkHUXhKU7N2ouiLUuIiwStPlcOsf+3CqVCVaFE3cKdJ33XLEXJMcV1VpCpynOkLOc4NxGyazqjOPeIDTD8nRejmbV9/LqY5Jb2BiFHsEeK1BLcGx9VXVXeC+dh4smEZ1kiEVSGtNclanelxFOZxEirfQxtud4pAaEVnTfwvWyX3AdfZQvRshkZNDxBfN1VfsgmxcCOKXIM4ptEN22iC4qe//Ujv/U5O0k4NWPmtWXxYkwUHuwyrtIKcf2hWk1GpXAr9PIqcRMjUkGVrGdeV2WBAPVJRD3mvTjTj+tElOaYMqOueutSxd1ctRNxSseQ5L1s5Q+d3J2s9J3pLCi+72rwM1SZ271iHPXMbUeIGdUfn9Kai4dAyzzmQjpHvNFKQAKe6f/imLjFAvKnMzkA/KDu+q69OhrjdARjrQEu+tY02LXNrklnFdeGfUOF73NTONO4CYFx1QemhnHB3QAough2qMHtsFzAR0iAUrUdodBq6XZZLhhOAQ2P2OdghgqVqwbj6Yx3RiIVIbAif21XRqYxYCbVljUKlN7TVCxcVjTMb2pROMhMB1kzQMg5QeNS896d+pWO/nLo0FyY6KEW+Jo346Su4RIxJM5FWvvHJagwRnGCHBMyYZSwlOg5h3bS+Owjr8P+B15nO5W43psPTwbsia+QewTvwZuE4dqJ8GsZ6nkjZmaXDeQG6qBqVB/L+UIg2kwb0mOVrWFEJU8dmwhieWJUHEjQgSQrvXBYkSlsFYz1NJG4swcGxexp3kICGEGcEyQXf69SLWmWQgSacUbs11vqoURi1A9XzUpXBKb9Xtz+S7f7tRKZxmkmksq+5iCKs9tb49t8JoFxjv1qjLYFr9KrdK/JcZFUHUJh9sklG0E7rL4eTuyMDfqJfDGKf2l5OjQ4Z4DduLozW7TiSErBMfMVIOn0N0CTRENhlZGVKDfrdLPRRuXORmhvGeQE1DJHtuf057Woq0cP1fWSAZcO526gsGWmKpMoqmT5uP7xpUEDV0gn3xOP2kSKvJWWi0pvF8gHLhKKdjAzuNjv1mK3uCPWUOT3dT1L5oTIjmpR9KPpemKDkBjaprimqQLb63pjwCjn8uhaqcDO2mKFaF9qXPGOWZdEQfpQOayhCi/qMwJDtqUVOrOugmczPB9sJwdhSlUceWVzmVsnYn6cqd4iR+zyfHmOeJ7Ijt1QivlvgqXeB4f3kN8xtzwI7a6RHFwcgoQ5MgdDCC2oCqR5+iQUqagI6z0ockce+At7LPyyfAZGDZ15/g7nifd0jZVx8zmRF5NszzJMCowVpx6ThLX0/mDSjes54bNQaNp6O/5HrHY4qJz33Gj8Y6cKlKsjQgi1kPkIDZuiLkWb9q8KADqelKByqkAcxPdeAT48zUX/H7RmSYQ4h2ameDJhk/LWnM+WDhppd5xfJX/5ljmoYYqjKv6zMetQRVlpTeKFzyVkyBom2rwIHXJqmdMex+o6tfLj1Qk9YJcRK1iRp1PD60LU9xkTMyhrWD4r2b9B+PXzrGRJj17KPgOrm/dlfRdaj9RaFFZbABJxwIWn2VXTBEWsaNGJBIkAGJnlB+dE+dARENSLgh/605bCB1mFS/gyRYuHGJpNeI7y1XeM4UbkqkScgCSeeoG42x5K5M5QYKnfJSxUgOIU6gLjIg6D19Rk3VinOHmTSp1PaVObVHZJBIWQNEpgC58JHnDSIakuooZBG9ISlMWXTDlAaJ2GgIyrFlOYPek57nFIkSm35X8G4kQ1J9Ix2S+gbRLaLJUYUT+svsbVQ7u3VVpWJMruHnNCaHYRByTM56HTKn/iaSIigDMVTXJLliMjxVZm/jPyg581HMHje0ByUP7eSeZBgidIjkvdvotGhTGTyO/wMRqBApNLzOgqBzCS600gaF0wKUzpcEBiEMzQzLD++TweP4OoFS6vD7mS9oBsFjvgqem5eZTKlCDFMBlsoDHQnRmBYPOGGBoRmiaIzLo6YgNUjnASyCQjN/oax8QtQeo1GEwzQZL7l1D0yEjnkzYlbt/E8Mnhq5Sx6U+ioqOiF6oJPeY8L2d6fH+LmhO2XwePUtGaVXV3gkcrrKvcXtsTkKiWEyflp6Cwynwma/yNtmcX+8VvEIXRsZPz0oeTfWhjtFpU6Xwua2eIL0DnmKkyYwPxCidEfRaI+0sXZIM6Pt7fwM8b0yhDhTRtHOSnVZLmTlD3Nc5ZXv5kjreruouT6Sjm8vw8PwBMVmZ5rGooEkmslB7KHJDGnC0nMJWfL+jAxrE6GlSVneRRwaM6P/Dw2jn99Y1RVUAAAAJXRFWHRkYXRlOmNyZWF0ZQAyMDIxLTAxLTI1VDA2OjE5OjAxKzAwOjAwWTrv2AAAACV0RVh0ZGF0ZTptb2RpZnkAMjAyMS0wMS0yNVQwNjoxOTowMSswMDowMChnV2QAAAAcdEVYdFNvZnR3YXJlAEFkb2JlIEZpcmV3b3JrcyBDUzVxteM2AAAAAElFTkSuQmCC
                 wake_on_request: no
               cores: 1
               memory: 1024
-              swap: 256
               disks:
                 boot:
                   size: 10

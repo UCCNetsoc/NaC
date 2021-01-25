@@ -1,0 +1,8 @@
+# dies if it detects that there is proxmox stuff installed on those host
+# i.e a dumbo ran it on the proxmox host
+
+- name: Test provisionee_host to ensure user is not an idiot and provisioning the proxmox host instead of the container (1/2)
+  shell: "! which pvesh" # errors if the pvesh binary exists
+
+- name: Test provisionee_host to ensure user is not an idiot and provisioning the proxmox host instead of the container (2/2)
+  shell: "! which pveam" # errors if the pveam binary exists
