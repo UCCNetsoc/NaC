@@ -50,7 +50,7 @@
     - "vars/secrets.yml"
   tags:
     - provision
-    - discord-bot
+    - wiki
 
 
 - name: "TRAEFIK"
@@ -1406,3 +1406,86 @@
       shell: "docker ps --format '- targets: [\"{{ '{{' }}.ID{{ '}}' }}\"]\\n  labels:\\n    container_name: \"{{ '{{' }}.Names{{ '}}' }}\"' | sed -e '/`docker ps -aqf \"name=loki_promtail_1\"`/,+3d'  | sed -e '/`docker ps -aqf \"name=loki_loki_1\"`/,+3d' > /netsoc/promtail/targets.yaml"
   tags:
     - always
+
+- name: Shortener Databases
+  hosts: databases.infra.netsoc.co
+  become: yes
+  tasks:
+    - name: Shortener - Ensure database
+      postgresql_db:
+        name: "{{ shortener.postgres.db }}"
+        state: present
+        login_host: "{{ databases.infra.postgres }}"
+        login_password: "{{ postgres.infra.postgres_password }}"
+    
+    - name: Shortener - Ensure user
+      postgresql_user:
+        name: "{{ shortener.postgres.username }}"
+        password: "{{ shortener.postgres.password }}"
+        login_host: "{{ databases.infra.postgres }}"
+        login_password: "{{ postgres.infra.postgres_password }}"
+      no_log: true
+
+    - name: Shortener - Ensure user has access to database
+      postgresql_privs:
+        db: "{{ shortener.postgres.db }}"
+        role: "{{ shortener.postgres.username }}"
+        objs: ALL_IN_SCHEMA
+        privs: SELECT,INSERT,UPDATE,DELETE
+        login_host: "{{ databases.infra.postgres }}"
+        login_password: "{{ postgres.infra.postgres.password }}"
+    vars_files:
+      - "vars/network.yml"
+      - "vars/secrets_mapping.yml"
+      - "vars/secrets.yml"
+    tags:
+      - provision
+      - shortener
+
+- name: "Shortener"
+  hosts: web.infra.netsoc.co
+  become: yes
+  tasks:
+    - name: Shortener - Remember Compose definition
+      set_fact:
+        shortener_definition:
+          version: "3.8"
+          networks:
+            traefik:
+              external: true
+          services:
+            instance:
+              image: uccnetsoc/shortener:latest
+              environment:
+                DB_HOST: "{{ interfaces.infra.databases.net0.addresses[0] | ipaddr('address') }}"
+                DB_PORT: "{{ shortener.postgres.port | default(5432) }}"
+                DB_USER: "{{ shortener.postgres.username }}"
+                DB_PASSWORD: "{{ shortener.postgres.password }}"
+                DB_DATABASE: "{{ shortener.postgres.db }}"
+              networks:
+                traefik:
+              labels:
+                traefik.enable: "true"
+                traefik.http.routers.shortener.rule: "Host(`links.netsoc.co`)"
+                traefik.http.routers.shortener.entrypoints: "web-secure"
+                traefik.http.routers.shortener.tls.certResolver: "letsencrypt-dns"
+                traefik.http.services.shortener.loadbalancer.server.port: "8080"
+                traefik.http.routers.shortener.service: "shortener"
+                traefik.docker.network: "traefik"
+              restart: always
+
+    - name: Shortener - Setup compose
+      docker_compose:
+        project_name: shortener
+        recreate: smart
+        restarted: yes
+        remove_orphans: yes
+        state: present
+        definition: "{{ shortener_definition }}"
+  vars_files:
+    - "vars/network.yml"
+    - "vars/secrets_mapping.yml"
+    - "vars/secrets.yml"
+  tags:
+    - provision
+    - shortener
