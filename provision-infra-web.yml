@@ -1398,14 +1398,6 @@
     - dashboards
     - grafana
 
-- name: "LOKI TARGETS" # Keep this at the bottom of the file at all times.
-  hosts: web.infra.netsoc.co
-  become: yes
-  tasks:
-    - name: LOKI TARGETS - Setup targets
-      shell: "docker ps --format '- targets: [\"{{ '{{' }}.ID{{ '}}' }}\"]\\n  labels:\\n    container_name: \"{{ '{{' }}.Names{{ '}}' }}\"' | sed -e '/`docker ps -aqf \"name=loki_promtail_1\"`/,+3d'  | sed -e '/`docker ps -aqf \"name=loki_loki_1\"`/,+3d' > /netsoc/promtail/targets.yaml"
-  tags:
-    - always
 
 - name: Shortener Databases
   hosts: databases.infra.netsoc.co
@@ -1489,3 +1481,12 @@
   tags:
     - provision
     - shortener
+
+- name: "LOKI TARGETS" # Keep this at the bottom of the file at all times.
+  hosts: web.infra.netsoc.co
+  become: yes
+  tasks:
+    - name: LOKI TARGETS - Setup targets
+      shell: "docker ps --format '- targets: [\"{{ '{{' }}.ID{{ '}}' }}\"]\\n  labels:\\n    container_name: \"{{ '{{' }}.Names{{ '}}' }}\"' | sed -e '/`docker ps -aqf \"name=loki_promtail_1\"`/,+3d'  | sed -e '/`docker ps -aqf \"name=loki_loki_1\"`/,+3d' > /netsoc/promtail/targets.yaml"
+  tags:
+    - always
