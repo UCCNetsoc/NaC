@@ -1463,6 +1463,8 @@
                 traefik.http.routers.shortener.tls.certResolver: "letsencrypt-dns"
                 traefik.http.services.shortener.loadbalancer.server.port: "8080"
                 traefik.http.routers.shortener.service: "shortener"
+                traefik.http.middlewares.shortener-auth.basic-auth.users: "{{ shortener.traefik.username }}:{{ shortener.traefik.encrypted }}"
+                traefik.http.routers.sonarr.middlewares: "shortener-auth"
                 traefik.docker.network: "traefik"
               restart: always
 
