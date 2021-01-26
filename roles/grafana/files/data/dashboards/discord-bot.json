@@ -366,6 +366,10 @@
               "prom_port": true,
               "schedule_enable": true,
               "sendgrid_token": true,
+              "sql_host": true,
+              "sql_password": true,
+              "sql_port": true,
+              "sql_username": true,
               "stream": true,
               "time": true,
               "ts": false,
@@ -674,7 +678,7 @@
       "timeFrom": null,
       "timeRegions": [],
       "timeShift": null,
-      "title": "Text Channel Activity (From 21/1/2021)",
+      "title": "Text Channel Activity (From 26/1/2021)",
       "tooltip": {
         "shared": true,
         "sort": 0,
@@ -726,5 +730,5 @@
   "timezone": "",
   "title": "Discord Bot",
   "uid": "discord-bot",
-  "version": 38
+  "version": 40
 }
