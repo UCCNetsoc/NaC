@@ -133,6 +133,30 @@
                 net0: "name=eth0,ip=dhcp,tag={{ vlan.dhcp }},bridge={{ vmbr }},firewall=1"
               features: "fuse=1,nesting=1,keyctl=1"
             tasks: "./netsoc-cloud/templates/ubuntu-wordpress.yml"
+          - lxc:
+              name: "ubuntu-ghostcms.container.template.netsoc.cloud"
+              storage: netsoc-cloud
+              template:
+                storage: netsoc-cloud
+                image: "ubuntu-20.04-standard_20.04-1_amd64.tar.gz"
+              description:
+                title: "GhostCMS"
+                subtitle: "The world's most popular modern professional publishing platform"
+                description: |
+                  Used by Apple, SkyNews, Buffer, OpenAI, and thousands more.
+                logo_url: "https://wiki.netsoc.co/assets/cloud/template-ghostcms.png"
+                wake_on_request: no
+              unprivileged: yes
+              cores: 1
+              memory: 512
+              swap: 512
+              disks:
+                rootfs:
+                  size: 10
+              net:
+                net0: "name=eth0,ip=dhcp,tag={{ vlan.dhcp }},bridge={{ vmbr }},firewall=1"
+              features: "fuse=1,nesting=1,keyctl=1"
+            tasks: "./netsoc-cloud/templates/ubuntu-ghostcms.yml"
           - vm:
               name: "ubuntu.vps.template.netsoc.cloud"
               storage: netsoc-cloud
