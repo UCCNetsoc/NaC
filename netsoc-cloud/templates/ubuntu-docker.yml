@@ -1,0 +1,3 @@
+- import_tasks: "./netsoc-cloud/templates/ubuntu-base.yml"
+- import_tasks: "./netsoc-cloud/templates/ubuntu-docker-bare.yml"
+- import_tasks: "./netsoc-cloud/templates/ubuntu-final.yml"

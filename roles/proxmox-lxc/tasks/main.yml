@@ -1,0 +1,123 @@
+---
+
+- name: PROXMOX LXC - Check if LXC with this name already exists (also gets id)
+  shell: pvesh get /nodes/{{ ansible_hostname }}/lxc/ --output-format=json | jq '.[] | select(.name=="{{ lxc.name }}").vmid' -r --exit-status
+  register: lxc_exists_result
+  ignore_errors: true
+
+- debug:
+    msg: "{{ lxc_exists_result }}"
+
+- set_fact:
+    lxc_already_exists: false
+
+- set_fact:
+    lxc_already_exists: true
+    lxc_existing_id: "{{ lxc_exists_result.stdout | trim }}"
+  when: "('rc' in lxc_exists_result and lxc_exists_result.rc == 0)"
+
+- name: PROXMOX LXC - Shut down already existing LXC
+  shell: pvesh create /nodes/{{ ansible_hostname }}/lxc/{{ lxc_existing_id }}/status/shutdown
+  when: "lxc_already_exists is true"
+  ignore_errors: true
+
+- set_fact:
+    lxc_needs_creation: false
+
+- name: PROXMOX LXC - Destroy already existing VM if we're recreating it
+  shell: pvesh delete /nodes/{{ ansible_hostname }}/lxc/{{ lxc_existing_id }}
+  when: "lxc_already_exists is true and (recreate is defined and recreate is true)"
+
+- set_fact:
+    lxc_needs_creation: true
+  when: "lxc_already_exists is false or (recreate is defined and recreate is true)"
+
+# Proxmox goes ape if 2 VMs get cloned simulateneously and both choose the same ID (due to the sequential numbering system)
+# Use a hash of the name and add the hostname to make it unique instead
+- set_fact:
+    lxc_hash_id: "{{ range(1000, 5000000) | random(seed=lxc.name+'-'+ansible_hostname) }}"
+
+- name: PROXMOX LXC - Download tar.gz LXC image
+  shell: pveam download {{ lxc.template.storage }} {{ lxc.template.image }}
+
+- name: PROXMOX LXC - Ensure LXC created
+  proxmox:
+    proxmox_default_behavior: "compatibility"
+    api_host:       "localhost"
+    api_user:       "{{ proxmox.username }}"
+    api_password:   "{{ proxmox.password }}"
+    node:           "{{ ansible_hostname }}"
+    vmid:           "{{ lxc_hash_id }}"
+    hostname:       "{{ lxc.name }}"
+    ostemplate:     "{{ lxc.template.storage }}:vztmpl/{{ lxc.template.image }}"
+    description:    "{{ lxc.description | from_yaml | to_nice_yaml }}"
+    pubkey:         "{{ lxc.authorized_keys | default(null) }}"
+    timeout:        "{{ lxc.timeout | default('300') }}"
+    storage:        "{{ lxc.storage }}"
+    disk:           "{{ lxc.disks.rootfs.size }}"
+    nameserver:     "1.1.1.1"
+    cores:          "{{ lxc.cores | default(1) }}"
+    memory:         "{{ lxc.memory | default(512) }}"
+    swap:           "{{ lxc.swap | default(512) }}"
+    unprivileged:   "{{ lxc.unprivileged | default(yes) }}"
+  when: "lxc_needs_creation"
+
+- name: PROXMOX LXC - Wait to prevent a race condition where Proxmox hasn't named the LXC yet
+  wait_for:
+    timeout: 6
+  delegate_to: localhost
+
+- name: PROXMOX LXC - Get created/existing LXC ID
+  shell: pvesh get /nodes/{{ ansible_hostname }}/lxc/ --output-format=json | jq '.[] | select(.name=="{{ lxc.name }}").vmid' -r --exit-status
+  register: lxc_id_result
+- set_fact:
+    lxc_id: "{{ lxc_id_result.stdout | trim }}"
+- debug:
+    msg: "{{ lxc_id }}"
+
+- name: PROXMOX LXC - Disable protection
+  shell: pvesh set /nodes/{{ ansible_hostname }}/lxc/{{ lxc_id }}/config -protection 0
+
+
+# # Set stats
+# - name: PROXMOX LXC - Ensure specs set
+#   proxmox:
+#     proxmox_default_behavior: "no_defaults"
+#     api_host:       "localhost"
+#     api_user:       "{{ proxmox.username }}"
+#     api_password:   "{{ proxmox.password }}"
+#     vmid:           "{{ lxc_id }}"
+#     hostname:       "{{ lxc.name }}"
+#     node:           "{{ ansible_hostname }}"
+#     description:    "{{ lxc.description | from_yaml | to_nice_yaml }}"
+#     cores:          "{{ lxc.cores | default(1) }}"
+#     memory:         "{{ lxc.memory | default(1024) }}"
+#     cpus:           "1"
+#     swap:           "{{ lxc.swap | default(1024) }}"
+#     unprivileged:   "{{ lxc.unprivileged | default(yes) }}"
+
+- name: PROXMOX LXC - Set net
+  shell: pvesh set /nodes/{{ ansible_hostname }}/lxc/{{ lxc_id }}/config -{{ item.key }} {{ item.value }}
+  with_dict: "{{ lxc.net | default({}) }}"
+
+- name: PROXMOX LXC - Set features
+  shell: pvesh set /nodes/{{ ansible_hostname }}/lxc/{{ lxc_id }}/config -features {{ lxc.features }}
+  when: "lxc.features is defined"
+
+- name: PROXMOX LXC - Get storage of rootfs
+  shell: |
+    pvesh get /nodes/{{ ansible_hostname }}/lxc/{{ lxc_id }}/config --output-format=json | jq .rootfs -r --exit-status
+  register: "rootfs_storage_result"
+
+- set_fact:
+    rootfs_storage: "{{ rootfs_storage_result.stdout.split(':')[0] | trim }}"
+
+- name: PROXMOX LXC - Move rootfs disk to target storage if target storage is different than current/clone storage
+  shell:
+    pvesh create /nodes/{{ ansible_hostname }}/lxc/{{ lxc_id }}/move_disk -storage {{ lxc.storage }} -disk rootfs -delete 1
+  when: "lxc.storage != rootfs_storage"
+
+- name: PROXMOX LXC - Resize rootfs
+  shell:
+    pvesh set /nodes/{{ ansible_hostname }}/lxc/{{ lxc_id }}/resize -disk rootfs -size {{ lxc.disks.rootfs.size }}
+  when: lxc.rootfs is defined and lxc_needs_creation is false

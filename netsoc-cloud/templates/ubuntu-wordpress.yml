@@ -1,0 +1,398 @@
+- import_tasks: "./netsoc-cloud/templates/ubuntu-base.yml"
+
+- name: Install packages
+  package:
+    name:
+      - nginx
+      - mysql-server
+      - mysql-common
+      - php7.4-fpm
+      - php7.4-mysql
+    state: latest
+
+- name: Secure MySQL installation (does the same as mysql_secure_installation) and set root password to 'password' (changed later)
+  shell: |
+    mysql -e "ALTER USER 'root'@'localhost' IDENTIFIED WITH mysql_native_password BY 'password';" &&
+    mysql -ppassword -e "DELETE FROM mysql.user WHERE User='';" &&
+    mysql -ppassword -e "DELETE FROM mysql.user WHERE User='root' AND Host NOT IN ('localhost', '127.0.0.1', '::1');" &&
+    mysql -ppassword -e "DROP DATABASE IF EXISTS test;DELETE FROM mysql.db WHERE Db='test' OR Db='test_%';" &&
+    mysql -ppassword -e "DROP DATABASE IF EXISTS wp_database; DROP USER IF EXISTS 'wp_user'@localhost;" &&
+    mysql -ppassword -e "FLUSH PRIVILEGES";
+
+- name: Tune MySQL performance to use low memory
+  copy:
+    dest: /etc/mysql/mysql.conf.d/mysqld.cnf
+    content: |
+      #
+      # The MySQL database server configuration file.
+      #
+      # One can use all long options that the program supports.
+      # Run program with --help to get a list of available options and with
+      # --print-defaults to see which it would actually understand and use.
+      #
+      # For explanations see
+      # http://dev.mysql.com/doc/mysql/en/server-system-variables.html
+
+      # Here is entries for some specific programs
+      # The following values assume you have at least 32M ram
+
+      [mysqld]
+      #
+      # * Basic Settings
+      #
+      user            = mysql
+      # pid-file      = /var/run/mysqld/mysqld.pid
+      # socket        = /var/run/mysqld/mysqld.sock
+      # port          = 3306
+      # datadir       = /var/lib/mysql
+
+      performance_schema = off
+
+      # If MySQL is running as a replication slave, this should be
+      # changed. Ref https://dev.mysql.com/doc/refman/8.0/en/server-system-variables.html#sysvar_tmpdir
+      # tmpdir                = /tmp
+      #
+      # Instead of skip-networking the default is now to listen only on
+      # localhost which is more compatible and is not less secure.
+      bind-address            = 127.0.0.1
+      #
+      # * Fine Tuning
+      #
+      key_buffer_size         = 16M
+      # max_allowed_packet    = 64M
+      # thread_stack          = 256K
+
+      # thread_cache_size       = -1
+
+      # This replaces the startup script and checks MyISAM tables if needed
+      # the first time they are touched
+      myisam-recover-options  = BACKUP
+
+      # max_connections        = 151
+
+      # table_open_cache       = 4000
+
+      #
+      # * Logging and Replication
+      #
+      # Both location gets rotated by the cronjob.
+      #
+      # Log all queries
+      # Be aware that this log type is a performance killer.
+      # general_log_file        = /var/log/mysql/query.log
+      # general_log             = 1
+      #
+      # Error log - should be very few entries.
+      #
+      log_error = /var/log/mysql/error.log
+      #
+      # Here you can see queries with especially long duration
+      # slow_query_log                = 1
+      # slow_query_log_file   = /var/log/mysql/mysql-slow.log
+      # long_query_time = 2
+      # log-queries-not-using-indexes
+      #
+      # The following can be used as easy to replay backup logs or for replication.
+      # note: if you are setting up a replication slave, see README.Debian about
+      #       other settings you may need to change.
+      # server-id             = 1
+      # log_bin                       = /var/log/mysql/mysql-bin.log
+      # binlog_expire_logs_seconds    = 2592000
+      max_binlog_size   = 100M
+      # binlog_do_db          = include_database_name
+      # binlog_ignore_db      = include_database_name
+
+- name: PHP - Disable mail()
+  lineinfile:
+    path: /etc/php/7.4/fpm/php.ini
+    regexp: "^disable_functions ="
+    line: "disable_functions = mail,pcntl_alarm,pcntl_fork,pcntl_waitpid,pcntl_wait,pcntl_wifexited,pcntl_wifstopped,pcntl_wifsignaled,pcntl_wifcontinued,pcntl_wexitstatus,pcntl_wtermsig,pcntl_wstopsig,pcntl_signal,pcntl_signal_get_handler,pcntl_signal_dispatch,pcntl_get_last_error,pcntl_strerror,pcntl_sigprocmask,pcntl_sigwaitinfo,pcntl_sigtimedwait,pcntl_exec,pcntl_getpriority,pcntl_setpriority,pcntl_async_signals,pcntl_unshare,"
+
+- name: PHP - Set cgi.fix_pathinfo=0
+  lineinfile:
+    path: /etc/php/7.4/fpm/php.ini
+    regexp: "^cgi.fix_pathinfo|;cgi.fix_pathinfo"
+    line: cgi.fix_pathinfo=0
+
+- name: PHP - Disable opcache
+  lineinfile:
+    path: /etc/php/7.4/fpm/php.ini
+    regexp: "^opcache.enable|;opcache.enable"
+    line: opcache.enable=0
+
+- name: Restart PHP
+  service:
+    name: php7.4-fpm
+    state: restarted
+
+- name: Setup Nginx config
+  copy:
+    dest: /etc/nginx/sites-available/default
+    content: |
+      server {
+        listen 80 default_server;
+        listen [::]:80 default_server;
+
+        root /var/www/html;
+
+        # Add index.php to the list if you are using PHP
+        index index.php index.html index.htm index.nginx-debian.html;
+
+        server_name _;
+
+        location = /favicon.ico {
+          log_not_found off;
+          access_log off;
+        }
+
+        location = /robots.txt {
+          allow all;
+          log_not_found off;
+          access_log off;
+        }
+
+        location / {
+          # First attempt to serve request as file, then
+          # as directory, then fall back to displaying a 404.
+          try_files $uri $uri/ /index.php?$args;
+        }
+
+        # Add trailing slash to */wp-admin requests.
+        rewrite /wp-admin$ $scheme://$host$uri/ permanent;
+
+        # pass PHP scripts to FastCGI server
+        location ~ \.php$ {
+          include fastcgi_params;
+          fastcgi_intercept_errors on;
+
+          # With php-fpm (or other unix sockets):
+          fastcgi_pass unix:/var/run/php/php7.4-fpm.sock;
+          fastcgi_param  SCRIPT_FILENAME $document_root$fastcgi_script_name;
+        }
+
+        location ~* \.(js|css|png|jpg|jpeg|gif|ico)$ {
+          expires max;
+          log_not_found off;
+        }
+
+        # deny access to .htaccess files, if Apache's document root
+        # concurs with nginx's one
+        #
+        location ~ /\.ht {
+          deny all;
+        }
+      }
+
+- name: Restart Nginx
+  service:
+    name: nginx
+    state: restarted
+
+- name: Download WordPress zip
+  unarchive:
+    src: https://wordpress.org/wordpress-5.5.3.tar.gz
+    dest: /var/www/
+    remote_src: yes
+
+- name: Remove old html and replace with wordpress
+  shell: |
+    rm -r /var/www/html &&
+    mv /var/www/wordpress /var/www/html &&
+    chown -R www-data:www-data /var/www/html &&
+    find /var/www/html/ -type d -exec chmod 755 {} \; &&
+    find /var/www/html/ -type f -exec chmod 644 {} \;
+  args:
+    warn: false
+
+- name: Install WP-CLI
+  become: yes
+  shell: |
+    wget https://raw.githubusercontent.com/wp-cli/builds/gh-pages/phar/wp-cli.phar -O /usr/local/bin/wp  
+    chmod +x /usr/local/bin/wp
+
+- name: Install configurator script (we modify index.php of WordPress to automatically setup wp-config.php if it doesn't exist)
+  copy:
+    dest: /var/www/html/index.php
+    owner: www-data
+    group: www-data
+    mode: 0644
+    content: !unsafe |
+      <?php
+      /**
+      * Front to the WordPress application. This file doesn't do anything, but loads
+      * wp-blog-header.php which does and tells WordPress to load the theme.
+      *
+      * @package WordPress
+      */
+
+      if (!file_exists('wp-config.php')) {
+        ini_set('display_errors', 1);
+        ini_set('display_startup_errors', 1);
+        error_reporting(E_ALL);
+
+        // Create connection
+        $conn = new mysqli("localhost", "root", "password");
+
+        // Check connection
+        if ($conn->connect_error) {
+          die("Connection failed: " . $conn->connect_error);
+        }
+
+        $dbPass = bin2hex(random_bytes(16));
+
+        if ($conn->query("create database if not exists wp_database") !== TRUE) {
+          die("Could not create database, contact SysAdmins" . $conn->error);
+        }
+
+        if ($conn->query("create user if not exists 'wp_user'@'localhost' IDENTIFIED BY '" . $dbPass . "'") !== TRUE) {
+          die("Could not create database user, contact SysAdmins " . $conn->error);
+        }
+
+        if ($conn->query("grant all privileges on wp_database.* TO 'wp_user'@'localhost'") !== TRUE) {
+          die("Could not grant privs to database user, contact SysAdmins " . $conn->error);
+        }
+
+        if ($conn->query("FLUSH PRIVILEGES") !== TRUE) {
+          die("Could not flush privs, contact SysAdmins " . $conn->error);
+        }
+
+        $config = <<<'EOD'
+        <?php
+        /**
+        * The base configuration for WordPress
+        *
+        * The wp-config.php creation script uses this file during the
+        * installation. You don't have to use the web site, you can
+        * copy this file to "wp-config.php" and fill in the values.
+        *
+        * This file contains the following configurations:
+        *
+        * * MySQL settings
+        * * Secret keys
+        * * Database table prefix
+        * * ABSPATH
+        *
+        * @link https://wordpress.org/support/article/editing-wp-config-php/
+        *
+        * @package WordPress
+        */
+
+        // ** MySQL settings - You can get this info from your web host ** //
+        /** The name of the database for WordPress */
+        define( 'DB_NAME', 'wp_database' );
+
+        /** MySQL database username */
+        define( 'DB_USER', 'wp_user' );
+
+        /** MySQL database password */
+        define( 'DB_PASSWORD', '%s' );
+
+        /** MySQL hostname */
+        define( 'DB_HOST', 'localhost' );
+
+        /** Database Charset to use in creating database tables. */
+        define( 'DB_CHARSET', 'utf8' );
+
+        /** The Database Collate type. Don't change this if in doubt. */
+        define( 'DB_COLLATE', '' );
+
+        /**#@+
+        * Authentication Unique Keys and Salts.
+        *
+        * Change these to different unique phrases!
+        * You can generate these using the {@link https://api.wordpress.org/secret-key/1.1/salt/ WordPress.org secret-key service}
+        * You can change these at any point in time to invalidate all existing cookies. This will force all users to have to log in again.
+        *
+        * @since 2.6.0
+        */
+        define( 'AUTH_KEY',         '%s' );
+        define( 'SECURE_AUTH_KEY',  '%s' );
+        define( 'LOGGED_IN_KEY',    '%s' );
+        define( 'NONCE_KEY',        '%s' );
+        define( 'AUTH_SALT',        '%s' );
+        define( 'SECURE_AUTH_SALT', '%s' );
+        define( 'LOGGED_IN_SALT',   '%s' );
+        define( 'NONCE_SALT',       '%s' );
+
+        /**#@-*/
+
+        /**
+        * WordPress Database Table prefix.
+        *
+        * You can have multiple installations in one database if you give each
+        * a unique prefix. Only numbers, letters, and underscores please!
+        */
+        $table_prefix = 'wp_';
+
+        /**
+        * For developers: WordPress debugging mode.
+        *
+        * Change this to true to enable the display of notices during development.
+        * It is strongly recommended that plugin and theme developers use WP_DEBUG
+        * in their development environments.
+        *
+        * For information on other constants that can be used for debugging,
+        * visit the documentation.
+        *
+        * @link https://wordpress.org/support/article/debugging-in-wordpress/
+        */
+        define( 'WP_DEBUG', false );
+
+        /* That's all, stop editing! Happy publishing. */
+
+        /** Absolute path to the WordPress directory. */
+        if ( ! defined( 'ABSPATH' ) ) {
+                define( 'ABSPATH', __DIR__ . '/' );
+        }
+
+        define('WP_ALLOW_MULTISITE', true );
+
+        define("FORCE_SSL_ADMIN", true);
+        if ($_SERVER["HTTP_X_FORWARDED_PROTO"] == "https")
+                $_SERVER["HTTPS"]="on";
+
+        define('WP_SITEURL', 'https://' . $_SERVER['HTTP_HOST'] . '/');
+        define('WP_HOME', 'https://' . $_SERVER['HTTP_HOST'] . '/');
+        define ('FS_METHOD', 'direct');
+
+        /** Sets up WordPress vars and included files. */
+        require_once ABSPATH . 'wp-settings.php';
+        EOD;
+
+        $configFile = fopen(__DIR__ . '/wp-config.php', 'w');
+
+        fwrite($configFile, sprintf(
+          $config,
+          $dbPass,
+          bin2hex(random_bytes(16)),
+          bin2hex(random_bytes(16)),
+          bin2hex(random_bytes(16)),
+          bin2hex(random_bytes(16)),
+          bin2hex(random_bytes(16)),
+          bin2hex(random_bytes(16)),
+          bin2hex(random_bytes(16)),
+          bin2hex(random_bytes(16))
+        ));
+
+        fclose($configFile);
+
+        // Randomize root password
+        if ($conn->query("ALTER USER 'root'@'localhost' IDENTIFIED WITH mysql_native_password BY '" . bin2hex(random_bytes(16)) . "'")  !== TRUE) {
+          die("Could not grant randomize root pw, contact SysAdmins " . $conn->error);
+        }
+
+        mysqli_close($conn);
+      }
+
+
+      /**
+      * Tells WordPress to load the WordPress theme and output it.
+      *
+      * @var bool
+      */
+      define( 'WP_USE_THEMES', true );
+
+      /** Loads the WordPress Environment and Template */
+      require __DIR__ . '/wp-blog-header.php';
+
+- import_tasks: "./netsoc-cloud/templates/ubuntu-final.yml"
