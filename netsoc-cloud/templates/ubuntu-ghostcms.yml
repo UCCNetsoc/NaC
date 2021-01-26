@@ -1,0 +1,44 @@
+- import_tasks: "./netsoc-cloud/templates/ubuntu-base.yml"
+- import_tasks: "./netsoc-cloud/templates/ubuntu-docker-bare.yml"
+
+- name: Pull GhostCMS Image
+  community.general.docker_image:
+    name: ghost:3.40.5
+    source: pull
+
+- name: Build Config Tool
+  shell:
+    chdir: netsoc-cloud/templates/
+    cmd: >
+      CGO_ENABLED=0 GOOS=linux GOARCH=amd64
+      go build -a -tags netgo -ldflags='-extldflags=-static"'
+      -o /tmp/gcms-conf
+      ghost-cms-config-tool.go
+  delegate_to: localhost
+
+- name: Copy config tool
+  copy:
+    src: "/tmp/gcms-conf"
+    dest: /srv/gcms-conf
+    mode: 0775
+
+- name: Config Tool Service
+  copy:
+    dest: /etc/systemd/system/config_tool.service
+    content: |
+      [Unit]
+      Description=Netsoc GhostCMS Host Config
+
+      [Service]
+      Type=simple
+      ExecStart=/srv/gcms-conf
+
+      [Install]
+      WantedBy=multi-user.target
+
+- name: Enable Config Tool
+  service:
+    name: config_tool
+    enabled: true
+
+- import_tasks: "./netsoc-cloud/templates/ubuntu-final.yml"
