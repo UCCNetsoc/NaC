@@ -42,7 +42,7 @@ func main() {
 	exec.Command("systemctl", "disable", "config_tool.service").Run()
 	exec.Command("docker", "run", "-d", "--name", "ghost", "-v",
 		"/ghost:/var/lib/ghost/content", "-e", fmt.Sprintf("url=https://%s", host),
-		"-p", "80:2368", "ghost").Run()
+		"-p", "80:2368", "--restart", "always", "ghost").Run()
 }
 
 func startHTTPServer(wg *sync.WaitGroup) *http.Server {
