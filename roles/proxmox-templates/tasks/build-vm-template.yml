@@ -1,0 +1,164 @@
+
+
+
+- name: PROXMOX TEMPLATES (VM) - Gather facts
+  setup:
+  when: "inventory_hostname == proxmox_host"
+
+- name: PROXMOX TEMPLATES (VM) - Generate SSH keypair
+  openssh_keypair:
+    path: /tmp/ansible_{{ template.vm.name }}.id_ssh
+    force: True
+  when: "inventory_hostname == proxmox_host"
+
+- set_fact:
+    vm_mixin:
+      recreate: yes
+      cloudinit:
+        storage: "{{ template.vm.cloudinit.storage }}"
+        userdata: |
+          #cloud-config
+          preserve_hostname: false
+          manage_etc_hosts: true
+          fqdn: "{{ template.vm.name }}"
+          packages:
+            - qemu-guest-agent
+          runcmd:
+            - [ systemctl, start, qemu-guest-agent, --no-block ]  
+            - [ systemctl, enable, qemu-guest-agent ]
+          users:
+            - name: netsoc
+              gecos: Netsoc Management User
+              primary_group: netsoc
+              groups: netsoc
+              shell: /bin/bash
+              sudo: ALL=(ALL) NOPASSWD:ALL
+              ssh_authorized_keys:
+                - "{{ lookup('file', '/tmp/ansible_{{ template.vm.name }}.id_ssh.pub') }}"
+        networkconfig:
+          version: 2
+          ethernets:
+            ens18:
+              dhcp4: yes
+              optional: true
+              link-local: []
+  when: "inventory_hostname == proxmox_host and template.tasks is defined"
+
+
+- set_fact:
+    vm_mixin:
+      recreate: yes
+  when: "inventory_hostname == proxmox_host and template.tasks is not defined"
+
+- name: PROXMOX TEMPLATES (VM) - Create VM
+  include_role:
+    name: proxmox-cloudinit-vm
+  vars:
+    recreate: yes
+    vm: "{{ template.vm | combine(vm_mixin, recursive=true) }}"
+  when: "inventory_hostname == proxmox_host"
+
+- name: PROXMOX TEMPLATES (VM) - Start VM
+  proxmox_kvm:
+    proxmox_default_behavior: no_defaults
+    node:           "{{ proxmox_host }}"
+    api_host:       "localhost"
+    api_user:       "{{ proxmox.username }}"
+    api_password:   "{{ proxmox.password }}"
+    name: "{{ template.vm.name }}"
+    state: started
+  when: "inventory_hostname == proxmox_host and template.tasks is defined"
+  ignore_errors: yes
+
+- name: PROXMOX TEMPLATES (VM) - Wait for guest agent ping
+  shell: |
+    id=`pvesh get /nodes/{{ proxmox_host }}/qemu/ --output-format=json | jq '.[] | select(.name=="{{ template.vm.name }}").vmid' -r --exit-status`
+    pvesh create /nodes/{{ proxmox_host }}/qemu/$id/agent/ping
+  retries: 30
+  delay: 3
+  register: result
+  until: result.rc == 0
+  when: "inventory_hostname == proxmox_host and template.tasks is defined"
+
+- name: PROXMOX TEMPLATES (VM) - Wait for net
+  pause:
+    seconds: 2
+  when: "inventory_hostname == proxmox_host and template.tasks is defined"
+
+- name: PROXMOX TEMPLATES (VM) - Get IP 
+  shell: |
+    id=`pvesh get /nodes/{{ inventory_hostname }}/qemu/ --output-format=json | jq '.[] | select(.name=="{{ template.vm.name }}").vmid' -r --exit-status`
+    pvesh get /nodes/{{ inventory_hostname }}/qemu/$id/agent/network-get-interfaces --output-format=json | jq -r '.result[] | select(.name=="ens18") | ."ip-addresses" | .[] | select(."ip-address-type"=="ipv4") | ."ip-address"'
+  args:
+    executable: /bin/sh
+  register: provisionee_ip_out
+  when: "inventory_hostname == proxmox_host and template.tasks is defined"
+
+- name: PROXMOX TEMPLATES (VM) - Remember IP 
+  set_fact:
+    provisionee_ip: "{{ provisionee_ip_out.stdout | trim }}"
+  when: "inventory_hostname == proxmox_host and template.tasks is defined"
+
+- name: PROXMOX TEMPLATES (VM) - Wait for SSH
+  wait_for:
+    port: 22
+    search_regex: OpenSSH
+    host: "{{ provisionee_ip }}"
+  when: "inventory_hostname == proxmox_host and template.tasks is defined"
+
+- name: PROXMOX TEMPLATES (VM) - Gather facts
+  setup:
+  when: "inventory_hostname == proxmox_host and template.tasks is defined"
+
+- name: PROXMOX TEMPLATES (VM) - Configure ansible_host, etc for LXC
+  set_fact:
+    ansible_host: "{{ hostvars[proxmox_host]['provisionee_ip'] }}"
+    ansible_ssh_user: netsoc
+    ansible_ssh_private_key_file: "/tmp/ansible_{{ template.vm.name }}.id_ssh"
+    ansible_ssh_common_args: '-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null'
+  when: "inventory_hostname == provisionee_host and template.tasks is defined"
+
+- name: PROXMOX TEMPLATES (VM) - Gather facts on VM
+  setup:
+  when: "inventory_hostname == provisionee_host and template.tasks is defined"
+
+# The butt-pucker zone
+- name: PROXMOX TEMPLATES (VM) - Test provisionee_host to ensure user is not an idiot and provisioning the proxmox host instead of the vm (1/2)
+  shell: "! which pvesh" # errors if the pvesh binary exists
+  when: "inventory_hostname == provisionee_host and inventory_hostname != proxmox_host and template.tasks is defined"
+
+- name: PROXMOX TEMPLATES (VM) - Test provisionee_host to ensure user is not an idiot and provisioning the proxmox host instead of the vm (2/2)
+  shell: "! which pveam" # errors if the pveam binary exists
+  when: "inventory_hostname == provisionee_host and inventory_hostname != proxmox_host and template.tasks is defined"
+
+- name: PROXMOX TEMPLATES (VM) - Provision VM
+  include_tasks: "{{ template.tasks }}"
+  args:
+    apply:
+      become: yes
+  when: "inventory_hostname == provisionee_host and inventory_hostname != proxmox_host and template.tasks is defined"
+  # ^^^ !!! DO NOT REMOVE THIS LINE !!! ^^^
+  # WILL CAUSE CATASTROPHIC DAMAGE TO THE PROXMOX HOST IF REMOVED
+
+- name: PROXMOX TEMPLATES (VM) - Stop VM
+  proxmox_kvm:
+    node:           "{{ proxmox_host }}"
+    api_host:       "localhost"
+    api_user:       "{{ proxmox.username }}"
+    api_password:   "{{ proxmox.password }}"
+    name: "{{ template.vm.name }}"
+    state: stopped
+    force: yes
+  when: "inventory_hostname == proxmox_host"
+
+- name: PROXMOX TEMPLATES (VM) - Convert VM into template
+  shell: |
+    id=`pvesh get /nodes/{{ proxmox_host }}/qemu/ --output-format=json | jq '.[] | select(.name=="{{ template.vm.name }}").vmid' -r --exit-status`
+    pvesh create /nodes/{{ proxmox_host }}/qemu/$id/config -template 1
+  when: "inventory_hostname == proxmox_host"
+
+- name: PROXMOX TEMPLATES (VM) - Delete SSH keypair
+  file:
+    path: /tmp/ansible_{{ template.vm.name }}.id_ssh
+    state: absent
+  when: "inventory_hostname == proxmox_host"

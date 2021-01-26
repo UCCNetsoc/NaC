@@ -7,10 +7,11 @@
       vars:
         vm:
           name: "web.infra.netsoc.co"
-          clone:
-            pool: local
-            qcow2_url: "https://cloud-images.ubuntu.com/releases/focal/release-20200921.1/ubuntu-20.04-server-cloudimg-amd64.img"
-            qcow2_hash: sha256:d18a9d2b890d3c1401e70a281cae44b61816aa669c4936f7a99c168e572ec8cb
+          storage: local-lvm
+          template:
+            storage: local
+            image_url: "https://cloud-images.ubuntu.com/releases/focal/release-20200921.1/ubuntu-20.04-server-cloudimg-amd64.img"
+            image_hash: sha256:d18a9d2b890d3c1401e70a281cae44b61816aa669c4936f7a99c168e572ec8cb
           cores: 4
           memory: 12288
           description:
@@ -20,23 +21,17 @@
               - promtail
               - prometheus_base
               - prometheus_docker
-              - ipaclients
             host_vars:
               ansible_ssh_private_key_file: "./keys/infra/web/id_rsa"
           net:
             net0: "virtio={{ interfaces.infra.web.net0.match.macaddress }},tag={{ vlan.infra }},bridge={{ vmbr }}"
           disks:
-            pool: local-lvm
             boot:
-              size: 30G
-              format: raw
+              size: 30
             extra:
-              - size: 45G
-                format: raw
-          efi:
-            pool: local
+              - size: 45
           cloudinit:
-            pool: local
+            storage: local
             force: yes
             userdata: |
               #cloud-config
@@ -80,7 +75,6 @@
             networkconfig: 
               version: 2
               ethernets: "{{ interfaces.infra.web }}"
-          wait_for_ssh_ip: "{{ interfaces.infra.web.net0.addresses[0] }}"
   vars_files:
     - vars/network.yml
     - vars/secrets_mapping.yml

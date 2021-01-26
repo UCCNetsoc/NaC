@@ -21,14 +21,8 @@
   pip:
     name:
       - pip
-      - ansible==2.9.10
+#      - ansible
       - proxmoxer
       - netaddr
     state: latest
     extra_args: --upgrade
-
-- name: Ensure Galaxy roles
-  command: ansible-galaxy collection install {{ item }}
-  with_items:
-    - freeipa.ansible_freeipa
-  ignore_errors: yes

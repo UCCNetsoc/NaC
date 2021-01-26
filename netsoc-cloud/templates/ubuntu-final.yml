@@ -1,0 +1,14 @@
+- name: Delete authorized ssh key
+  file:
+    path: /root/.ssh/authorized_keys
+    state: absent
+
+- name: Delete cloud-init status
+  file:
+    path: /etc/cloud
+    state: absent
+
+- name: Delete cloud-init netplan
+  file:
+    path: /etc/netplan/50-cloud-init.yml
+    state: absent

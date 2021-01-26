@@ -133,7 +133,7 @@
             http: # cloud http config
               endpoint:
                 - "https://api.netsoc.cloud/v1/proxmox/traefik-config?key={{ netsoc_cloud_config.proxmox.network.traefik.config_key }}"
-              pollInterval: 5s
+              pollInterval: 20s
               pollTimeout: 10s
           api:
             dashboard: true
@@ -991,6 +991,8 @@
   tags:
     - provision
     - netsoc-cloud
+    - netsoc-cloud-api
+    - netsoc-cloud-ui
 
 - name: NETSOC CLOUD - WEBSSH2
   hosts: web.infra.netsoc.co

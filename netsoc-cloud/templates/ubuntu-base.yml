@@ -1,0 +1,77 @@
+- import_tasks: "./netsoc-cloud/templates/failsafe.yml"
+
+- name: Fix locale spam
+  shell:
+    locale-gen en_US.UTF-8
+
+- apt:
+    name:
+      - packagekit
+      - postfix
+    state: absent
+    purge: yes
+    autoremove: yes
+
+- file:
+    path: /etc/machine-id
+    state: absent
+
+- file:
+    path: /var/lib/dbus/machine-id
+    state: absent
+
+- name: Delete installed SSH key on LXC
+  file:
+    path: /root/.ssh/id_rsa
+    state: absent
+
+- name: Delete installed host keys
+  shell: rm -f /etc/ssh/ssh_host*
+  args:
+    warn: false
+
+- name: Make SSHD override directories
+  file:
+    path: "{{ item }}"
+    state: directory
+  with_items:
+    - /lib/systemd/system/ssh.service.d
+
+- name: Install host key automator (generates host keys if they're missing)
+  copy:
+    dest: "{{ item }}"
+    content: |
+      [Service]
+      ExecStartPre=
+      ExecStart=
+      ExecStartPre=/usr/bin/ssh-keygen -A
+      ExecStart=/usr/sbin/sshd -D $SSHD_OPTS
+  with_items:
+    - /lib/systemd/system/ssh.service.d/override.conf
+
+- name: Daemon-reload
+  systemd:
+    name: sshd
+    daemon-reload: yes
+
+- name: Disable useless systemd services
+  shell: "systemctl disable {{ item }} && systemctl mask {{ item }}"
+  with_items:
+    - systemd-resolved # use resolv file
+    - accounts-daemon # desktop
+
+- name: Install /etc/resolv.conf (to replace systemd-resolved)
+  copy:
+    dest: /etc/resolv.conf
+    content: |
+      # --- BEGIN PVE ---
+      search netsoc.cloud
+      nameserver 1.1.1.1
+      # --- END PVE ---
+
+- name: Add /usr/local/bin to PATH of root
+  lineinfile:
+    path: /root/.bashrc
+    regexp: |
+      ^PATH\=\$PATH\:\/usr\/local\/bin"
+    line: PATH=$PATH:/usr/local/bin
