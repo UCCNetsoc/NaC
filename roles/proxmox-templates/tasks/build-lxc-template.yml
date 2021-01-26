@@ -3,10 +3,11 @@
   when: "inventory_hostname == proxmox_host"
 
 - name: PROXMOX TEMPLATES (LXC) - Generate SSH keypair
+  become: no
   openssh_keypair:
     path: /tmp/ansible_{{ template.lxc.name }}.id_ssh
     force: True
-  when: "inventory_hostname == proxmox_host"
+  delegate_to: localhost
 
 - name: PROXMOX TEMPLATES (LXC) - Create LXC
   include_role:
@@ -34,7 +35,7 @@
   when: "inventory_hostname == proxmox_host"
 
 
-- name: PROXMOX TEMPLATES (LXC) - Get IP 
+- name: PROXMOX TEMPLATES (LXC) - Get IP
   shell: |
     id=`pvesh get /nodes/{{ ansible_hostname }}/lxc/ --output-format=json | jq '.[] | select(.name=="{{ template.lxc.name }}").vmid' -r --exit-status`
     lxc-info -n $id -iH
@@ -43,7 +44,7 @@
   register: provisionee_ip_out
   when: "inventory_hostname == proxmox_host"
 
-- name: PROXMOX TEMPLATES (LXC) - Remember IP 
+- name: PROXMOX TEMPLATES (LXC) - Remember IP
   set_fact:
     provisionee_ip: "{{ provisionee_ip_out.stdout | trim }}"
   when: "inventory_hostname == proxmox_host"
@@ -118,6 +119,9 @@
 
 - name: PROXMOX TEMPLATES (LXC) - Delete SSH keypair
   file:
-    path: /tmp/ansible_{{ template.lxc.name }}.id_ssh
+    path: "{{ item }}"
     state: absent
+  loop:
+    - "/tmp/ansible_{{ template.lxc.name }}.id_ssh"
+    - "/tmp/ansible_{{ template.lxc.name }}.id_ssh.pub"
   when: "inventory_hostname == proxmox_host"
