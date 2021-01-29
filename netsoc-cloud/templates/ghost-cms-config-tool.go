@@ -296,7 +296,7 @@ const response = `<!doctype html>
 
             }
 
-            if (attempts > 30) {
+            if (attempts > 90) {
                 clearInterval(intervalHdl);
                 document.getElementById("install").innerText = "Installation failed, contact SysAdmins";
                 document.getElementById("install").className = "not-installed"
