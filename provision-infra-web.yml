@@ -1398,6 +1398,67 @@
     - dashboards
     - grafana
 
+- name: "SEMAPHORE"
+  hosts: web.infra.netsoc.co
+  become: yes
+  tasks:
+    - name: SEMAPHORE - Remember Compose definition
+      set_fact:
+        semaphore_definition:
+          version: "3.8"
+          networks:
+            traefik:
+              external: true
+            semaphore:
+          services:
+            mysql:
+              restart: always
+              image: mysql
+              environment:
+                MYSQL_ROOT_PASSWORD: "{{ semaphore.mysql.pass }}"
+              networks:
+                semaphore:
+            semaphore:
+              restart: always
+              image: ansiblesemaphore/semaphore:latest
+              environment:
+                SEMAPHORE_DB_USER: "{{ semaphore.mysql.user }}"
+                SEMAPHORE_DB_PASS: "{{ semaphore.mysql.pass }}"
+                SEMAPHORE_DB_HOST: mysql
+                SEMAPHORE_DB_PORT: 3306
+                SEMAPHORE_DB: semaphore
+                SEMAPHORE_PLAYBOOK_PATH: /tmp/semaphore/
+                SEMAPHORE_ADMIN_PASSWORD: "{{ semaphore.admin.password }}"
+                SEMAPHORE_ADMIN_NAME: "{{ semaphore.admin.user }}"
+                SEMAPHORE_ADMIN_EMAIL: "{{ semaphore.admin.email }}"
+                SEMAPHORE_ADMIN: "{{ semaphore.admin.user }}"
+              networks:
+                traefik:
+                semaphore:
+              labels:
+                traefik.enable: "true"
+                traefik.http.routers.semaphore.entrypoints: web-secure
+                traefik.http.routers.semaphore.rule: Host(`semaphore.netsoc.co`)
+                traefik.http.routers.semaphore.tls.certResolver: letsencrypt-dns
+                traefik.http.routers.semaphore.service: semaphore-service
+                traefik.http.services.semaphore-service.loadbalancer.server.port: 3000
+                traefik.docker.network: traefik
+
+    - name: SEMAPHORE - Setup compose
+      docker_compose:
+        project_name: semaphore
+        recreate: always
+        restarted: yes
+        remove_orphans: yes
+        state: present
+        definition: "{{ semaphore_definition }}"
+
+  vars_files:
+    - "vars/secrets_mapping.yml"
+    - "vars/secrets.yml"
+  tags:
+    - semaphore
+
 - name: "LOKI TARGETS" # Keep this at the bottom of the file at all times.
   hosts: web.infra.netsoc.co
   become: yes
