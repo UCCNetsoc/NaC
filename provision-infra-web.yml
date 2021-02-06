@@ -612,6 +612,7 @@
                 FACEBOOK_PAGE_ACCESS_TOKEN: "{{ netsocbot.fb.accesstoken }}"
                 SCHEDULE_ENABLE: "False"
                 MINECRAFT_HOST: "{{ interfaces.infra.games.net0.addresses[0] | ipaddr('address') }}:1194"
+                SHORTEN_HOST: "{{ shortener.traefik.domain }]"
               labels:
                 traefik.enable: "true"
                 traefik.http.routers.netsocbot.rule: "Host(`bot.netsoc.co`)"
@@ -1406,14 +1407,14 @@
       postgresql_db:
         name: "{{ shortener.postgres.db }}"
         state: present
-        login_host: "{{ databases.infra.host }}"
+        login_host: "{{ databases.infra.postgres }}"
         login_password: "{{ postgres.infra.postgres_password }}"
 
     - name: Shortener - Ensure user
       postgresql_user:
         name: "{{ shortener.postgres.user }}"
         password: "{{ shortener.postgres.pass }}"
-        login_host: "{{ databases.infra.host }}"
+        login_host: "{{ databases.infra.postgres }}"
         login_password: "{{ postgres.infra.postgres_password }}"
       no_log: true
 
@@ -1423,9 +1424,8 @@
         role: "{{ shortener.postgres.user }}"
         objs: ALL_IN_SCHEMA
         privs: SELECT,INSERT,UPDATE,DELETE
-        login_host: "{{ databases.infra.host }}"
+        login_host: "{{ databases.infra.postgres }}"
         login_password: "{{ postgres.infra.postgres_password }}"
-
   vars_files:
     - "vars/network.yml"
     - "vars/secrets_mapping.yml"
