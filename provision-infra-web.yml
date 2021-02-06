@@ -613,6 +613,8 @@
                 SCHEDULE_ENABLE: "False"
                 MINECRAFT_HOST: "{{ interfaces.infra.games.net0.addresses[0] | ipaddr('address') }}:1194"
                 SHORTEN_HOST: "{{ shortener.traefik.domain }]"
+                SHORTEN_USER: "{{ shortener.traefik.username }}"
+                SHORTEN_PASSWORD: "{{ shortener.traefik.password }}"
               labels:
                 traefik.enable: "true"
                 traefik.http.routers.netsocbot.rule: "Host(`bot.netsoc.co`)"
@@ -1463,8 +1465,11 @@
                 traefik.http.routers.shortener.tls.certResolver: "letsencrypt-dns"
                 traefik.http.services.shortener.loadbalancer.server.port: "8080"
                 traefik.http.routers.shortener.service: "shortener"
+                # seperate router for /api to be authenticated
+                traefik.http.routers.shortener-auth.rule: "Host(`{{ shortener.traefik.domain }}`) && PathPrefix(`/api`)`"
+                traefik.http.routers.shortener-auth.entrypoints: "web-secure"
                 traefik.http.middlewares.shortener-auth.basicauth.users: "{{ shortener.traefik.username }}:{{ shortener.traefik.encrypted }}"
-                traefik.http.routers.shortener.middlewares: "shortener-auth"
+                traefik.http.routers.shortener-auth.middlewares: "shortener-auth"
                 traefik.docker.network: "traefik"
               restart: always
 
