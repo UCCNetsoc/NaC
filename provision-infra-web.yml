@@ -1398,7 +1398,6 @@
     - dashboards
     - grafana
 
-
 - name: Shortener Databases
   hosts: databases.infra.netsoc.co
   become: yes
@@ -1407,32 +1406,33 @@
       postgresql_db:
         name: "{{ shortener.postgres.db }}"
         state: present
-        login_host: "{{ databases.infra.postgres }}"
+        login_host: "{{ databases.infra.host }}"
         login_password: "{{ postgres.infra.postgres_password }}"
-    
+
     - name: Shortener - Ensure user
       postgresql_user:
-        name: "{{ shortener.postgres.username }}"
-        password: "{{ shortener.postgres.password }}"
-        login_host: "{{ databases.infra.postgres }}"
+        name: "{{ shortener.postgres.user }}"
+        password: "{{ shortener.postgres.pass }}"
+        login_host: "{{ databases.infra.host }}"
         login_password: "{{ postgres.infra.postgres_password }}"
       no_log: true
 
     - name: Shortener - Ensure user has access to database
       postgresql_privs:
         db: "{{ shortener.postgres.db }}"
-        role: "{{ shortener.postgres.username }}"
+        role: "{{ shortener.postgres.user }}"
         objs: ALL_IN_SCHEMA
         privs: SELECT,INSERT,UPDATE,DELETE
-        login_host: "{{ databases.infra.postgres }}"
-        login_password: "{{ postgres.infra.postgres.password }}"
-    vars_files:
-      - "vars/network.yml"
-      - "vars/secrets_mapping.yml"
-      - "vars/secrets.yml"
-    tags:
-      - provision
-      - shortener
+        login_host: "{{ databases.infra.host }}"
+        login_password: "{{ postgres.infra.postgres_password }}"
+
+  vars_files:
+    - "vars/network.yml"
+    - "vars/secrets_mapping.yml"
+    - "vars/secrets.yml"
+  tags:
+    - provision
+    - shortener
 
 - name: "Shortener"
   hosts: web.infra.netsoc.co
@@ -1450,21 +1450,21 @@
               image: uccnetsoc/shortener:latest
               environment:
                 DB_HOST: "{{ interfaces.infra.databases.net0.addresses[0] | ipaddr('address') }}"
-                DB_PORT: "{{ shortener.postgres.port | default(5432) }}"
-                DB_USER: "{{ shortener.postgres.username }}"
-                DB_PASSWORD: "{{ shortener.postgres.password }}"
-                DB_DATABASE: "{{ shortener.postgres.db }}"
+                DB_PORT: "5432"
+                DB_USER: "{{ shortener.postgres.user }}"
+                DB_PASS: "{{ shortener.postgres.pass }}"
+                DB_NAME: "{{ shortener.postgres.db }}"
               networks:
                 traefik:
               labels:
                 traefik.enable: "true"
-                traefik.http.routers.shortener.rule: "Host(`links.netsoc.co`)"
+                traefik.http.routers.shortener.rule: "Host(`{{ shortener.traefik.domain }}`)"
                 traefik.http.routers.shortener.entrypoints: "web-secure"
                 traefik.http.routers.shortener.tls.certResolver: "letsencrypt-dns"
                 traefik.http.services.shortener.loadbalancer.server.port: "8080"
                 traefik.http.routers.shortener.service: "shortener"
-                traefik.http.middlewares.shortener-auth.basic-auth.users: "{{ shortener.traefik.username }}:{{ shortener.traefik.encrypted }}"
-                traefik.http.routers.sonarr.middlewares: "shortener-auth"
+                traefik.http.middlewares.shortener-auth.basicauth.users: "{{ shortener.traefik.username }}:{{ shortener.traefik.encrypted }}"
+                traefik.http.routers.shortener.middlewares: "shortener-auth"
                 traefik.docker.network: "traefik"
               restart: always
 
