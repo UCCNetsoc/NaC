@@ -1466,11 +1466,14 @@
                 traefik.http.services.shortener.loadbalancer.server.port: "8080"
                 traefik.http.routers.shortener.service: "shortener"
                 # seperate router for /api to be authenticated
-                traefik.http.routers.shortener-auth.rule: "Host(`{{ shortener.traefik.domain }}`) && PathPrefix(`/api`)`"
+                traefik.http.routers.shortener-auth.rule: "Host(`{{ shortener.traefik.domain }}`) && PathPrefix(`/api`)"
                 traefik.http.routers.shortener-auth.entrypoints: "web-secure"
+                traefik.http.routers.shortener-auth.tls.certResolver: "letsencrypt-dns"
+                traefik.http.services.shortener-auth.loadbalancer.server.port: "8080"
                 traefik.http.middlewares.shortener-auth.basicauth.users: "{{ shortener.traefik.username }}:{{ shortener.traefik.encrypted }}"
                 traefik.http.routers.shortener-auth.middlewares: "shortener-auth"
-                traefik.docker.network: "traefik"
+                traefik.http.routers.shortener-auth.service: "shortener-auth"
+                traefik.docker.network: "traefik  "
               restart: always
 
     - name: Shortener - Setup compose
