@@ -45,6 +45,7 @@
             - { type: CNAME,    name: netsoc.co,             value: "web.netsoc.co"  }
             - { type: CNAME,    name: ipa,                   value: "web.netsoc.co"  }
             - { type: CNAME,    name: keycloak,              value: "web.netsoc.co"  }
+            - { type: CNAME,    name: semaphore,             value: "web.netsoc.co"  }
             - { type: CNAME,    name: traefik,               value: "web.netsoc.co"  }
             - { type: CNAME,    name: prometheus,            value: "web.netsoc.co"  }
             - { type: CNAME,    name: ci,                    value: "web.netsoc.co"  }
