@@ -231,7 +231,7 @@
                 entrypoints:
                   - web-secure
                 rule: Host(`motley.ie`,`www.motley.ie`,`www.uccexpress.ie`,`uccexpress.ie`)
-                service: leela-https
+                service: studentmedia-https
                 tls:
                   certResolver: letsencrypt-tls
               ipa:
@@ -357,6 +357,10 @@
                 loadBalancer:
                   servers:
                     - url: 'https://10.0.30.135'
+              studentmedia-https:
+                loadBalancer:
+                  servers:
+                    - url: 'https://10.0.30.136'
               leela-http:
                 loadBalancer:
                   servers:
