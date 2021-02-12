@@ -16,8 +16,9 @@ datasources:
     basicAuth: true
     # <string> basic auth username, if used
     basicAuthUser: "{{ loki.username }}"
-    # <string> basic auth password, if used
-    basicAuthPassword: "{{ loki.password }}"
     isDefault: false
     # <bool> allow users to edit datasources from the UI.
     editable: false
+    secureJsonData:
+      # <string> basic auth password, if used
+      basicAuthPassword: "{{ loki.password }}"
