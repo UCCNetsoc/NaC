@@ -1322,6 +1322,10 @@
             loki:
               command: -config.file=/loki/config.yaml
               hostname: loki
+              deploy:
+                resources:
+                  limits:
+                    memory: 500M
               image: grafana/loki:2.0.0
               networks:
                 loki:
