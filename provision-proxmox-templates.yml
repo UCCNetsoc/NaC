@@ -1,5 +1,5 @@
 - name: Add Provisionee host
-  hosts: feynman
+  hosts: leela
   tasks:
     - add_host:
         name: provisionee
@@ -7,13 +7,13 @@
     - always
 
 - name: Provision Netsoc Cloud templates
-  hosts: feynman, provisionee
+  hosts: leela, provisionee
   gather_facts: no
   any_errors_fatal: true
   roles:
     - role: proxmox-templates
       vars:
-        proxmox_host: feynman
+        proxmox_host: leela
         provisionee_host: provisionee
         templates:
           - lxc:
