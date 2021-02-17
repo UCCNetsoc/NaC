@@ -164,6 +164,6 @@
     path: "{{ item }}"
     state: absent
   loop:
-    - "/tmp/ansible_{{ template.lxc.name }}.id_ssh"
-    - "/tmp/ansible_{{ template.lxc.name }}.id_ssh.pub"
+    - "/tmp/ansible_{{ template.vm.name }}.id_ssh"
+    - "/tmp/ansible_{{ template.vm.name }}.id_ssh.pub"
   delegate_to: localhost
