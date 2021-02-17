@@ -118,10 +118,11 @@
   when: "inventory_hostname == proxmox_host"
 
 - name: PROXMOX TEMPLATES (LXC) - Delete SSH keypair
+  become: no
   file:
     path: "{{ item }}"
     state: absent
   loop:
     - "/tmp/ansible_{{ template.lxc.name }}.id_ssh"
     - "/tmp/ansible_{{ template.lxc.name }}.id_ssh.pub"
-  when: "inventory_hostname == proxmox_host"
+  delegate_to: localhost
