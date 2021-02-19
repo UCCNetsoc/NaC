@@ -6,6 +6,24 @@
     name: ghost:3.40.5
     source: pull
 
+- name: Check Go on Host
+  shell: which go
+  register: result_go
+  delegate_to: localhost
+
+- name: Add Golang PPA
+  shell: |
+    echo -e '\n' | add-apt-repository ppa:longsleep/golang-backports
+  when: result_go.rc != 0
+  delegate_to: localhost
+
+- name: Install golang
+  apt:
+    name: golang-go
+    update_cache: yes
+  when: result_go.rc != 0
+  delegate_to: localhost
+
 - name: Build Config Tool
   shell:
     chdir: netsoc-cloud/templates/
