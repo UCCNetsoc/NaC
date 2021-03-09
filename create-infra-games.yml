@@ -12,7 +12,7 @@
             image_url: "https://cloud-images.ubuntu.com/releases/focal/release-20200921.1/ubuntu-20.04-server-cloudimg-amd64.img"
             image_hash: sha256:d18a9d2b890d3c1401e70a281cae44b61816aa669c4936f7a99c168e572ec8cb
           cores: 4
-          memory: 4096
+          memory: 6144
           description:
             groups:
               - vm
@@ -40,7 +40,7 @@
                 - qemu-guest-agent
               runcmd:
                 - [ systemctl, enable, qemu-guest-agent ]
-                - [ systemctl, start, qemu-guest-agent, --no-block ]  
+                - [ systemctl, start, qemu-guest-agent, --no-block ]
               users:
                 - name: netsoc
                   gecos: Netsoc Management User
@@ -50,7 +50,7 @@
                   sudo: ALL=(ALL) NOPASSWD:ALL
                   ssh_authorized_keys:
                     - "{{ lookup('file', './keys/infra/games/id_rsa.pub') }}"
-              apt: 
+              apt:
                 preserve_sources_list: true
                 primary:
                   - arches: [default]
@@ -70,7 +70,7 @@
                   overwrite: false
               mounts:
                 - [ vdb, /netsoc, auto ]
-            networkconfig: 
+            networkconfig:
               version: 2
               ethernets: "{{ interfaces.infra.games }}"
   vars_files:
