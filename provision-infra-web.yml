@@ -360,7 +360,7 @@
               studentmedia-https:
                 loadBalancer:
                   servers:
-                    - url: 'https://10.0.30.136'
+                    - url: 'https://netsoc2.ucc.ie'
               leela-http:
                 loadBalancer:
                   servers:
