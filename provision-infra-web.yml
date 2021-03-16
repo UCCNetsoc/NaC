@@ -304,6 +304,15 @@
                 service: unused
                 tls:
                   certResolver: letsencrypt-dns
+              hlm-router:
+                entrypoints:
+                  - web-secure
+                rule: Host(`hlm.netsoc.co`)
+                middlewares:
+                  - hlm-redirect
+                service: unused
+                tls:
+                  certResolver: letsencrypt-dns
             middlewares:
               discord-redirect:
                 redirectRegex:
@@ -327,6 +336,10 @@
                   customRequestHeaders:
                     Host: ipa.infra.netsoc.co
                     Referer: https://ipa.infra.netsoc.co/ipa/
+              hlm-redirect:
+                redirectRegex:
+                  regex: ^(.*)
+                  replacement: 'https://hlm.netsoc.cloud'
               prometheus-auth:
                 basicAuth:
                   users:
