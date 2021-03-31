@@ -411,6 +411,7 @@
     - name: TRAEFIK - Setup compose
       docker_compose:
         project_name: traefik
+        pull: yes
         recreate: always
         restarted: yes
         remove_orphans: yes
@@ -612,9 +613,9 @@
                 FACEBOOK_PAGE_ACCESS_TOKEN: "{{ netsocbot.fb.accesstoken }}"
                 SCHEDULE_ENABLE: "False"
                 MINECRAFT_HOST: "{{ interfaces.infra.games.net0.addresses[0] | ipaddr('address') }}:1194"
-                SHORTEN_HOST: "{{ shortener.traefik.domain }]"
-                SHORTEN_USER: "{{ shortener.traefik.username }}"
-                SHORTEN_PASSWORD: "{{ shortener.traefik.password }}"
+                SHORTEN_HOST: "{{ shortener.domain }}/api"
+                SHORTEN_USER: "{{ shortener.username }}"
+                SHORTEN_PASSWORD: "{{ shortener.password }}"
               labels:
                 traefik.enable: "true"
                 traefik.http.routers.netsocbot.rule: "Host(`bot.netsoc.co`)"
@@ -756,6 +757,7 @@
     - name: CI - Setup compose
       docker_compose:
         project_name: ci
+        pull: yes
         recreate: always
         remove_orphans: yes
         state: present
@@ -1451,6 +1453,8 @@
             instance:
               image: uccnetsoc/shortener:latest
               environment:
+                SHORTENER_USER: "{{ shortener.username }}"
+                SHORTENER_PASSWORD: "{{ shortener.password }}"
                 DB_HOST: "{{ interfaces.infra.databases.net0.addresses[0] | ipaddr('address') }}"
                 DB_PORT: "5432"
                 DB_USER: "{{ shortener.postgres.user }}"
@@ -1460,26 +1464,19 @@
                 traefik:
               labels:
                 traefik.enable: "true"
-                traefik.http.routers.shortener.rule: "Host(`{{ shortener.traefik.domain }}`)"
+                traefik.http.routers.shortener.rule: "Host(`{{ shortener.domain }}`)"
                 traefik.http.routers.shortener.entrypoints: "web-secure"
                 traefik.http.routers.shortener.tls.certResolver: "letsencrypt-dns"
                 traefik.http.services.shortener.loadbalancer.server.port: "8080"
                 traefik.http.routers.shortener.service: "shortener"
-                # seperate router for /api to be authenticated
-                traefik.http.routers.shortener-auth.rule: "Host(`{{ shortener.traefik.domain }}`) && PathPrefix(`/api`)"
-                traefik.http.routers.shortener-auth.entrypoints: "web-secure"
-                traefik.http.routers.shortener-auth.tls.certResolver: "letsencrypt-dns"
-                traefik.http.services.shortener-auth.loadbalancer.server.port: "8080"
-                traefik.http.middlewares.shortener-auth.basicauth.users: "{{ shortener.traefik.username }}:{{ shortener.traefik.encrypted }}"
-                traefik.http.routers.shortener-auth.middlewares: "shortener-auth"
-                traefik.http.routers.shortener-auth.service: "shortener-auth"
-                traefik.docker.network: "traefik  "
+                traefik.docker.network: "traefik"
               restart: always
 
     - name: Shortener - Setup compose
       docker_compose:
         project_name: shortener
-        recreate: smart
+        pull: yes
+        recreate: always
         restarted: yes
         remove_orphans: yes
         state: present
