@@ -15,13 +15,16 @@
   "editable": true,
   "gnetId": null,
   "graphTooltip": 0,
-  "id": 6,
+  "iteration": 1617471700600,
   "links": [],
   "panels": [
     {
       "datasource": "Loki",
       "fieldConfig": {
         "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
           "custom": {
             "align": null,
             "filterable": false
@@ -120,10 +123,10 @@
           }
         ]
       },
-      "pluginVersion": "7.3.3",
+      "pluginVersion": "7.4.1",
       "targets": [
         {
-          "expr": "{container_name=\"traefik_server_1\"} | json",
+          "expr": "{container_name=\"traefik_server_1\"} |= \"$query\" | json ",
           "legendFormat": "",
           "refId": "A"
         }
@@ -239,11 +242,34 @@
       "type": "table"
     }
   ],
-  "schemaVersion": 26,
+  "schemaVersion": 27,
   "style": "dark",
   "tags": [],
   "templating": {
-    "list": []
+    "list": [
+      {
+        "current": {
+          "selected": false,
+          "text": "grafana",
+          "value": "grafana"
+        },
+        "description": "Query all fields in table",
+        "error": null,
+        "hide": 0,
+        "label": "Query",
+        "name": "query",
+        "options": [
+          {
+            "selected": true,
+            "text": "grafana",
+            "value": "grafana"
+          }
+        ],
+        "query": "grafana",
+        "skipUrlSync": false,
+        "type": "textbox"
+      }
+    ]
   },
   "time": {
     "from": "now-6h",
@@ -253,5 +279,5 @@
   "timezone": "",
   "title": "Traefik",
   "uid": "traefik",
-  "version": 2
+  "version": 9
 }
