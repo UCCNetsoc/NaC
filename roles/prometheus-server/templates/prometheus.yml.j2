@@ -113,7 +113,7 @@ scrape_configs:
 
 {% if 'prometheus_traefik' in groups %}
   - job_name: 'traefik'
-    metrics_path: /proxy
+    metrics_path: /metrics
     params:
       module:
        - traefik
@@ -121,7 +121,7 @@ scrape_configs:
     {% for host in groups['prometheus_traefik'] -%}
       -
         targets:
-          - {{hostvars[host].ansible_host}}:9999
+          - {{hostvars[host].ansible_host}}:8082
         labels:
           instance: "{{host}}"
     {% endfor %}

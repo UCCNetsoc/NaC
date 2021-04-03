@@ -36,7 +36,6 @@
     state: directory
   with_items:
     - /lib/systemd/system/ssh.service.d
-    - /lib/systemd/system/ssh@.service.d
 
 - name: Install host key automator (generates host keys if they're missing)
   copy:
@@ -49,7 +48,6 @@
       ExecStart=/usr/sbin/sshd -D $SSHD_OPTS
   with_items:
     - /lib/systemd/system/ssh.service.d/override.conf
-    - /lib/systemd/system/ssh@.service.d/override.conf
 
 - name: Daemon-reload
   systemd:

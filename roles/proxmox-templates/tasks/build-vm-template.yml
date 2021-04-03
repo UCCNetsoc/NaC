@@ -6,10 +6,11 @@
   when: "inventory_hostname == proxmox_host"
 
 - name: PROXMOX TEMPLATES (VM) - Generate SSH keypair
+  become: no
   openssh_keypair:
     path: /tmp/ansible_{{ template.vm.name }}.id_ssh
     force: True
-  when: "inventory_hostname == proxmox_host"
+  delegate_to: localhost
 
 - set_fact:
     vm_mixin:
@@ -24,7 +25,7 @@
           packages:
             - qemu-guest-agent
           runcmd:
-            - [ systemctl, start, qemu-guest-agent, --no-block ]  
+            - [ systemctl, start, qemu-guest-agent, --no-block ]
             - [ systemctl, enable, qemu-guest-agent ]
           users:
             - name: netsoc
@@ -85,7 +86,7 @@
     seconds: 2
   when: "inventory_hostname == proxmox_host and template.tasks is defined"
 
-- name: PROXMOX TEMPLATES (VM) - Get IP 
+- name: PROXMOX TEMPLATES (VM) - Get IP
   shell: |
     id=`pvesh get /nodes/{{ inventory_hostname }}/qemu/ --output-format=json | jq '.[] | select(.name=="{{ template.vm.name }}").vmid' -r --exit-status`
     pvesh get /nodes/{{ inventory_hostname }}/qemu/$id/agent/network-get-interfaces --output-format=json | jq -r '.result[] | select(.name=="ens18") | ."ip-addresses" | .[] | select(."ip-address-type"=="ipv4") | ."ip-address"'
@@ -94,7 +95,7 @@
   register: provisionee_ip_out
   when: "inventory_hostname == proxmox_host and template.tasks is defined"
 
-- name: PROXMOX TEMPLATES (VM) - Remember IP 
+- name: PROXMOX TEMPLATES (VM) - Remember IP
   set_fact:
     provisionee_ip: "{{ provisionee_ip_out.stdout | trim }}"
   when: "inventory_hostname == proxmox_host and template.tasks is defined"
@@ -158,7 +159,11 @@
   when: "inventory_hostname == proxmox_host"
 
 - name: PROXMOX TEMPLATES (VM) - Delete SSH keypair
+  become: no
   file:
-    path: /tmp/ansible_{{ template.vm.name }}.id_ssh
+    path: "{{ item }}"
     state: absent
-  when: "inventory_hostname == proxmox_host"
+  loop:
+    - "/tmp/ansible_{{ template.vm.name }}.id_ssh"
+    - "/tmp/ansible_{{ template.vm.name }}.id_ssh.pub"
+  delegate_to: localhost

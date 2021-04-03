@@ -52,7 +52,6 @@
     - provision
     - wiki
 
-
 - name: "TRAEFIK"
   hosts: web.infra.netsoc.co
   become: yes
@@ -144,18 +143,25 @@
         traefik_file_config:
           http:
             routers:
-              leela-fallback:
-                entrypoints:
-                  - web-secure
-                rule: PathPrefix(`/`) # matches everything
-                service: leela-https
-                priority: 1 # last possible match
-                tls:
-                  certResolver: letsencrypt-tls
+              # leela-fallback:
+              #   entrypoints:
+              #     - web-secure
+              #   rule: PathPrefix(`/`) # matches everything
+              #   service: leela-https
+              #   priority: 1 # last possible match
+              #   tls:
+              #     certResolver: letsencrypt-tls
               leela-fallback-evan:
                 entrypoints:
                   - web-secure
-                rule: Host(`iamevan.me`, `www.iamevan.me`)
+                rule: Host(`iamevan.me`)
+                service: leela-https
+                tls:
+                  certResolver: letsencrypt-tls
+              leela-fallback-evan2:
+                entrypoints:
+                  - web-secure
+                rule: Host(`www.iamevan.me`)
                 service: leela-https
                 tls:
                   certResolver: letsencrypt-tls
@@ -224,7 +230,7 @@
                 entrypoints:
                   - web-secure
                 rule: Host(`motley.ie`,`www.motley.ie`,`www.uccexpress.ie`,`uccexpress.ie`)
-                service: leela-https
+                service: studentmedia-https
                 tls:
                   certResolver: letsencrypt-tls
               ipa:
@@ -297,6 +303,15 @@
                 service: unused
                 tls:
                   certResolver: letsencrypt-dns
+              hlm-router:
+                entrypoints:
+                  - web-secure
+                rule: Host(`hlm.netsoc.co`)
+                middlewares:
+                  - hlm-redirect
+                service: unused
+                tls:
+                  certResolver: letsencrypt-dns
             middlewares:
               discord-redirect:
                 redirectRegex:
@@ -320,6 +335,10 @@
                   customRequestHeaders:
                     Host: ipa.infra.netsoc.co
                     Referer: https://ipa.infra.netsoc.co/ipa/
+              hlm-redirect:
+                redirectRegex:
+                  regex: ^(.*)
+                  replacement: 'https://hlm.netsoc.cloud'
               prometheus-auth:
                 basicAuth:
                   users:
@@ -350,6 +369,10 @@
                 loadBalancer:
                   servers:
                     - url: 'https://10.0.30.135'
+              studentmedia-https:
+                loadBalancer:
+                  servers:
+                    - url: 'https://netsoc2.ucc.ie'
               leela-http:
                 loadBalancer:
                   servers:
@@ -561,6 +584,7 @@
         login_password: "{{ postgres.infra.postgres_password }}"
         state: present
       no_log: true
+
   vars_files:
     - "vars/network.yml"
     - "vars/secrets_mapping.yml"
@@ -613,8 +637,8 @@
                 FACEBOOK_PAGE_ACCESS_TOKEN: "{{ netsocbot.fb.accesstoken }}"
                 SCHEDULE_ENABLE: "False"
                 MINECRAFT_HOST: "{{ interfaces.infra.games.net0.addresses[0] | ipaddr('address') }}:1194"
-                SHORTEN_HOST: "{{ shortener.domain }}/api"
-                SHORTEN_USER: "{{ shortener.username }}"
+                SHORTEN_HOST: "links.netsoc.co/api"
+                SHORTEN_USERNAME: "{{ shortener.username }}"
                 SHORTEN_PASSWORD: "{{ shortener.password }}"
               labels:
                 traefik.enable: "true"
@@ -624,12 +648,6 @@
                 traefik.http.services.netsocbot-service.loadbalancer.server.port: "80"
                 traefik.http.routers.netsocbot.service: "netsocbot-service"
                 traefik.docker.network: "traefik"
-
-    # - name: DISCORD BOT - Remove container
-    #   docker_container:
-    #     name: discord_bot_instance_1
-    #     state: absent
-    #   ignore_errors: yes
 
     - name: DISCORD BOT - Setup compose
       docker_compose:
@@ -1124,7 +1142,6 @@
                 traefik.docker.network: "traefik"
               restart: always
 
-
     - name: WEBSSH2 - Setup compose
       docker_compose:
         project_name: webssh2
@@ -1316,6 +1333,10 @@
             loki:
               command: -config.file=/loki/config.yaml
               hostname: loki
+              deploy:
+                resources:
+                  limits:
+                    memory: 500M
               image: grafana/loki:2.0.0
               networks:
                 loki:
@@ -1453,30 +1474,28 @@
             instance:
               image: uccnetsoc/shortener:latest
               environment:
-                SHORTENER_USER: "{{ shortener.username }}"
-                SHORTENER_PASSWORD: "{{ shortener.password }}"
                 DB_HOST: "{{ interfaces.infra.databases.net0.addresses[0] | ipaddr('address') }}"
                 DB_PORT: "5432"
                 DB_USER: "{{ shortener.postgres.user }}"
                 DB_PASS: "{{ shortener.postgres.pass }}"
                 DB_NAME: "{{ shortener.postgres.db }}"
+                SHORTENER_USER: "{{ shortener.username }}"
+                SHORTENER_PASSWORD: "{{ shortener.password }}"
               networks:
                 traefik:
               labels:
                 traefik.enable: "true"
-                traefik.http.routers.shortener.rule: "Host(`{{ shortener.domain }}`)"
+                traefik.http.routers.shortener.rule: "Host(`links.netsoc.co`)"
                 traefik.http.routers.shortener.entrypoints: "web-secure"
                 traefik.http.routers.shortener.tls.certResolver: "letsencrypt-dns"
                 traefik.http.services.shortener.loadbalancer.server.port: "8080"
                 traefik.http.routers.shortener.service: "shortener"
-                traefik.docker.network: "traefik"
+                traefik.docker.network: "traefik  "
               restart: always
-
     - name: Shortener - Setup compose
       docker_compose:
         project_name: shortener
-        pull: yes
-        recreate: always
+        recreate: smart
         restarted: yes
         remove_orphans: yes
         state: present
@@ -1488,6 +1507,91 @@
   tags:
     - provision
     - shortener
+
+- name: "SEMAPHORE"
+  hosts: web.infra.netsoc.co
+  become: yes
+  tasks:
+    - name: SEMAPHORE - Ensure MySQL Database
+      run_once: true
+      mysql_db:
+        name: semaphore
+        login_host: "{{ databases.infra.mysql }}"
+        login_password: "{{ mysql.infra.root_password }}"
+        state: present
+
+    - name: SEMAPHORE - Ensure MySQL User
+      mysql_user:
+        name: "{{ semaphore.mysql.user }}"
+        password: "{{ semaphore.mysql.pass }}"
+        priv: "semaphore.*:ALL"
+        host: "%"
+        login_host: "{{ databases.infra.mysql }}"
+        login_password: "{{ mysql.infra.root_password }}"
+        state: present
+
+    - name: SEMAPHORE - Ensure directories exist
+      file:
+        path: "/netsoc/{{ item }}"
+        owner: root
+        group: root
+
+        mode: '0777'
+        state: directory
+      with_items:
+        - semaphore
+        - "semaphore/data"
+
+    - name: SEMAPHORE - Remember Compose definition
+      set_fact:
+        semaphore_definition:
+          version: "3.8"
+          networks:
+            traefik:
+              external: true
+            semaphore:
+          services:
+            semaphore:
+              restart: always
+              image: ansiblesemaphore/semaphore:latest
+              environment:
+                SEMAPHORE_DB_USER: "{{ semaphore.mysql.user }}"
+                SEMAPHORE_DB_PASS: "{{ semaphore.mysql.pass }}"
+                SEMAPHORE_DB_HOST: "{{ databases.infra.mysql }}"
+                SEMAPHORE_DB_PORT: 3306
+                SEMAPHORE_DB: semaphore
+                SEMAPHORE_PLAYBOOK_PATH: /tmp/semaphore/
+                SEMAPHORE_ADMIN_PASSWORD: "{{ semaphore.admin.password }}"
+                SEMAPHORE_ADMIN_NAME: "{{ semaphore.admin.user }}"
+                SEMAPHORE_ADMIN_EMAIL: "{{ semaphore.admin.email }}"
+                SEMAPHORE_ADMIN: "{{ semaphore.admin.user }}"
+              networks:
+                traefik:
+                semaphore:
+              labels:
+                traefik.enable: "true"
+                traefik.http.routers.semaphore.entrypoints: web-secure
+                traefik.http.routers.semaphore.rule: Host(`semaphore.netsoc.co`)
+                traefik.http.routers.semaphore.tls.certResolver: letsencrypt-dns
+                traefik.http.routers.semaphore.service: semaphore-service
+                traefik.http.services.semaphore-service.loadbalancer.server.port: 3000
+                traefik.docker.network: traefik
+
+    - name: SEMAPHORE - Setup compose
+      docker_compose:
+        project_name: semaphore
+        recreate: always
+        restarted: yes
+        remove_orphans: yes
+        state: present
+        definition: "{{ semaphore_definition }}"
+
+  vars_files:
+    - "vars/network.yml"
+    - "vars/secrets_mapping.yml"
+    - "vars/secrets.yml"
+  tags:
+    - semaphore
 
 - name: "LOKI TARGETS" # Keep this at the bottom of the file at all times.
   hosts: web.infra.netsoc.co
