@@ -50,8 +50,7 @@
     - "vars/secrets.yml"
   tags:
     - provision
-    - discord-bot
-
+    - wiki
 
 - name: "TRAEFIK"
   hosts: web.infra.netsoc.co
@@ -435,6 +434,7 @@
     - name: TRAEFIK - Setup compose
       docker_compose:
         project_name: traefik
+        pull: yes
         recreate: always
         restarted: yes
         remove_orphans: yes
@@ -584,6 +584,7 @@
         login_password: "{{ postgres.infra.postgres_password }}"
         state: present
       no_log: true
+
   vars_files:
     - "vars/network.yml"
     - "vars/secrets_mapping.yml"
@@ -636,6 +637,9 @@
                 FACEBOOK_PAGE_ACCESS_TOKEN: "{{ netsocbot.fb.accesstoken }}"
                 SCHEDULE_ENABLE: "False"
                 MINECRAFT_HOST: "{{ interfaces.infra.games.net0.addresses[0] | ipaddr('address') }}:1194"
+                SHORTEN_HOST: "links.netsoc.co/api"
+                SHORTEN_USERNAME: "{{ shortener.username }}"
+                SHORTEN_PASSWORD: "{{ shortener.password }}"
               labels:
                 traefik.enable: "true"
                 traefik.http.routers.netsocbot.rule: "Host(`bot.netsoc.co`)"
@@ -644,12 +648,6 @@
                 traefik.http.services.netsocbot-service.loadbalancer.server.port: "80"
                 traefik.http.routers.netsocbot.service: "netsocbot-service"
                 traefik.docker.network: "traefik"
-
-    # - name: DISCORD BOT - Remove container
-    #   docker_container:
-    #     name: discord_bot_instance_1
-    #     state: absent
-    #   ignore_errors: yes
 
     - name: DISCORD BOT - Setup compose
       docker_compose:
@@ -777,6 +775,7 @@
     - name: CI - Setup compose
       docker_compose:
         project_name: ci
+        pull: yes
         recreate: always
         remove_orphans: yes
         state: present
@@ -1143,7 +1142,6 @@
                 traefik.docker.network: "traefik"
               restart: always
 
-
     - name: WEBSSH2 - Setup compose
       docker_compose:
         project_name: webssh2
@@ -1425,6 +1423,90 @@
   tags:
     - dashboards
     - grafana
+
+- name: Shortener Databases
+  hosts: databases.infra.netsoc.co
+  become: yes
+  tasks:
+    - name: Shortener - Ensure database
+      postgresql_db:
+        name: "{{ shortener.postgres.db }}"
+        state: present
+        login_host: "{{ databases.infra.postgres }}"
+        login_password: "{{ postgres.infra.postgres_password }}"
+
+    - name: Shortener - Ensure user
+      postgresql_user:
+        name: "{{ shortener.postgres.user }}"
+        password: "{{ shortener.postgres.pass }}"
+        login_host: "{{ databases.infra.postgres }}"
+        login_password: "{{ postgres.infra.postgres_password }}"
+      no_log: true
+
+    - name: Shortener - Ensure user has access to database
+      postgresql_privs:
+        db: "{{ shortener.postgres.db }}"
+        role: "{{ shortener.postgres.user }}"
+        objs: ALL_IN_SCHEMA
+        privs: SELECT,INSERT,UPDATE,DELETE
+        login_host: "{{ databases.infra.postgres }}"
+        login_password: "{{ postgres.infra.postgres_password }}"
+  vars_files:
+    - "vars/network.yml"
+    - "vars/secrets_mapping.yml"
+    - "vars/secrets.yml"
+  tags:
+    - provision
+    - shortener
+
+- name: "Shortener"
+  hosts: web.infra.netsoc.co
+  become: yes
+  tasks:
+    - name: Shortener - Remember Compose definition
+      set_fact:
+        shortener_definition:
+          version: "3.8"
+          networks:
+            traefik:
+              external: true
+          services:
+            instance:
+              image: uccnetsoc/shortener:latest
+              environment:
+                DB_HOST: "{{ interfaces.infra.databases.net0.addresses[0] | ipaddr('address') }}"
+                DB_PORT: "5432"
+                DB_USER: "{{ shortener.postgres.user }}"
+                DB_PASS: "{{ shortener.postgres.pass }}"
+                DB_NAME: "{{ shortener.postgres.db }}"
+                SHORTENER_USER: "{{ shortener.username }}"
+                SHORTENER_PASSWORD: "{{ shortener.password }}"
+              networks:
+                traefik:
+              labels:
+                traefik.enable: "true"
+                traefik.http.routers.shortener.rule: "Host(`links.netsoc.co`)"
+                traefik.http.routers.shortener.entrypoints: "web-secure"
+                traefik.http.routers.shortener.tls.certResolver: "letsencrypt-dns"
+                traefik.http.services.shortener.loadbalancer.server.port: "8080"
+                traefik.http.routers.shortener.service: "shortener"
+                traefik.docker.network: "traefik  "
+              restart: always
+    - name: Shortener - Setup compose
+      docker_compose:
+        project_name: shortener
+        recreate: smart
+        restarted: yes
+        remove_orphans: yes
+        state: present
+        definition: "{{ shortener_definition }}"
+  vars_files:
+    - "vars/network.yml"
+    - "vars/secrets_mapping.yml"
+    - "vars/secrets.yml"
+  tags:
+    - provision
+    - shortener
 
 - name: "SEMAPHORE"
   hosts: web.infra.netsoc.co

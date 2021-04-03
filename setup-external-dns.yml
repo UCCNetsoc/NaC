@@ -54,6 +54,7 @@
             - { type: CNAME,    name: bot,                   value: "web.netsoc.co"  }
 
             - { type: CNAME,    name: wiki,                  value: "web.netsoc.co"  }
+            - { type: CNAME,    name: links,                 value: "web.netsoc.co"  }
             - { type: CNAME,    name: www,                   value: "web.netsoc.co"  }
             - { type: CNAME,    name: mentorships,           value: "web.netsoc.co"  }
             - { type: CNAME,    name: tutorial,              value: "web.netsoc.co"  }
