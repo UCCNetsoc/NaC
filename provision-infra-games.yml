@@ -1,0 +1,27 @@
+---
+- name: "INITIAL SETUP"
+  hosts: games.infra.netsoc.co
+  become: yes
+  roles:
+    - ansible-requirements
+    - utf8-locale
+    - docker
+  tasks:
+    - name: "Make /netsoc only readable by root"
+      file:
+        path: "/netsoc"
+        owner: root
+        group: root
+        mode: '1770'
+  tags:
+    - initial
+
+- name: Ensure Minecraft Servers
+  hosts: games.infra.netsoc.co
+  roles:
+    - role: minecraft
+      vars:
+        mount: "/netsoc/minecraft"
+  tags:
+    - minecraft
+

@@ -57,6 +57,20 @@
   apt:
     name: golang-go
     update_cache: yes
+    
+- name: Golang GOPATH (for stuff like gopls)
+  ansible.builtin.lineinfile:
+    path: /etc/bash.bashrc
+    regexp: '^export GOPATH='
+    line: |
+      export GOPATH=$HOME/go
+      
+- name: Add GOPATH to PATH
+  ansible.builtin.lineinfile:
+    path: /etc/bash.bashrc
+    regexp: '^export PATH=$PATH:$GOROOT/bin:$GOPATH/bin'
+    line: |
+      export PATH=$PATH:$GOROOT/bin:$GOPATH/bin
 
 - name: Install rustup
   shell: curl https://sh.rustup.rs -sSf | sh -s -- -y

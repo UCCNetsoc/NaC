@@ -18,43 +18,49 @@
     mode: 0770
     state: directory
   with_items:
-    - survival
-    #- creative
+    # - survival
+    - netcraft
 
-- name: Create server.properties
-  become: yes
-  template:
-    dest: '{{ mount }}/{{ item }}/server.properties'
-    src: server.properties.j2
-    owner: 1000
-    group: 1000
-    mode: 0440
-  vars:
-    gamemode: "{{ item }}"
-  with_items:
-    - survival
-    #- creative
+# - name: Survival
+#   become: yes
+#   docker_container:
+#     image: itzg/minecraft-server:openj9
+#     name: minecraft-survival
+#     state: started
+#     restart_policy: unless-stopped
+#     memory: 6.5G
+#     env:
+#       EULA: "TRUE"
+#       TYPE: "PAPER"
+#       INIT_MEMORY: 1G
+#       MAX_MEMORY: 5G
+#       VERSION: "1.16.5"
+#       JVM_XX_OPTS: "-Xtune:virtualized -Xgc:concurrentScavenge -Xgc:dnssExpectedTimeRatioMaximum=3 -Xgc:scvNoAdaptiveTenure -Xdisableexplicitgc"
+#     ports:
+#       - "25565:25565"
+#       - "1194:25565"
+#       - "127.0.0.1:9225:9225"
+#     volumes:
+#       - "{{ mount }}/survival:/data"
 
-- name: NetCraft Minecraft Server - Survival
+- name: Netcraft
   become: yes
   docker_container:
     image: itzg/minecraft-server:openj9
-    name: minecraft-{{ item }}
+    name: netcraft
     state: started
     restart_policy: unless-stopped
-    memory: 6.5G
+    memory: 6G
     env:
       EULA: "TRUE"
       TYPE: "PAPER"
       INIT_MEMORY: 1G
       MAX_MEMORY: 5G
-      VERSION: "1.16.4"
+      VERSION: "1.16.5"
       JVM_XX_OPTS: "-Xtune:virtualized -Xgc:concurrentScavenge -Xgc:dnssExpectedTimeRatioMaximum=3 -Xgc:scvNoAdaptiveTenure -Xdisableexplicitgc"
     ports:
       - "25565:25565"
       - "1194:25565"
       - "127.0.0.1:9225:9225"
     volumes:
-      - "{{ mount }}/{{ item }}:/data"
-  with_items:
-    - survival
+      - "{{ mount }}/netcraft:/data"
