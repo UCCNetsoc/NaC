@@ -97,7 +97,7 @@
       set_fact:
         traefik_static_config:
           log:
-            level: ERROR
+            level: INFO
             format: "json"
           accessLog:
             format: "json"
@@ -151,44 +151,44 @@
               #   priority: 1 # last possible match
               #   tls:
               #     certResolver: letsencrypt-tls
-              leela-fallback-evan:
-                entrypoints:
-                  - web-secure
-                rule: Host(`iamevan.me`)
-                service: leela-https
-                tls:
-                  certResolver: letsencrypt-tls
-              leela-fallback-evan2:
-                entrypoints:
-                  - web-secure
-                rule: Host(`www.iamevan.me`)
-                service: leela-https
-                tls:
-                  certResolver: letsencrypt-tls
+              # leela-fallback-evan:
+              #   entrypoints:
+              #     - web-secure
+              #   rule: Host(`iamevan.me`)
+              #   service: leela-https
+              #   tls:
+              #     certResolver: letsencrypt-tls
+              # leela-fallback-evan2:
+              #   entrypoints:
+              #     - web-secure
+              #   rule: Host(`www.iamevan.me`)
+              #   service: leela-https
+              #   tls:
+              #     certResolver: letsencrypt-tls
               leela-fallback-https:
                 entrypoints:
                   - web-secure
                 rule: >-
                   Host(`cardinaldesign.io`,
-                    `colm.cf`),
-                    `colm.design`),
-                    `ghostking.rip`),
-                    `ghostkingisdead.com`),
-                    `hau.su`),
-                    `hausurecords.com`),
-                    `kaizokucon.ie`),
-                    `l.hausurecords.com`),
-                    `olwen.ie`),
-                    `reeling.party`),
-                    `ultimateeastcoastusatrip.ie`),
-                    `www.cardinaldesign.io`),
-                    `www.colm.design`),
-                    `www.ghostking.rip`),
-                    `www.ghostkingisdead.com`),
-                    `www.hausurecords.com`),
-                    `www.olwen.ie`),
-                    `www.reeling.party`),
-                    `www.ultimateeastcoastusatrip.i)
+                    `colm.cf`,
+                    `colm.design`,
+                    `ghostking.rip`,
+                    `ghostkingisdead.com`,
+                    `hau.su`,
+                    `hausurecords.com`,
+                    `kaizokucon.ie`,
+                    `l.hausurecords.com`,
+                    `olwen.ie`,
+                    `reeling.party`,
+                    `ultimateeastcoastusatrip.ie`,
+                    `www.cardinaldesign.io`,
+                    `www.colm.design`,
+                    `www.ghostking.rip`,
+                    `www.ghostkingisdead.com`,
+                    `www.hausurecords.com`,
+                    `www.olwen.ie`,
+                    `www.reeling.party`,
+                    `www.ultimateeastcoastusatrip.ie`)
                 service: leela-https
                 tls:
                   certResolver: letsencrypt-tls
