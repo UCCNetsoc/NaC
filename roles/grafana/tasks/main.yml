@@ -79,9 +79,21 @@
           environment:
             GF_SECURITY_ADMIN_PASSWORD: "{{ grafana.password }}"
             GF_SERVER_ROOT_URL: "https://{{ host }}"
+            GF_SERVER_DOMAIN: "{{ host }}"
             GF_RENDERING_SERVER_URL: "http://renderer:8081/render"
             GF_RENDERING_CALLBACK_URL: "http://grafana:3000/"
             GF_INSTALL_PLUGINS: "grafana-piechart-panel"
+            # Keycloak setup:
+            GF_AUTH_GENERIC_OAUTH_ENABLED: "true"
+            GF_AUTH_GENERIC_OAUTH_NAME: "Keycloak"
+            GF_AUTH_GENERIC_OAUTH_ALLOW_SIGN_UP: "false"
+            GF_AUTH_GENERIC_OAUTH_EMAIL_ATTRIBUTE_NAME: email
+            GF_AUTH_GENERIC_OAUTH_CLIENT_ID: "grafana"
+            GF_AUTH_GENERIC_OAUTH_SCOPES: openid profile email roles_list roles
+            GF_AUTH_GENERIC_OAUTH_AUTH_URL: "https://{{ keycloak_host }}/auth/realms/freeipa/protocol/openid-connect/auth"
+            GF_AUTH_GENERIC_OAUTH_TOKEN_URL: "https://{{ keycloak_host }}/auth/realms/freeipa/protocol/openid-connect/token"
+            GF_AUTH_GENERIC_OAUTH_API_URL: "https://{{ keycloak_host }}/auth/realms/freeipa/protocol/openid-connect/userinfo"
+            GF_AUTH_GENERIC_OAUTH_ROLE_ATTRIBUTE_PATH: "contains(roles[*], 'netsoc_sysadmin') && 'Admin'"
         renderer:
           image: "grafana/grafana-image-renderer:3.0.1"
           restart: on-failure

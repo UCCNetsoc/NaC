@@ -1394,6 +1394,7 @@
     - grafana
   vars:
     host: grafana.netsoc.co
+    keycloak_host: keycloak.netsoc.co
   vars_files:
     - "vars/network.yml"
     - "vars/secrets_mapping.yml"
