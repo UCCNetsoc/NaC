@@ -605,7 +605,7 @@
                 traefik:
               environment:
                 DISCORD_TOKEN: "{{ netsocbot.discord_token }}"
-                DISCORD_ROLES: "631196785913888768,720021252676518079"
+                DISCORD_ROLES: "631196785913888768,855884858794442783"
                 DISCORD_PUBLIC_SERVER : "248421213628530688"
                 DISCORD_PUBLIC_CHANNEL: "494539080885993472"
                 DISCORD_PUBLIC_GENERAL: "248421213628530688"
