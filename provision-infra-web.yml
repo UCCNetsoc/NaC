@@ -143,14 +143,14 @@
         traefik_file_config:
           http:
             routers:
-              # leela-fallback:
-              #   entrypoints:
-              #     - web-secure
-              #   rule: PathPrefix(`/`) # matches everything
-              #   service: leela-https
-              #   priority: 1 # last possible match
-              #   tls:
-              #     certResolver: letsencrypt-tls
+              leela-fallback:
+                entrypoints:
+                  - web-secure
+                rule: PathPrefix(`/`) # matches everything
+                service: leela-https
+                priority: 1 # last possible match
+                tls:
+                  certResolver: letsencrypt-tls
               # leela-fallback-evan:
               #   entrypoints:
               #     - web-secure
@@ -1394,6 +1394,7 @@
     - grafana
   vars:
     host: grafana.netsoc.co
+    keycloak_host: keycloak.netsoc.co
   vars_files:
     - "vars/network.yml"
     - "vars/secrets_mapping.yml"
