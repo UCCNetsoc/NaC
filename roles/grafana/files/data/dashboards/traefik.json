@@ -17,7 +17,7 @@
   "gnetId": 11462,
   "graphTooltip": 0,
   "id": 13,
-  "iteration": 1617476633027,
+  "iteration": 1623526647619,
   "links": [],
   "panels": [
     {
@@ -178,6 +178,7 @@
               "level": false,
               "line": true,
               "msg": true,
+              "providerName": true,
               "stream": true,
               "time": true,
               "tsNs": true
@@ -1556,7 +1557,7 @@
       }
     }
   ],
-  "refresh": false,
+  "refresh": "",
   "schemaVersion": 27,
   "style": "dark",
   "tags": [
@@ -1601,9 +1602,13 @@
       {
         "allValue": null,
         "current": {
-          "selected": false,
-          "text": "All",
-          "value": "$__all"
+          "selected": true,
+          "text": [
+            "All"
+          ],
+          "value": [
+            "$__all"
+          ]
         },
         "datasource": "Prometheus",
         "definition": "label_values(traefik_service_requests_total, protocol)",
@@ -1731,7 +1736,7 @@
     ]
   },
   "time": {
-    "from": "now-3h",
+    "from": "now-12h",
     "to": "now"
   },
   "timepicker": {
@@ -1762,5 +1767,5 @@
   "timezone": "",
   "title": "Traefik",
   "uid": "3ipsWfViz",
-  "version": 4
+  "version": 7
 }
