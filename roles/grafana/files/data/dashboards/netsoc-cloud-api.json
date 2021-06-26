@@ -1,1 +1,130 @@
-{"meta": {"type": "db", "canSave": true, "canEdit": true, "canAdmin": true, "canStar": true, "slug": "netsoc-cloud-api", "url": "/d/bv4qTYgnz/netsoc-cloud-api", "expires": "0001-01-01T00:00:00Z", "created": "2021-06-19T18:14:13Z", "updated": "2021-06-19T18:14:13Z", "updatedBy": "admin", "createdBy": "admin", "version": 1, "hasAcl": false, "isFolder": false, "folderId": 0, "folderUid": "", "folderTitle": "General", "folderUrl": "", "provisioned": false, "provisionedExternalId": ""}, "dashboard": {"annotations": {"list": [{"builtIn": 1, "datasource": "-- Grafana --", "enable": true, "hide": true, "iconColor": "rgba(0, 211, 255, 1)", "name": "Annotations & Alerts", "type": "dashboard"}]}, "editable": true, "gnetId": null, "graphTooltip": 0, "hideControls": false, "id": 15, "links": [], "panels": [{"datasource": "Loki", "fieldConfig": {"defaults": {"color": {"mode": "thresholds"}, "custom": {"align": "auto", "displayMode": "auto", "filterable": false}, "mappings": [], "thresholds": {"mode": "absolute", "steps": [{"color": "green", "value": null}, {"color": "red", "value": 80}]}}, "overrides": [{"matcher": {"id": "byName", "options": "Time"}, "properties": [{"id": "custom.width", "value": 150}]}, {"matcher": {"id": "byName", "options": "Request"}, "properties": [{"id": "custom.width", "value": 820}]}]}, "gridPos": {"h": 12, "w": 17, "x": 0, "y": 0}, "id": 2, "options": {"frameIndex": 0, "showHeader": true, "sortBy": []}, "pluginVersion": "8.0.1", "targets": [{"expr": "{container_name=\"netsoc_cloud_api_1\", stream=\"stdout\"}", "refId": "A"}], "title": "Cloud API Logs", "transformations": [{"id": "organize", "options": {"excludeByName": {"Time ns": true}, "indexByName": {}, "renameByName": {"Time": "", "id": "Request ID", "line {container_id=\"ab6e182d536c\", container_name=\"netsoc_cloud_api_1\", filename=\"/var/lib/docker/containers/ab6e182d536ce9ad410b300db1c0ba2a197afa70d6fdbb36a05c0359ad730a9e/ab6e182d536ce9ad410b300db1c0ba2a197afa70d6fdbb36a05c0359ad730a9e-json.log\", stream=\"stdout\"}": "Request"}}}], "type": "table"}], "schemaVersion": 30, "style": "dark", "tags": [], "templating": {"list": []}, "time": {"from": "now-7d", "to": "now"}, "timepicker": {}, "timezone": "", "title": "Netsoc Cloud API", "uid": "bv4qTYgnz", "version": 1}}
+{
+  "annotations": {
+    "list": [
+      {
+        "builtIn": 1,
+        "datasource": "-- Grafana --",
+        "enable": true,
+        "hide": true,
+        "iconColor": "rgba(0, 211, 255, 1)",
+        "name": "Annotations & Alerts",
+        "type": "dashboard"
+      }
+    ]
+  },
+  "editable": true,
+  "gnetId": null,
+  "graphTooltip": 0,
+  "hideControls": false,
+  "id": null,
+  "links": [],
+  "panels": [
+    {
+      "datasource": "Loki",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "custom": {
+            "align": "auto",
+            "displayMode": "auto",
+            "filterable": false
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Time"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 150
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Request"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 820
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "h": 12,
+        "w": 17,
+        "x": 0,
+        "y": 0
+      },
+      "id": 2,
+      "options": {
+        "frameIndex": 0,
+        "showHeader": true,
+        "sortBy": []
+      },
+      "pluginVersion": "8.0.1",
+      "targets": [
+        {
+          "expr": "{container_name=\"netsoc_cloud_api_1\", stream=\"stdout\"}",
+          "refId": "A"
+        }
+      ],
+      "title": "Cloud API Logs",
+      "transformations": [
+        {
+          "id": "organize",
+          "options": {
+            "excludeByName": {
+              "Time ns": true
+            },
+            "indexByName": {},
+            "renameByName": {
+              "Time": "",
+              "id": "Request ID",
+              "line {container_id=\"ab6e182d536c\", container_name=\"netsoc_cloud_api_1\", filename=\"/var/lib/docker/containers/ab6e182d536ce9ad410b300db1c0ba2a197afa70d6fdbb36a05c0359ad730a9e/ab6e182d536ce9ad410b300db1c0ba2a197afa70d6fdbb36a05c0359ad730a9e-json.log\", stream=\"stdout\"}": "Request"
+            }
+          }
+        }
+      ],
+      "type": "table"
+    }
+  ],
+  "schemaVersion": 30,
+  "style": "dark",
+  "tags": [],
+  "templating": {
+    "list": []
+  },
+  "time": {
+    "from": "now-7d",
+    "to": "now"
+  },
+  "timepicker": {},
+  "timezone": "",
+  "title": "Netsoc Cloud API",
+  "uid": "bv4qTYgnz",
+  "version": 3
+}
