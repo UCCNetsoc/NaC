@@ -28,10 +28,28 @@
         flat: yes
       with_items: "{{ dashboards.json }}"
       become: yes
-    
+
   vars_files:
     - "vars/network.yml"
     - "vars/secrets_mapping.yml"
     - "vars/secrets.yml"
   vars:
     url: https://grafana.netsoc.co
+
+- name: Format Dashboards
+  hosts: localhost
+  tasks:
+    - name: Get dashboard files
+      become: no
+      find:
+        path: "{{ playbook_dir }}/roles/grafana/files/data/dashboards"
+        recurse: no
+      register: dashboards_dir
+    
+    - name: Format dashboard files
+      become: no
+      shell: "cat <<< $(jq .dashboard {{ item.path }} | jq '.id = null' ) > {{ item.path }}"
+      args:
+        executable: /bin/bash
+      with_items: "{{ dashboards_dir.files }}"
+    
