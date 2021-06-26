@@ -1,6 +1,7 @@
 collections:
 - name: community.general
 - name: ansible.posix
+- name: community.grafana
 
 roles:
 - src: cloudalchemy.node-exporter

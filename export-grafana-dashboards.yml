@@ -1,0 +1,37 @@
+---
+- name: Export Grafana Dashboards
+  hosts: web.infra.netsoc.co
+  tasks:
+    - name: Get all Grafana dashboards
+      uri:
+        url: "{{ url }}/api/search?query=&starred=false&skipRecent=true&skipStarred=true&folderIds=0&layout=folders&prevSort=null"
+        force_basic_auth: yes
+        user: admin
+        password: "{{ grafana.password }}"
+      register: dashboards
+
+    - name: Export Grafana dashboards
+      community.grafana.grafana_dashboard:
+        state: export
+        grafana_url: "{{ url }}"
+        url_username: admin
+        url_password: "{{ grafana.password }}"
+        uid: "{{ item.uid }}"
+        path: "/netsoc/grafana/exports/{{ item.uri }}.json"
+      with_items: "{{ dashboards.json }}"
+      become: yes
+
+    - name: Fetch dashboards to NaC/roles/grafana/files/data/dashboards
+      fetch:
+        src: "/netsoc/grafana/exports/{{ item.uri }}.json"
+        dest: "./roles/grafana/files/data/dashboards/{{ item.uri | basename }}.json"
+        flat: yes
+      with_items: "{{ dashboards.json }}"
+      become: yes
+    
+  vars_files:
+    - "vars/network.yml"
+    - "vars/secrets_mapping.yml"
+    - "vars/secrets.yml"
+  vars:
+    url: https://grafana.netsoc.co

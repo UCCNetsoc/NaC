@@ -6,6 +6,8 @@
     state: directory
   loop:
     - /grafana
+    - /grafana/exports
+    - /grafana/exports/db
     - /grafana/data
     - /grafana/data/dashboards
     - /grafana/provisioning
