@@ -630,7 +630,7 @@
                 FACEBOOK_PAGE_ACCESS_TOKEN: "{{ netsocbot.fb.accesstoken }}"
                 SCHEDULE_ENABLE: "False"
                 MINECRAFT_HOST: "{{ interfaces.infra.games.net0.addresses[0] | ipaddr('address') }}:1194"
-                SHORTEN_HOST: "links.netsoc.co/api"
+                SHORTEN_HOST: "http://shortener_instance_1/api"
                 SHORTEN_USERNAME: "{{ shortener.username }}"
                 SHORTEN_PASSWORD: "{{ shortener.password }}"
               labels:
@@ -1479,12 +1479,14 @@
                 traefik:
               labels:
                 traefik.enable: "true"
-                traefik.http.routers.shortener.rule: "Host(`links.netsoc.co`)"
+                traefik.http.routers.shortener.rule: "Host(`netsoc.co`) && PathPrefix(`/go/`)"
+                traefik.http.middlewares.go-strip.stripprefix.prefixes: "/go"
                 traefik.http.routers.shortener.entrypoints: "web-secure"
                 traefik.http.routers.shortener.tls.certResolver: "letsencrypt-dns"
                 traefik.http.services.shortener.loadbalancer.server.port: "8080"
                 traefik.http.routers.shortener.service: "shortener"
-                traefik.docker.network: "traefik  "
+                traefik.docker.network: "traefik"
+                traefik.http.routers.shortener.middlewares: "go-strip@docker,www-redirect@docker"
               restart: always
     - name: Shortener - Setup compose
       docker_compose:
