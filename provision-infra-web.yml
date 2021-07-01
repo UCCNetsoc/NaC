@@ -630,7 +630,8 @@
                 FACEBOOK_PAGE_ACCESS_TOKEN: "{{ netsocbot.fb.accesstoken }}"
                 SCHEDULE_ENABLE: "False"
                 MINECRAFT_HOST: "{{ interfaces.infra.games.net0.addresses[0] | ipaddr('address') }}:1194"
-                SHORTEN_HOST: "http://shortener_instance_1/api"
+                SHORTEN_HOST: "http://shortener_instance_1:8080/api"
+                SHORTEN_PUBLIC_HOST: "https://netsoc.co/go"
                 SHORTEN_USERNAME: "{{ shortener.username }}"
                 SHORTEN_PASSWORD: "{{ shortener.password }}"
               labels:
