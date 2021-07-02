@@ -1,0 +1,201 @@
+{
+  "annotations": {
+    "list": [
+      {
+        "builtIn": 1,
+        "datasource": "-- Grafana --",
+        "enable": true,
+        "hide": true,
+        "iconColor": "rgba(0, 211, 255, 1)",
+        "name": "Annotations & Alerts",
+        "type": "dashboard"
+      }
+    ]
+  },
+  "editable": true,
+  "gnetId": null,
+  "graphTooltip": 0,
+  "id": null,
+  "iteration": 1625259011024,
+  "links": [],
+  "panels": [
+    {
+      "datasource": "Loki",
+      "gridPos": {
+        "h": 32,
+        "w": 24,
+        "x": 0,
+        "y": 0
+      },
+      "id": 2,
+      "options": {
+        "dedupStrategy": "exact",
+        "enableLogDetails": true,
+        "showLabels": false,
+        "showTime": true,
+        "sortOrder": "Descending",
+        "wrapLogMessage": true
+      },
+      "pluginVersion": "8.0.1",
+      "targets": [
+        {
+          "expr": "{container_name=\"$containerName\"} |= \"$query\" |~ \"(?i)level=$level\" | container_name!=\"discord_bot_instance_1\" and container_name!=\"traefik_server_1\" and level!=\"\"",
+          "refId": "A"
+        },
+        {
+          "expr": "{container_name=\"$containerName\"} |= \"$query\" | container_name!=\"discord_bot_instance_1\" and container_name!=\"traefik_server_1\" and level=\"\"",
+          "hide": false,
+          "refId": "D"
+        },
+        {
+          "expr": "{container_name=\"$containerName\"} |= \"$query\" |~ \"(?i)\\\"level\\\":\\\"$level\" | json | line_format \"{{.level}}\\t location=\\\"{{._file}}:{{._line}}\\\"\\t command=\\\"{{.command}}\\\" user=\\\"{{.user}}\\\"\\t message=\\\"{{.message}}\\\"\" | command!=\"\" and container_name=\"discord_bot_instance_1\"",
+          "hide": false,
+          "refId": "B"
+        },
+        {
+          "expr": "{container_name=\"$containerName\"} |= \"$query\" |~ \"(?i)\\\"level\\\":\\\"$level\" | json | line_format \"{{.level}}\\t location=\\\"{{._file}}:{{._line}}\\\"\\t message=\\\"{{.message}}\\\"\" | command=\"\" and container_name=\"discord_bot_instance_1\"",
+          "hide": false,
+          "refId": "C"
+        },
+        {
+          "expr": "{container_name=\"$containerName\"} |= \"$query\" | json | line_format \"client_addr=\\\"{{.ClientAddr}}\\\"\\t method=\\\"{{.RequestMethod}}\\\"\\t url=\\\"{{.RequestHost}}{{.RequestPath}}\\\"\\t service=\\\"{{.ServiceName}}\\\"\\t return_status=\\\"{{.OriginStatus}}\\\"\" | level=\"info\" and container_name=\"traefik_server_1\"",
+          "hide": false,
+          "refId": "E"
+        },
+        {
+          "expr": "{container_name=\"$containerName\"} |= \"$query\" | json | level=\"\" and container_name=\"discord_bot_instance_1\"",
+          "hide": false,
+          "refId": "F"
+        }
+      ],
+      "title": "Logs",
+      "transparent": true,
+      "type": "logs"
+    }
+  ],
+  "schemaVersion": 30,
+  "style": "dark",
+  "tags": [],
+  "templating": {
+    "list": [
+      {
+        "allValue": null,
+        "current": {
+          "selected": true,
+          "text": "discord_bot_instance_1",
+          "value": "discord_bot_instance_1"
+        },
+        "datasource": null,
+        "definition": "label_values(container_processes{instance=\"web.infra.netsoc.co\"}, name)",
+        "description": null,
+        "error": null,
+        "hide": 0,
+        "includeAll": false,
+        "label": "Container Name",
+        "multi": false,
+        "name": "containerName",
+        "options": [],
+        "query": {
+          "query": "label_values(container_processes{instance=\"web.infra.netsoc.co\"}, name)",
+          "refId": "StandardVariableQuery"
+        },
+        "refresh": 1,
+        "regex": "",
+        "skipUrlSync": false,
+        "sort": 0,
+        "type": "query"
+      },
+      {
+        "current": {
+          "selected": false,
+          "text": "",
+          "value": ""
+        },
+        "description": null,
+        "error": null,
+        "hide": 0,
+        "label": "Query",
+        "name": "query",
+        "options": [
+          {
+            "selected": true,
+            "text": "",
+            "value": ""
+          }
+        ],
+        "query": "",
+        "skipUrlSync": false,
+        "type": "textbox"
+      },
+      {
+        "allValue": null,
+        "current": {
+          "selected": false,
+          "text": [
+            ""
+          ],
+          "value": [
+            ""
+          ]
+        },
+        "description": null,
+        "error": null,
+        "hide": 0,
+        "includeAll": false,
+        "label": "Log Level",
+        "multi": true,
+        "name": "level",
+        "options": [
+          {
+            "selected": true,
+            "text": "TRACE",
+            "value": "TRACE"
+          },
+          {
+            "selected": false,
+            "text": "DEBUG",
+            "value": "DEBUG"
+          },
+          {
+            "selected": false,
+            "text": "INFO",
+            "value": "INFO"
+          },
+          {
+            "selected": false,
+            "text": "WARN",
+            "value": "WARN"
+          },
+          {
+            "selected": false,
+            "text": "ERROR",
+            "value": "ERROR"
+          },
+          {
+            "selected": false,
+            "text": "FATAL",
+            "value": "FATAL"
+          },
+          {
+            "selected": false,
+            "text": "PANIC",
+            "value": "PANIC"
+          }
+        ],
+        "query": "TRACE, DEBUG, INFO, WARN, ERROR, FATAL, PANIC",
+        "queryValue": "",
+        "skipUrlSync": false,
+        "type": "custom"
+      }
+    ]
+  },
+  "time": {
+    "from": "now-24h",
+    "to": "now"
+  },
+  "timepicker": {},
+  "timezone": "",
+  "title": "Container Logs",
+  "uid": "B89jFmz7k",
+  "version": 20
+}
