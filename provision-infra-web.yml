@@ -501,6 +501,18 @@
                 traefik.http.routers.blog.service: "blog-service"
                 traefik.docker.network: "traefik"
               restart: always
+            robots-disallow:
+              image: wikiwi/robots-disallow
+              networks:
+                traefik:
+              labels:
+                traefik.enable: "true"
+                traefik.http.routers.proxmox.rule: "Host(`proxmox.netsoc.co`) && Path(`/robots.txt`)"
+                traefik.http.routers.proxmox.entrypoints: "web-secure"
+                traefik.http.routers.proxmox.tls.certResolver: "letsencrypt-dns"
+                traefik.http.services.proxmox-service.loadbalancer.server.port: "8080"
+                traefik.http.routers.proxmox.service: "proxmox-service"
+                traefik.docker.network: "traefik"
 
     - name: STATIC WEBSITES - Setup compose
       docker_compose:
