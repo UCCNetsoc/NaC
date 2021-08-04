@@ -14,6 +14,7 @@
           - { name: strum355, public_key: "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIIz3MrCIBKCBFzoE+jQkKcR3kzf5LHx2XAuFsHmVhsWs" }
           - { name: ocanty,   public_key: "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQC6KgSclCW2dhdtPc7AfyvOjr9nL+0pQIMRWGtv2AjMNOXfrCf3aOWhiUug1FbEPC+vjYGPaDc4hplj3Kfb5AaVYsY9XF48v1x9hiBtxiyE/BdFNa7aMzXT4qx3GS/kuw/P9CJaYPTTPplase98hTljU13VQrlveh5t1xM1tLLR7y5/adbl3UyMyFY5V+HT1nWns01qsZMe2m0q4Uvz2UbvIlYD5cN3OjTCrMtfeLQGeBOm/ScpkNTbNxu9nomBa6NW3MOp3g3JjBfut4RRZPgWGXfFj0CKBVKTaXc/OFtf5JlcnWpSY6f8DZbW2V8Ymssasqq4HnT4fhA27iwvHoUF4exmgH5B4jtFRZccRyF1W+t9Rxb8EN/MfgMxh1mHCiSBSaNwGCxeNTMT1ZgkWmDcT2GoCJmkVUdF3JbKk26gjVDTI8gDM/Td8cLbgIwc+iLWNd6MXhOR5jt9OsvrT71RV9t0z0RyT/2KsaxJe8UVrI+48va+TpSRfyBcv+BelAE=" }
           - { name: oofsauce, public_key: "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIHW94S5zZ3xN2r3M7QL8svMgY1pKI+CKHz4FjIkEZtpH zwei-win@DESKTOP-86PGM04" }
+          - { name: reece,    public_key: "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIC6ifkMAy38PHhm2bN00lmtwOrYQqpclFIVis6J6V9sV" }
             # - { name: mloc,     key: }
             # - { name: oisinaylward, key: }
             # - { name: fordetek, key: }
