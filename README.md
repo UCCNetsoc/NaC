@@ -1,5 +1,6 @@
 <img src="https://github.com/UCCNetsoc/wiki/raw/master/assets/logo-service-nac.svg" width="360"/>
 
+[![Build Status](https://ci.netsoc.co/api/badges/UCCNetsoc/NaC/status.svg)](https://ci.netsoc.co/UCCNetsoc/NaC)
 
 ## I'm a new SysAdmin, what the heck do I do?
 
