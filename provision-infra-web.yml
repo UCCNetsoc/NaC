@@ -1515,6 +1515,7 @@
     - name: Shortener - Setup compose
       docker_compose:
         project_name: shortener
+        pull: yes
         recreate: smart
         restarted: yes
         remove_orphans: yes
