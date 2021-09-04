@@ -1607,10 +1607,32 @@
         state: present
         definition: "{{ semaphore_definition }}"
 
+    - name: SEMAPHORE - Configure keys
+      uri:
+        url: "{{ url }}/auth/login"
+        body:
+          auth: "{{ semaphore.admin.user }}"
+          password: "{{ semaphore.admin.password }}"
+        method: POST
+        status_code: 204
+        body_format: json
+        headers:
+          Content-Type: application/json
+          Accept: application/json
+      register: auth
+    
+    - name: SEMAPHORE - Print auth token
+      debug:
+        msg: "Semaphore auth cookies: {{ auth.cookies }}"
+    
+      
+
   vars_files:
     - "vars/network.yml"
     - "vars/secrets_mapping.yml"
     - "vars/secrets.yml"
+  vars:
+    url: https://semaphore.netsoc.co/api
   tags:
     - semaphore
 
