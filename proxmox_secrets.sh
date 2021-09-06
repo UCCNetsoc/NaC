@@ -21,8 +21,12 @@ parse_yaml() {
 
 editor=$EDITOR
 export EDITOR=cat
-echo -n "Vault password: "
-read -s vault_pass
+
+if [[ -z "${VAULT_PASS}" ]]; then
+   echo -n "Vault password: "
+   read -s VAULT_PASS
+fi
+
 echo "$vault_pass" > ./_vault_pass
 echo ""
 ansible-vault edit vars/secrets.yml --vault-password-file ./_vault_pass > ./_secrets.yml 
