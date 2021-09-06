@@ -27,7 +27,7 @@ if [[ -z "${VAULT_PASS}" ]]; then
    read -s VAULT_PASS
 fi
 
-echo "$vault_pass" > ./_vault_pass
+echo "$VAULT_PASS" > ./_vault_pass
 echo ""
 ansible-vault edit vars/secrets.yml --vault-password-file ./_vault_pass > ./_secrets.yml 
 eval $(parse_yaml _secrets.yml "yaml_")
