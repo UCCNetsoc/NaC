@@ -32,13 +32,13 @@
             - { type: CNAME,    name: control,               value: "cix-3.netsoc.co" }
             - { type: CNAME,    name: minecraft,             value: "cix-3.netsoc.co" }
 
-            # To cix-1.netsoc.co 
+            # To cix-1.netsoc.co
             - { type: CNAME,    name: leela-vm,              value: "cix-1.netsoc.co" }
             - { type: CNAME,    name: admin,                 value: "leela-vm.netsoc.co" }
             - { type: CNAME,    name: mysql,                 value: "leela-vm.netsoc.co" }
             - { type: CNAME,    name: "*.evan",              value: "leela-vm.netsoc.co" }
             - { type: CNAME,    name: www.*.evan,            value: "leela-vm.netsoc.co" }
-            
+
             # To cix-1.netsoc.co
             - { type: CNAME,    name: web,                   value: "cix-1.netsoc.co" }
 
@@ -54,6 +54,7 @@
             - { type: CNAME,    name: bot,                   value: "web.netsoc.co"  }
 
             - { type: CNAME,    name: wiki,                  value: "web.netsoc.co"  }
+            - { type: CNAME,    name: whodis,                value: "web.netsoc.co"  }
             - { type: CNAME,    name: links,                 value: "web.netsoc.co"  }
             - { type: CNAME,    name: www,                   value: "web.netsoc.co"  }
             - { type: CNAME,    name: mentorships,           value: "web.netsoc.co"  }
