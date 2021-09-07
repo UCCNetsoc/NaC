@@ -23,18 +23,20 @@ editor=$EDITOR
 export EDITOR=cat
 
 if [[ -z "${VAULT_PASS}" ]]; then
-   echo -n "Vault password: "
-   read -s VAULT_PASS
+    echo -n "Vault password: "
+    read -s vault_pass
+    echo "$vault_pass" > ./_vault_pass
+    export VAULT_PASS=$vault_pass
+else
+    echo "$VAULT_PASS" > ./_vault_pass
 fi
 
-echo "$VAULT_PASS" > ./_vault_pass
 echo ""
 ansible-vault edit vars/secrets.yml --vault-password-file ./_vault_pass > ./_secrets.yml 
 eval $(parse_yaml _secrets.yml "yaml_")
 rm _secrets.yml
 rm _vault_pass
 export EDITOR=$editor
-export VAULT_PASS=$vault_pass
 
 export PM_USER=$yaml_vault_proxmox_username
 export PM_PASS=$yaml_vault_proxmox_password
