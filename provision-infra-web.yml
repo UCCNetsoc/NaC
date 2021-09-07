@@ -622,7 +622,7 @@
               external: true
           services:
             instance:
-              image: uccnetsoc/discord-bot:latest
+              image: ghcr.io/uccnetsoc/discord-bot:latest
               restart: always
               networks:
                 traefik:
