@@ -434,6 +434,10 @@
                 traefik.http.services.dashboard-service.loadbalancer.server.port: "8080"
                 traefik.http.middlewares.dashboard-auth.basicauth.users: "{{ traefik.username }}:{{ traefik.password | password_hash('bcrypt') | replace('$', '$$') }}"
                 traefik.http.routers.dashboard.middlewares: "dashboard-auth@docker"
+              logging:
+                options:
+                  max-size: "500M"
+                  max-file: "5"
 
     - name: TRAEFIK - Setup compose
       docker_compose:
@@ -1620,12 +1624,12 @@
           Content-Type: application/json
           Accept: application/json
       register: auth
-    
+
     - name: SEMAPHORE - Print auth token
       debug:
         msg: "Semaphore auth cookies: {{ auth.cookies }}"
-    
-      
+
+
 
   vars_files:
     - "vars/network.yml"
