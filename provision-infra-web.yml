@@ -707,7 +707,7 @@
                 DISCORD_TOKEN: "{{ whodis.discord_token }}"
                 DISCORD_APP_ID: "{{ whodis.discord_app_id }}"
                 DISCORD_BOT_INVITE: "{{ whodis.discord_bot_invite }}"
-                DISCORD_ADDITIONAL_ROLES: "Signups 2021/2022"
+                DISCORD_ADDITIONAL_ROLE: "Signups 2021/2022"
                 API_URL: "https://whodis.netsoc.co"
                 API_PORT: "8080"
                 API_SECRET: "{{ whodis.api_secret }}"
