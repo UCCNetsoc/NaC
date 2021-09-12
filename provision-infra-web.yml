@@ -686,6 +686,57 @@
     - provision
     - discord-bot
 
+- name: "whodis"
+  hosts: web.infra.netsoc.co
+  become: yes
+  tasks:
+    - name: whodis - Remember Compose definition
+      set_fact:
+        whodis_definition:
+          version: "3.8"
+          networks:
+            traefik:
+              external: true
+          services:
+            instance:
+              image: ghcr.io/uccnetsoc/whodis:latest
+              restart: always
+              networks:
+                traefik:
+              environment:
+                DISCORD_TOKEN: "{{ whodis.discord_token }}"
+                DISCORD_APP_ID: "{{ whodis.discord_app_id }}"
+                DISCORD_BOT_INVITE: "{{ whodis.discord_bot_invite }}"
+                API_URL: "https://whodis.netsoc.co"
+                API_PORT: "8080"
+                API_SECRET: "{{ whodis.api_secret }}"
+                OAUTH_GOOGLE_ID: "{{ whodis.oauth_google_id }}"
+                OAUTH_GOOGLE_SECRET: "{{ whodis.oauth_google_secret }}"
+              labels:
+                traefik.enable: "true"
+                traefik.http.routers.whodis.rule: "Host(`whodis.netsoc.co`)"
+                traefik.http.routers.whodis.entrypoints: "web-secure"
+                traefik.http.routers.whodis.tls.certResolver: "letsencrypt-dns"
+                traefik.http.routers.whodis.service: "whodis-service"
+                traefik.http.services.whodis-service.loadbalancer.server.port: "8080"
+                traefik.docker.network: "traefik"
+
+    - name: whodis - Setup compose
+      docker_compose:
+        project_name: whodis
+        remove_orphans: yes
+        recreate: always
+        pull: yes
+        state: present
+        definition: "{{ whodis_definition }}"
+  vars_files:
+    - "vars/network.yml"
+    - "vars/secrets_mapping.yml"
+    - "vars/secrets.yml"
+  tags:
+    - provision
+    - whodis
+
 - name: "CI (DATABASES) - Create databases for services"
   hosts: databases.infra.netsoc.co
   become: yes
