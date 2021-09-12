@@ -316,7 +316,7 @@
               discord-redirect:
                 redirectRegex:
                   regex: ^(.*)
-                  replacement: 'https://discordapp.com/invite/qPUmuYw'
+                  replacement: 'https://discord.gg/zHkxHYjdqH'
               constitution-redirect:
                 redirectRegex:
                   regex: ^(.*)
