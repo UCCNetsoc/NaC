@@ -21,7 +21,7 @@
   pip:
     name:
       - pip
-#      - ansible
+      - ansible==2.10.5
       - proxmoxer
       - netaddr
     state: latest
