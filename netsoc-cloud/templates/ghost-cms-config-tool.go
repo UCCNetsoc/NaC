@@ -319,7 +319,7 @@ const response = `<!doctype html>
             Do <b>NOT</b> forget to bookmark it, it is not linked on your site
         </p>
 
-        <p>Contact Netsoc SysAdmins on our <a href='discord.netsoc.co'>Discord</a> if you encounter any issues
+        <p>Contact Netsoc SysAdmins on our <a href='https://discord.netsoc.co'>Discord</a> if you encounter any issues
     </div>
     <div style="
       margin: 0 auto;
