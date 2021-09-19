@@ -10,11 +10,7 @@ control
 feynman
 lovelace
 leela
-
-# "OLD" NETSOC
-leela_vm
-feynman_vm
-lovelace_vm
+scalper
 
 [proxmox_master]
 feynman
@@ -23,9 +19,10 @@ feynman
 feynman
 lovelace
 leela
+scalper
 
 [proxmox_hosts]
 feynman
 lovelace
 leela
-
+scalper
