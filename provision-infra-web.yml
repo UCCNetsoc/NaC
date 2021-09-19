@@ -1201,7 +1201,7 @@
               external: true
           services:
             instance:
-              image: uccnetsoc/webssh2:latest
+              image: ghcr.io/uccnetsoc/webssh2:latest
               networks:
                 traefik:
               volumes:
