@@ -470,7 +470,7 @@
               external: true
           services:
             netsoc.co:
-              image: uccnetsoc/netsoc.co:latest
+              image: ghcr.io/uccnetsoc/netsoc.co:latest
               networks:
                 traefik:
               labels:
@@ -1038,7 +1038,7 @@
               external: true
           services:
             api:
-              image: uccnetsoc/cloud-api:latest
+              image: ghcr.io/uccnetsoc/cloud-api:latest
               entrypoint: /start.sh
               restart: always
               networks:
@@ -1056,7 +1056,7 @@
                 traefik.http.services.netsoc-cloud-api.loadbalancer.server.port: "80"
                 traefik.docker.network: traefik
             ui:
-              image: uccnetsoc/cloud-ui:latest
+              image: ghcr.io/uccnetsoc/cloud-ui:latest
               restart: always
               networks:
                 traefik:
