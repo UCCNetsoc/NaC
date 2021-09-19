@@ -18,6 +18,8 @@ from optparse import OptionParser
 
 from proxmoxer import ProxmoxAPI, ResourceException
 
+FILTERED_GROUPS = {"netsoc_cloud_vps", "netsoc_cloud_instance"}
+
 if not 'PM_PASS' in os.environ:
     print("You need to run source ./proxmox_secrets.sh first")
     quit(-1)
@@ -83,16 +85,13 @@ for node in proxmox.nodes.get():
                 desc_config = yaml.safe_load(vm_config['description'])
 
                 if type(desc_config) == dict:
-                    # Host-specific vars
-                    if 'host_vars'in desc_config:
-                        inventory['_meta']['hostvars'][vm['name']] = {
-                            **inventory['_meta']['hostvars'][vm['name']],
-                            **desc_config['host_vars']
-                        }
-
                     # Groups
+                    filtered = False
                     if 'groups' in desc_config:
                         for group in desc_config['groups']:
+                            if group in FILTERED_GROUPS:
+                                filtered = True
+                                continue
                             if group not in inventory:
                                 inventory[group] = {
                                     'hosts': [ ],
@@ -100,8 +99,16 @@ for node in proxmox.nodes.get():
                                         # group specific vars would be in here if specific
                                      }
                                 }
-
                             inventory[group]['hosts'].append(vm['name'])
+
+                    # Host-specific vars
+                    if filtered:
+                        del inventory['_meta']['hostvars'][vm['name']]
+                    elif 'host_vars'in desc_config:
+                        inventory['_meta']['hostvars'][vm['name']] = {
+                            **inventory['_meta']['hostvars'][vm['name']],
+                            **desc_config['host_vars']
+                        }
 
 
 if __name__ == '__main__':
