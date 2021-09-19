@@ -11,10 +11,10 @@ git config --local merge.ansible-vault.driver "./vault-merge.sh %O %A %B %L %P"
 git config --local merge.ansible-vault.name "Ansible Vault merge driver"
 
 if [[ $# -eq 1 ]] ; then
-    if [[ $1 == 'bash' ]] ; then
-		bash --init-file <(echo "source bin/activate; source proxmox_secrets.sh")
+    if [[ $1 == 'fish' ]] ; then
+		fish -C "source bin/activate.fish; source bass.fish; bass source proxmox_secrets.sh"
     fi
     exit 0
 fi
 
-fish -C "source bin/activate.fish; source bass.fish; bass source proxmox_secrets.sh"
+bash --init-file <(echo "source bin/activate; source proxmox_secrets.sh")
