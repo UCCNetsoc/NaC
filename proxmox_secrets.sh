@@ -40,3 +40,9 @@ export EDITOR=$editor
 
 export PM_USER=$yaml_vault_proxmox_username
 export PM_PASS=$yaml_vault_proxmox_password
+
+for f in *.sh; do
+	alias "${f::-3}"="$(pwd)/$f"
+done
+
+echo "All .sh scripts in NaC are global. EG: 'run provision-infra-web.yml' maps to './run.sh provision-infra-web.yml'"
