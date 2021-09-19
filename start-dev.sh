@@ -17,4 +17,4 @@ fi
 git config --local merge.ansible-vault.driver "./vault-merge.sh %O %A %B %L %P"
 git config --local merge.ansible-vault.name "Ansible Vault merge driver"
 
-bash --init-file <(echo "source bin/activate; source proxmox_secrets.sh")
+fish -C "source bin/activate.fish; source bass.fish; bass source proxmox_secrets.sh"
