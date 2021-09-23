@@ -1,7 +1,5 @@
 <img src="https://github.com/UCCNetsoc/wiki/raw/master/assets/logo-service-nac.svg" width="360"/>
 
-[![Build Status](https://ci.netsoc.co/api/badges/UCCNetsoc/NaC/status.svg)](https://ci.netsoc.co/UCCNetsoc/NaC)
-
 ## I'm a new SysAdmin, what the heck do I do?
 
 * `ssh` into the Ansible control server (currently `control.netsoc.co:2222`)
@@ -11,7 +9,7 @@
 
 * Clone this repo
 
-* Run `./start-dev.sh` inside the cloned folder (or `./start-dev.sh zsh` to use zsh instead of bash)
+* Run `./start-dev.sh` inside the cloned folder (or `./start-dev.sh fish` to use fish instead of bash)
   * You will need to run `./start-dev.sh` to setup the correct Python packages and environment variables. You must do this before beginning any development/deployment
   * You will be able to tell you have done this when your terminal prompt looks like this:
     * `(NaC) <user>@feynman:~/NaC#`
