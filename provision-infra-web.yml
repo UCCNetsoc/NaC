@@ -708,7 +708,7 @@
                 DISCORD_APP_ID: "{{ whodis.discord_app_id }}"
                 DISCORD_BOT_INVITE: "{{ whodis.discord_bot_invite }}"
                 DISCORD_ADDITIONAL_ROLE: "Signups 2021/2022"
-                DISCORD_GUILD_MEMBERS_WELCOME: "{'248421213628530688': 'Some channels are hidden by default so head over to <#769360801332461569> to get access to them.'}"
+                DISCORD_GUILD_MEMBERS_WELCOME: "{\"248421213628530688\": \"Some channels are hidden by default so head over to <#769360801332461569> to get access to them.\"}"
                 API_URL: "https://whodis.netsoc.co"
                 API_PORT: "8080"
                 API_SECRET: "{{ whodis.api_secret }}"
