@@ -376,7 +376,7 @@
               control-https:
                 loadBalancer:
                   servers:
-                    - url: 'https://10.0.30.53:8006'
+                    - url: 'https://10.0.30.20:8006'
               leela-http:
                 loadBalancer:
                   servers:
