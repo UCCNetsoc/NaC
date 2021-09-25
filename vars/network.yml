@@ -82,6 +82,16 @@ interfaces:
         nameservers: "{{ nameservers.public }}"
         optional: true
         link-local: []
+    minecraft:
+      net0:
+        match:
+          macaddress: "22:1c:7e:3a:77:b4"
+        addresses:
+          - "{{ subnets.infra | ipaddr(65) }}"
+        gateway4: "{{ gateway4.infra }}"
+        nameservers: "{{ nameservers.public }}"
+        optional: true
+        link-local: []
 
 databases:
   infra:
