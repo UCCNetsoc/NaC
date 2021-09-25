@@ -1,0 +1,45 @@
+---
+- name: Provision Minecraft LXC Container
+  hosts: scalper
+  any_errors_fatal: true
+  roles:
+    - role: proxmox-lxc
+      vars:
+        lxc:
+          name: "minecraft.infra.netsoc.co"
+          storage: local
+          template:
+            storage: netsoc-cloud
+            image: "ubuntu-20.04-standard_20.04-1_amd64.tar.gz"
+          description:
+            groups:
+              - container
+              - promtail
+              - prometheus_base
+              - prometheus_docker
+            host_vars:
+              ansible_ssh_private_key_file: "./keys/infra/minecraft/id_rsa"
+          unprivileged: yes
+          cores: 8
+          memory: 8192
+          swap: 4096
+          disks:
+            rootfs:
+              size: 60
+          net:
+            net0: "name=eth0,ip={{ interfaces.infra.minecraft.net0.addresses[0] }},\
+              hwaddr={{ interfaces.infra.minecraft.net0.match.macaddress }},\
+              gw={{ interfaces.infra.minecraft.net0.gateway4 }},\
+              mtu=1500,\
+              tag={{ vlan.infra }},\
+              bridge={{ vmbr }},\
+              firewall=0"
+          features: "fuse=1,nesting=1,keyctl=1"
+          authorized_keys: "{{ lookup('file', '{{ playbook_dir }}/keys/infra/minecraft/id_rsa.pub') }}"
+
+  vars_files:
+    - vars/network.yml
+    - vars/secrets_mapping.yml
+    - vars/secrets.yml
+  tags:
+    - always
