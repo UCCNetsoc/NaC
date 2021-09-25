@@ -20,6 +20,8 @@ from proxmoxer import ProxmoxAPI, ResourceException
 
 FILTERED_GROUPS = {"netsoc_cloud_vps", "netsoc_cloud_instance"}
 
+CONTAINER_SUFFIX = ".infra.netsoc.co"
+
 if not 'PM_PASS' in os.environ:
     print("You need to run source ./proxmox_secrets.sh first")
     quit(-1)
@@ -42,6 +44,75 @@ inventory = {
 }
 
 for node in proxmox.nodes.get():
+    for con in proxmox.nodes(node['node']).lxc.get():
+        if not con['name'].endswith(CONTAINER_SUFFIX):
+            continue
+
+        # Get the config off the container
+        vm_config = proxmox.nodes(node['node']).lxc(con['vmid']).get('config')
+
+        # We need to discover it's local 10.x.x.x IP 
+        # so that we can ssh into the machine via ansible
+        ssh_ip = ''
+
+        if con['status'] == 'running':
+            # Request the IPs that the VM is exposing via it's guest agent
+            try:
+                config = proxmox.nodes(node['node']).lxc(f"{con['vmid']}/config").get()
+                try:
+                    macaddress = config["net0"].split("=")[5].split(',')[0]
+                except Exception as e:
+                    macaddress = None
+
+                try:
+                    ssh_ip = config["net0"].split("=")[6].split(',')[0]
+                    ssh_ip = ssh_ip[:-3]
+                except Exception as e:
+                    continue
+
+            except ResourceException:
+                # If the agent isn't running on the machine, ignore that machine
+                continue
+                pass 
+
+
+            inventory['_meta']['hostvars'][con['name']] = {
+                "ansible_host": ssh_ip,
+                "user": "root"
+            }
+            
+            ssh_ip = ''
+
+            # Parse yaml from vm description
+            if 'description' in vm_config:
+                desc_config = yaml.safe_load(vm_config['description'])
+
+                if type(desc_config) == dict:
+                    # Groups
+                    filtered = False
+                    if 'groups' in desc_config:
+                        for group in desc_config['groups']:
+                            if group in FILTERED_GROUPS:
+                                filtered = True
+                                continue
+                            if group not in inventory:
+                                inventory[group] = {
+                                    'hosts': [ ],
+                                    'host_vars': {
+                                        # group specific vars would be in here if specific
+                                     }
+                                }
+                            inventory[group]['hosts'].append(con['name'])
+
+                    # Host-specific vars
+                    if filtered:
+                        del inventory['_meta']['hostvars'][con['name']]
+                    elif 'host_vars'in desc_config:
+                        inventory['_meta']['hostvars'][con['name']] = {
+                            **inventory['_meta']['hostvars'][con['name']],
+                            **desc_config['host_vars']
+                        }
+
     for vm in proxmox.nodes(node['node']).qemu.get():
         # Get the config off the VM
         vm_config = proxmox.nodes(node['node']).qemu(vm['vmid']).get('config')
@@ -72,10 +143,10 @@ for node in proxmox.nodes.get():
                 # If the agent isn't running on the machine, ignore that machine
                 continue
                 pass
-            
 
             inventory['_meta']['hostvars'][vm['name']] = {
-                "ansible_host": ssh_ip
+                "ansible_host": ssh_ip,
+                "user": "netsoc"
             }
             
             ssh_ip = ''
