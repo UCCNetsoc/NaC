@@ -78,7 +78,7 @@ for node in proxmox.nodes.get():
 
             inventory['_meta']['hostvars'][con['name']] = {
                 "ansible_host": ssh_ip,
-                "user": "root"
+                "ansible_ssh_user": "root"
             }
             
             ssh_ip = ''
@@ -146,7 +146,7 @@ for node in proxmox.nodes.get():
 
             inventory['_meta']['hostvars'][vm['name']] = {
                 "ansible_host": ssh_ip,
-                "user": "netsoc"
+                "ansible_ssh_user": "netsoc"
             }
             
             ssh_ip = ''
