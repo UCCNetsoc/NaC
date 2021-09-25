@@ -30,7 +30,7 @@
 
             # To cix-3.netsoc.co
             - { type: CNAME,    name: control,               value: "cix-3.netsoc.co" }
-            - { type: CNAME,    name: minecraft,             value: "cix-1.netsoc.co" }
+            - { type: CNAME,    name: minecraft,             value: "cix-3.netsoc.co" }
 
             # To cix-1.netsoc.co
             - { type: CNAME,    name: leela-vm,              value: "cix-1.netsoc.co" }
@@ -84,7 +84,7 @@
             - { type: CNAME, name: "s2._domainkey", value: "s2.domainkey.u18778499.wl250.sendgrid.net" }
 
             # SRV
-            - { type: SRV, name: "minecraft", proto: "tcp", service: "minecraft", port: "25565", priority: 0, weight: 5, value: "minecraft.netsoc.co"}
+            # - { type: SRV, name: "minecraft", proto: "tcp", service: "minecraft", port: "25565", priority: 0, weight: 5, value: "minecraft.netsoc.co"}
           "netsoc.cloud":
             - { type: CNAME,  name: "netsoc.cloud",   value: "web.netsoc.co"  }
             - { type: CNAME,  name: api,              value: "web.netsoc.co"  }
