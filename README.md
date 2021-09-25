@@ -24,7 +24,7 @@
 * You can list *.vm.netsoc.co by using `./vm-list.sh`
 * You can ssh into *.vm.netsoc.co by running `./vm-ssh.sh <hostname>`, i.e `./vm-ssh.sh web.infra.netsoc.co`
 
-* The Proxmox Web UI is available at [`control.netsoc.co:8006`](https://control.netsoc.co:8006). You may need to type `thisisunsafe` (if using Chrome) to get past the SSL warning 
+* The Proxmox Web UI is available at [`proxmox.netsoc.co`](https://proxmox.netsoc.co). You may need to type `thisisunsafe` (if using Chrome) to get past the SSL warning 
 
 * For your development, you can use `sshfs` / VSCode Remote / `vim` on the control server / a git branch.
   * You _will_ need to run your playbooks on the control server
