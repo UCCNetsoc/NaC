@@ -417,7 +417,7 @@
           max-players=20
           max-tick-time=-1
           max-world-size=10000
-          motd=Netzucc
+          motd=UCC Netsoc's Minecraft Server
           network-compression-threshold=256
           online-mode=true
           op-permission-level=4
@@ -431,7 +431,7 @@
           resource-pack=
           resource-pack-sha1=
           server-ip=
-          server-name=Netcraft - UCC Netsoc's Minecraft Server
+          server-name=Netcraft
           server-port=25565
           snooper-enabled=true
           spawn-animals=true
@@ -442,7 +442,7 @@
           text-filtering-config=
           texture-pack=
           use-native-transport=true
-          view-distance=14
+          view-distance=10
           white-list=false
 
     - name: Ensure directories exist
@@ -490,7 +490,7 @@
               environment:
                 EULA: "TRUE"
                 TYPE: FORGE
-                MEMORY: 8G
+                MEMORY: 10G
                 VERSION: "{{ manifest.minecraft.version }}"
       tags:
         - server
