@@ -21,7 +21,7 @@
               ansible_ssh_private_key_file: "./keys/infra/minecraft/id_rsa"
           unprivileged: yes
           cores: 8
-          memory: 9216
+          memory: 11126
           swap: 4096
           disks:
             rootfs:
