@@ -1,0 +1,511 @@
+---
+- name: MINECRAFT - INITIAL SETUP
+  hosts: minecraft.infra.netsoc.co
+  become: yes
+  roles:
+    - ansible-requirements
+    - utf8-locale
+    - docker
+  tags:
+    - init
+
+- name: MINECRAFT - SETUP SERVER
+  hosts: minecraft.infra.netsoc.co
+  become: yes
+  tasks:
+    - name: Rember Mods Manifest
+      set_fact:
+        manifest_json: |
+          {
+            "minecraft": {
+              "version": "1.16.5",
+              "modLoaders": [
+                {
+                  "id": "forge-36.2.0",
+                  "primary": true
+                }
+              ]
+            },
+            "manifestType": "minecraftModpack",
+            "manifestVersion": 1,
+            "name": "Netsoc",
+            "author": "",
+            "files": [
+              {
+                "projectID": 238222,
+                "fileID": 3438494,
+                "required": true
+              },
+              {
+                "projectID": 452345,
+                "fileID": 3250108,
+                "required": true
+              },
+              {
+                "projectID": 439890,
+                "fileID": 3456261,
+                "required": true
+              },
+              {
+                "projectID": 394185,
+                "fileID": 3276056,
+                "required": true
+              },
+              {
+                "projectID": 267602,
+                "fileID": 3137659,
+                "required": true
+              },
+              {
+                "projectID": 429371,
+                "fileID": 3407451,
+                "required": true
+              },
+              {
+                "projectID": 381736,
+                "fileID": 3226442,
+                "required": true
+              },
+              {
+                "projectID": 382016,
+                "fileID": 3221772,
+                "required": true
+              },
+              {
+                "projectID": 416089,
+                "fileID": 3459636,
+                "required": true
+              },
+              {
+                "projectID": 326895,
+                "fileID": 3249419,
+                "required": true
+              },
+              {
+                "projectID": 248787,
+                "fileID": 3395800,
+                "required": true
+              },
+              {
+                "projectID": 419699,
+                "fileID": 3462013,
+                "required": true
+              },
+              {
+                "projectID": 404465,
+                "fileID": 3456644,
+                "required": true
+              },
+              {
+                "projectID": 404468,
+                "fileID": 3460043,
+                "required": true
+              },
+              {
+                "projectID": 416935,
+                "fileID": 3431330,
+                "required": true
+              },
+              {
+                "projectID": 233019,
+                "fileID": 3031978,
+                "required": true
+              },
+              {
+                "projectID": 450748,
+                "fileID": 3397138,
+                "required": true
+              },
+              {
+                "projectID": 442719,
+                "fileID": 3442748,
+                "required": true
+              },
+              {
+                "projectID": 331936,
+                "fileID": 3441028,
+                "required": true
+              },
+              {
+                "projectID": 361579,
+                "fileID": 3337641,
+                "required": true
+              },
+              {
+                "projectID": 497867,
+                "fileID": 3407875,
+                "required": true
+              },
+              {
+                "projectID": 291509,
+                "fileID": 3154938,
+                "required": true
+              },
+              {
+                "projectID": 235279,
+                "fileID": 3376782,
+                "required": true
+              },
+              {
+                "projectID": 233342,
+                "fileID": 3216206,
+                "required": true
+              },
+              {
+                "projectID": 400933,
+                "fileID": 3273512,
+                "required": true
+              },
+              {
+                "projectID": 233071,
+                "fileID": 3330406,
+                "required": true
+              },
+              {
+                "projectID": 328085,
+                "fileID": 3419412,
+                "required": true
+              },
+              {
+                "projectID": 363820,
+                "fileID": 3451426,
+                "required": true
+              },
+              {
+                "projectID": 347488,
+                "fileID": 3431343,
+                "required": true
+              },
+              {
+                "projectID": 354143,
+                "fileID": 3401152,
+                "required": true
+              },
+              {
+                "projectID": 450265,
+                "fileID": 3438997,
+                "required": true
+              },
+              {
+                "projectID": 32274,
+                "fileID": 3397059,
+                "required": true
+              },
+              {
+                "projectID": 238086,
+                "fileID": 3469658,
+                "required": true
+              },
+              {
+                "projectID": 363569,
+                "fileID": 3443597,
+                "required": true
+              },
+              {
+                "projectID": 69118,
+                "fileID": 3215383,
+                "required": true
+              },
+              {
+                "projectID": 340583,
+                "fileID": 3307879,
+                "required": true
+              },
+              {
+                "projectID": 429235,
+                "fileID": 3435176,
+                "required": true
+              },
+              {
+                "projectID": 267193,
+                "fileID": 3436684,
+                "required": true
+              },
+              {
+                "projectID": 421760,
+                "fileID": 3311520,
+                "required": true
+              },
+              {
+                "projectID": 312353,
+                "fileID": 3374317,
+                "required": true
+              },
+              {
+                "projectID": 412082,
+                "fileID": 3466032,
+                "required": true
+              },
+              {
+                "projectID": 447816,
+                "fileID": 3222746,
+                "required": true
+              },
+              {
+                "projectID": 243121,
+                "fileID": 3394265,
+                "required": true
+              },
+              {
+                "projectID": 407384,
+                "fileID": 3433589,
+                "required": true
+              },
+              {
+                "projectID": 398521,
+                "fileID": 3418719,
+                "required": true
+              },
+              {
+                "projectID": 415974,
+                "fileID": 3227802,
+                "required": true
+              },
+              {
+                "projectID": 453925,
+                "fileID": 3231567,
+                "required": true
+              },
+              {
+                "projectID": 389665,
+                "fileID": 3344719,
+                "required": true
+              },
+              {
+                "projectID": 362528,
+                "fileID": 3166283,
+                "required": true
+              },
+              {
+                "projectID": 256717,
+                "fileID": 3348509,
+                "required": true
+              },
+              {
+                "projectID": 465575,
+                "fileID": 3412586,
+                "required": true
+              },
+              {
+                "projectID": 227639,
+                "fileID": 3413560,
+                "required": true
+              },
+              {
+                "projectID": 366140,
+                "fileID": 3358883,
+                "required": true
+              },
+              {
+                "projectID": 301051,
+                "fileID": 3088871,
+                "required": true
+              },
+              {
+                "projectID": 250363,
+                "fileID": 3326041,
+                "required": true
+              },
+              {
+                "projectID": 382216,
+                "fileID": 3457851,
+                "required": true
+              },
+              {
+                "projectID": 314906,
+                "fileID": 3466965,
+                "required": true
+              },
+              {
+                "projectID": 389697,
+                "fileID": 3416699,
+                "required": true
+              },
+              {
+                "projectID": 416294,
+                "fileID": 3461548,
+                "required": true
+              },
+              {
+                "projectID": 309927,
+                "fileID": 3456953,
+                "required": true
+              },
+              {
+                "projectID": 389989,
+                "fileID": 3091598,
+                "required": true
+              },
+              {
+                "projectID": 426558,
+                "fileID": 3467280,
+                "required": true
+              },
+              {
+                "projectID": 421850,
+                "fileID": 3412585,
+                "required": true
+              },
+              {
+                "projectID": 60089,
+                "fileID": 3202662,
+                "required": true
+              },
+              {
+                "projectID": 486392,
+                "fileID": 3459739,
+                "required": true
+              },
+              {
+                "projectID": 465066,
+                "fileID": 3277762,
+                "required": true
+              },
+              {
+                "projectID": 378646,
+                "fileID": 3340793,
+                "required": true
+              },
+              {
+                "projectID": 253449,
+                "fileID": 3033593,
+                "required": true
+              },
+              {
+                "projectID": 499980,
+                "fileID": 3464540,
+                "required": true
+              }
+            ],
+            "overrides": "overrides"
+          }
+      tags:
+        - server
+
+    - name: Rember Manifest Map 
+      set_fact:
+        manifest: "{{ manifest_json | from_json }}"
+      tags:
+        - server
+
+    - name: Rember Server Properties
+      set_fact:
+        properties: |
+          #Minecraft server properties
+          allow-flight=true
+          allow-nether=true
+          broadcast-console-to-ops=true
+          broadcast-rcon-to-ops=true
+          difficulty=hard
+          enable-command-block=true
+          enable-jmx-monitoring=false
+          enable-query=false
+          enable-rcon=true
+          enable-status=true
+          enforce-whitelist=false
+          entity-broadcast-range-percentage=100
+          force-gamemode=false
+          function-permission-level=2
+          gamemode=survival
+          generate-structures=true
+          generator-settings=
+          hardcore=false
+          level-name=world
+          level-seed=
+          level-type=terraforged\:terraforged
+          max-build-height=256
+          max-players=20
+          max-tick-time=-1
+          max-world-size=10000
+          motd=Netzucc
+          network-compression-threshold=256
+          online-mode=true
+          op-permission-level=4
+          player-idle-timeout=0
+          prevent-proxy-connections=false
+          pvp=true
+          query.port=25565
+          rate-limit=0
+          rcon.password=minecraft
+          rcon.port=25575
+          resource-pack=
+          resource-pack-sha1=
+          server-ip=
+          server-name=Netcraft - UCC Netsoc's Minecraft Server
+          server-port=25565
+          snooper-enabled=true
+          spawn-animals=true
+          spawn-monsters=true
+          spawn-npcs=true
+          spawn-protection=16
+          sync-chunk-writes=true
+          text-filtering-config=
+          texture-pack=
+          use-native-transport=true
+          view-distance=14
+          white-list=false
+
+    - name: Ensure directories exist
+      file:
+        path: "/{{ item }}"
+        owner: root
+        group: root
+        mode: '0777'
+        state: directory
+      with_items:
+        - data
+        - "data/mods"
+
+    - name: Ensure server.properties
+      copy:
+        content: "{{ properties }}"
+        dest: /data/server.properties
+
+    - name: Ensure server icon
+      copy:
+        src: "{{ playbook_dir }}/roles/minecraft/files/server-icon.png"
+        dest: /data/server-icon.png
+
+    - name: Download Mods
+      get_url:
+        dest: "/data/mods"
+        url: "{{ lookup('url', 'https://addons-ecs.forgesvc.net/api/v2/addon/{{item.projectID}}/file/{{item.fileID}}/download-url') | replace(' ', '%20') }}"
+        force: no
+      loop: "{{ manifest.files }}"
+
+    - name: Remember Compose definition
+      set_fact:
+        minecraft_definition:
+          version: '3.8'
+          services:
+            minecraft:
+              container_name: minecraft
+              image: itzg/minecraft-server:java8-openj9
+              ports:
+                - "25565:25565"
+                - "24454:24454/udp"
+              restart: always
+              volumes:
+                - "/data:/data"
+              environment:
+                EULA: "TRUE"
+                TYPE: FORGE
+                MEMORY: 8G
+                VERSION: "{{ manifest.minecraft.version }}"
+      tags:
+        - server
+
+    - name: Setup compose
+      docker_compose:
+        project_name: minecraft
+        recreate: always
+        restarted: yes
+        pull: yes
+        remove_orphans: yes
+        state: present
+        definition: "{{ minecraft_definition }}"
+      tags:
+        - server
+  tags:
+    - minecraft
+    
