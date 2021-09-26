@@ -89,7 +89,7 @@
       - name: monitoring
     network_mode: bridge
     purge_networks: true
-    image: "prom/prometheus:v2.29.2"
+    image: "prom/prometheus:v2.30.0"
     command:
       - "--config.file=/etc/prometheus/prometheus.yml"
       - "--storage.tsdb.path=/prometheus"
