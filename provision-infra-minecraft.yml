@@ -375,6 +375,11 @@
                 "projectID": 499980,
                 "fileID": 3464540,
                 "required": true
+              },
+              {
+                "projectID": 351938,
+                "fileID": 3279976,
+                "required": true
               }
             ],
             "overrides": "overrides"
@@ -445,6 +450,24 @@
           view-distance=10
           white-list=false
 
+    - name: Rember Prometheus Exporter Settings
+      set_fact:
+        exporter: |
+          #Collector settings.
+          [collector]
+            #Enable collecting metrics about the JVM process.
+            jvm = true
+            #Enable collecting metrics about the Minecraft server.
+            mc = true
+
+          #Web server settings.
+          [web]
+            #The IP address to listen on. To only allow connections from the local machine, use "127.0.0.1". To allow connections from remote machines, use "0.0.0.0".
+            listen_address = "0.0.0.0"
+            #The TCP port to listen on. Ports 1-1023 will not work unless Minecraft is run as root which is not recommended.
+            #Range: 0 ~ 65535
+            listen_port = 19565
+
     - name: Ensure directories exist
       file:
         path: "/{{ item }}"
@@ -455,11 +478,18 @@
       with_items:
         - data
         - "data/mods"
+        - world
+        - "world/serverconfig"
 
     - name: Ensure server.properties
       copy:
         content: "{{ properties }}"
         dest: /data/server.properties
+
+    - name: Ensure prometheus exporter settings
+      copy:
+        content: "{{ exporter }}"
+        dest: /data/world/serverconfig/prometheus_exporter-server.toml
 
     - name: Ensure server icon
       copy:
@@ -484,6 +514,7 @@
               ports:
                 - "25565:25565"
                 - "24454:24454/udp"
+                - "19565:19565"
               restart: always
               volumes:
                 - "/data:/data"
