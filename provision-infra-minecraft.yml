@@ -456,7 +456,7 @@
           [voice_chat]
             #The port of the voice chat server
             #Range: 0 ~ 65535
-            port = 1195
+            port = 1194
             #The IP address to bind the voice chat server on
             #Use '0.0.0.0' to bind to an IP address chosen by the kernel
             bind_address = "0.0.0.0"
@@ -556,8 +556,8 @@
               container_name: minecraft
               image: itzg/minecraft-server:java8-openj9
               ports:
-                - "1194:25565"
-                - "1195:1195/udp"
+                - "1194:25565/tcp"
+                - "1194:1194/udp"
                 - "19565:19565"
               restart: always
               volumes:
