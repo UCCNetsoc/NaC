@@ -3,7 +3,7 @@
 
 - name: Pull GhostCMS Image
   community.general.docker_image:
-    name: ghost:3.40.5
+    name: ghost:4.16.0
     source: pull
 
 - name: Check Go on Host
