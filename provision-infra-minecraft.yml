@@ -387,7 +387,7 @@
       tags:
         - server
 
-    - name: Rember Manifest Map 
+    - name: Rember Manifest Map
       set_fact:
         manifest: "{{ manifest_json | from_json }}"
       tags:
@@ -450,6 +450,45 @@
           view-distance=10
           white-list=false
 
+    - name: Remember voice-chat config
+      set_fact:
+        voice: |
+          [voice_chat]
+            #The port of the voice chat server
+            #Range: 0 ~ 65535
+            port = 1195
+            #The IP address to bind the voice chat server on
+            #Use '0.0.0.0' to bind to an IP address chosen by the kernel
+            bind_address = "0.0.0.0"
+            #The distance to where the voice can be heard
+            #Range: 1.0 ~ 1000000.0
+            distance = 32.0
+            #The distance to where the voice starts fading
+            #Range: 1.0 ~ 1000000.0
+            fade_distance = 16.0
+            #The opus codec
+            #Allowed Values: VOIP, AUDIO, RESTRICTED_LOWDELAY
+            codec = "VOIP"
+            #The maximum size in bytes in a voice packet
+            #Set this to a lower value if your voice packets don't arrive
+            #Range: 256 ~ 10000
+            mtu_size = 1024
+            #The frequency in which keep alive packets are sent
+            #Setting this to a higher value may result in timeouts
+            #Range: > 1000
+            keep_alive = 1000
+            #If group chats are allowed
+            enable_groups = true
+            #If players in group chats can be heard locally
+            open_groups = false
+            #The host name that clients should use to connect to the voice chat
+            #Don't change this value if you don't know what you are doing
+            voice_host = ""
+            #If players are allowed to record the voice chat
+            allow_recording = true
+            #If spectators are allowed to talk to other players
+            spectator_interaction = false
+
     - name: Rember Prometheus Exporter Settings
       set_fact:
         exporter: |
@@ -486,6 +525,11 @@
         content: "{{ properties }}"
         dest: /data/server.properties
 
+    - name: Ensure voice-chat settings
+      copy:
+        content: "{{ voice }}"
+        dest: /data/world/serverconfig/voicechat-server.toml
+
     - name: Ensure prometheus exporter settings
       copy:
         content: "{{ exporter }}"
@@ -512,8 +556,8 @@
               container_name: minecraft
               image: itzg/minecraft-server:java8-openj9
               ports:
-                - "25565:25565"
-                - "24454:24454/udp"
+                - "1194:25565"
+                - "1195:1195/udp"
                 - "19565:19565"
               restart: always
               volumes:
@@ -539,4 +583,3 @@
         - server
   tags:
     - minecraft
-    
