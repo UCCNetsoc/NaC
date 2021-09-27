@@ -521,7 +521,7 @@
               environment:
                 EULA: "TRUE"
                 TYPE: FORGE
-                MEMORY: 10G
+                MEMORY: 11G
                 VERSION: "{{ manifest.minecraft.version }}"
       tags:
         - server
