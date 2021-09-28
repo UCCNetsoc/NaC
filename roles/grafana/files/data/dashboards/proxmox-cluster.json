@@ -1841,5 +1841,5 @@
   "timezone": "",
   "title": "Proxmox Cluster",
   "uid": "proxmox-cluster",
-  "version": 28
+  "version": 35
 }
