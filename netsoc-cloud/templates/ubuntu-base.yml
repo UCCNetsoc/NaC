@@ -12,6 +12,12 @@
     purge: yes
     autoremove: yes
 
+- name: Update all apt packages
+  apt:
+    name: "*"
+    state: latest
+    update_cache: yes
+
 - file:
     path: /etc/machine-id
     state: absent
