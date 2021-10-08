@@ -560,7 +560,7 @@
               external: true
           services:
             instance:
-              image: requarks/wiki:2.4
+              image: requarks/wiki:2.5
               environment:
                 # like this for future use
                 DB_TYPE: "postgres"
