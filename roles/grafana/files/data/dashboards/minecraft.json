@@ -31,20 +31,24 @@
             "axisPlacement": "auto",
             "barAlignment": 0,
             "drawStyle": "line",
-            "fillOpacity": 0,
-            "gradientMode": "none",
+            "fillOpacity": 17,
+            "gradientMode": "opacity",
             "hideFrom": {
               "legend": false,
               "tooltip": false,
               "viz": false
             },
             "lineInterpolation": "linear",
-            "lineWidth": 1,
+            "lineStyle": {
+              "fill": "solid"
+            },
+            "lineWidth": 2,
             "pointSize": 5,
             "scaleDistribution": {
-              "type": "linear"
+              "log": 2,
+              "type": "log"
             },
-            "showPoints": "auto",
+            "showPoints": "always",
             "spanNulls": false,
             "stacking": {
               "group": "A",
@@ -54,6 +58,7 @@
               "mode": "off"
             }
           },
+          "decimals": 0,
           "mappings": [],
           "thresholds": {
             "mode": "absolute",
@@ -91,9 +96,9 @@
       "targets": [
         {
           "exemplar": true,
-          "expr": "count(mc_player_list) or vector(0)",
+          "expr": "count(mc_player_list) ",
           "interval": "",
-          "legendFormat": "",
+          "legendFormat": "Players Online",
           "refId": "A"
         }
       ],
@@ -256,14 +261,6 @@
           "interval": "",
           "legendFormat": "Committed Memory",
           "refId": "C"
-        },
-        {
-          "exemplar": true,
-          "expr": "jvm_memory_bytes_init",
-          "hide": false,
-          "interval": "",
-          "legendFormat": "",
-          "refId": "D"
         }
       ],
       "title": "JVM Memory Usage",
@@ -316,7 +313,7 @@
       "targets": [
         {
           "exemplar": true,
-          "expr": "count(mc_player_list)",
+          "expr": "count(mc_player_list) or vector(0)",
           "interval": "",
           "legendFormat": "",
           "refId": "A"
@@ -372,7 +369,7 @@
       "targets": [
         {
           "exemplar": true,
-          "expr": "count(avg_over_time(mc_player_list[7d]))",
+          "expr": "count(avg_over_time(mc_player_list[7d])) or vector(0)",
           "interval": "",
           "legendFormat": "",
           "refId": "A"
@@ -382,6 +379,7 @@
       "type": "gauge"
     }
   ],
+  "refresh": "1m",
   "schemaVersion": 30,
   "style": "dark",
   "tags": [],
@@ -389,12 +387,12 @@
     "list": []
   },
   "time": {
-    "from": "now-12h",
+    "from": "now-24h",
     "to": "now"
   },
   "timepicker": {},
   "timezone": "",
   "title": "Minecraft",
   "uid": "eIDN5BNnk",
-  "version": 5
+  "version": 12
 }
