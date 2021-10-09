@@ -12,6 +12,7 @@
     - /grafana/data/dashboards
     - /grafana/provisioning
     - /grafana/provisioning/notifiers
+    - /grafana/provisioning/plugins
     - /grafana/provisioning/datasources
 
 - name: "Copy config provisioning"

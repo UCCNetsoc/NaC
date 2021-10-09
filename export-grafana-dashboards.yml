@@ -4,7 +4,7 @@
   tasks:
     - name: Get all Grafana dashboards
       uri:
-        url: "{{ url }}/api/search?query=&starred=false&skipRecent=true&skipStarred=true&folderIds=0&layout=folders&prevSort=null"
+        url: "{{ url }}/api/search?query=&starred=false&skipRecent=true&skipStarred=true&prevSort=null"
         force_basic_auth: yes
         user: admin
         password: "{{ grafana.password }}"

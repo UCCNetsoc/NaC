@@ -16,7 +16,7 @@
   "gnetId": null,
   "graphTooltip": 0,
   "id": null,
-  "iteration": 1633739186348,
+  "iteration": 1633808368911,
   "links": [],
   "panels": [
     {
@@ -235,7 +235,9 @@
   ],
   "schemaVersion": 30,
   "style": "dark",
-  "tags": [],
+  "tags": [
+    "public"
+  ],
   "templating": {
     "list": [
       {
@@ -275,5 +277,5 @@
   "timezone": "",
   "title": "Minecraft Player Stats",
   "uid": "dFyzXavnz",
-  "version": 5
+  "version": 2
 }

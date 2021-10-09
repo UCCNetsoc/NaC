@@ -24,12 +24,6 @@
       "dashLength": 10,
       "dashes": false,
       "datasource": null,
-      "fieldConfig": {
-        "defaults": {
-          "custom": {}
-        },
-        "overrides": []
-      },
       "fill": 1,
       "fillGradient": 0,
       "gridPos": {
@@ -56,7 +50,7 @@
         "alertThreshold": true
       },
       "percentage": false,
-      "pluginVersion": "7.3.3",
+      "pluginVersion": "8.0.1",
       "pointradius": 2,
       "points": false,
       "renderer": "flot",
@@ -115,12 +109,6 @@
     },
     {
       "datasource": "Loki",
-      "fieldConfig": {
-        "defaults": {
-          "custom": {}
-        },
-        "overrides": []
-      },
       "gridPos": {
         "h": 9,
         "w": 12,
@@ -129,6 +117,8 @@
       },
       "id": 2,
       "options": {
+        "dedupStrategy": "none",
+        "enableLogDetails": true,
         "showLabels": false,
         "showTime": false,
         "sortOrder": "Descending",
@@ -154,7 +144,7 @@
       "type": "logs"
     }
   ],
-  "schemaVersion": 26,
+  "schemaVersion": 30,
   "style": "dark",
   "tags": [],
   "templating": {
@@ -168,5 +158,5 @@
   "timezone": "",
   "title": "Netsoc Infra",
   "uid": "netsoc-infra",
-  "version": 34
+  "version": 2
 }

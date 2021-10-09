@@ -382,7 +382,9 @@
   "refresh": "1m",
   "schemaVersion": 30,
   "style": "dark",
-  "tags": [],
+  "tags": [
+    "public"
+  ],
   "templating": {
     "list": []
   },
@@ -394,5 +396,5 @@
   "timezone": "",
   "title": "Minecraft",
   "uid": "eIDN5BNnk",
-  "version": 12
+  "version": 2
 }

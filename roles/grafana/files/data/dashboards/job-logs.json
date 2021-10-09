@@ -15,9 +15,8 @@
   "editable": true,
   "gnetId": null,
   "graphTooltip": 0,
-  "hideControls": false,
   "id": null,
-  "iteration": 1625235390566,
+  "iteration": 1633807412238,
   "links": [],
   "panels": [
     {
@@ -78,5 +77,5 @@
   "timezone": "",
   "title": "Job Logs",
   "uid": "hje1JEk7k",
-  "version": 21
+  "version": 2
 }

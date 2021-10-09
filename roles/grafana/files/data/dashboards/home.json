@@ -15,7 +15,6 @@
   "editable": true,
   "gnetId": null,
   "graphTooltip": 0,
-  "hideControls": false,
   "id": null,
   "links": [],
   "panels": [
@@ -33,7 +32,7 @@
     {
       "datasource": null,
       "gridPos": {
-        "h": 15,
+        "h": 10,
         "w": 12,
         "x": 0,
         "y": 3
@@ -68,6 +67,7 @@
         "alertName": "",
         "dashboardAlerts": false,
         "dashboardTitle": "",
+        "folderId": null,
         "maxItems": 10,
         "showOptions": "current",
         "sortOrder": 1,
@@ -84,6 +84,36 @@
       "pluginVersion": "8.0.1",
       "title": "Alerts",
       "type": "alertlist"
+    },
+    {
+      "datasource": "-- Grafana --",
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 13
+      },
+      "id": 8,
+      "options": {
+        "maxItems": 10,
+        "query": "",
+        "showHeadings": true,
+        "showRecentlyViewed": false,
+        "showSearch": true,
+        "showStarred": false,
+        "tags": [
+          "public"
+        ]
+      },
+      "pluginVersion": "8.0.1",
+      "targets": [
+        {
+          "queryType": "randomWalk",
+          "refId": "A"
+        }
+      ],
+      "title": "Public Panels",
+      "type": "dashlist"
     }
   ],
   "schemaVersion": 30,
@@ -126,5 +156,5 @@
   "timezone": "browser",
   "title": "Home",
   "uid": "mzD8GEknz",
-  "version": 21
+  "version": 3
 }

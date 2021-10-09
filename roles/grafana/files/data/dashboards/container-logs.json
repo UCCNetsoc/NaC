@@ -16,7 +16,7 @@
   "gnetId": null,
   "graphTooltip": 0,
   "id": null,
-  "iteration": 1625259011024,
+  "iteration": 1633807413683,
   "links": [],
   "panels": [
     {
@@ -197,5 +197,5 @@
   "timezone": "",
   "title": "Container Logs",
   "uid": "B89jFmz7k",
-  "version": 17
+  "version": 2
 }
