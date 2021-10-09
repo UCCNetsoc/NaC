@@ -14,7 +14,7 @@ providers:
     # <bool> disable dashboard deletion
     disableDeletion: false
     # <bool> enable dashboard editing
-    editable: false
+    editable: true
     # <int> how often Grafana will scan for changed dashboards
     updateIntervalSeconds: 30
     # <bool> allow updating provisioned dashboards from the UI

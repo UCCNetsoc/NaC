@@ -19,7 +19,7 @@
   "gnetId": 10347,
   "graphTooltip": 0,
   "id": null,
-  "iteration": 1608410179889,
+  "iteration": 1633807397925,
   "links": [],
   "panels": [
     {
@@ -31,37 +31,6 @@
       "datasource": "Prometheus",
       "fieldConfig": {
         "defaults": {
-          "custom": {},
-          "decimals": 2,
-          "mappings": [
-            {
-              "id": 0,
-              "op": "=",
-              "text": "N/A",
-              "type": 1,
-              "value": "null"
-            }
-          ],
-          "max": 1,
-          "min": 0,
-          "nullValueMode": "connected",
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "#299c46",
-                "value": null
-              },
-              {
-                "color": "rgba(237, 129, 40, 0.89)",
-                "value": 0.7
-              },
-              {
-                "color": "#d44a3a",
-                "value": 0.9
-              }
-            ]
-          },
           "unit": "percentunit"
         },
         "overrides": []
@@ -95,7 +64,7 @@
         "alertThreshold": true
       },
       "percentage": false,
-      "pluginVersion": "7.3.3",
+      "pluginVersion": "8.0.1",
       "pointradius": 2,
       "points": false,
       "renderer": "flot",
@@ -163,7 +132,6 @@
       "decimals": 0,
       "fieldConfig": {
         "defaults": {
-          "custom": {},
           "links": []
         },
         "overrides": []
@@ -200,7 +168,7 @@
         "alertThreshold": true
       },
       "percentage": true,
-      "pluginVersion": "7.3.3",
+      "pluginVersion": "8.0.1",
       "pointradius": 2,
       "points": false,
       "renderer": "flot",
@@ -312,23 +280,7 @@
       "dashes": false,
       "datasource": "Prometheus",
       "fieldConfig": {
-        "defaults": {
-          "custom": {},
-          "mappings": [],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": null
-              },
-              {
-                "color": "red",
-                "value": 80
-              }
-            ]
-          }
-        },
+        "defaults": {},
         "overrides": [
           {
             "matcher": {
@@ -373,7 +325,7 @@
         "alertThreshold": true
       },
       "percentage": false,
-      "pluginVersion": "7.3.3",
+      "pluginVersion": "8.0.1",
       "pointradius": 2,
       "points": false,
       "renderer": "flot",
@@ -397,7 +349,8 @@
           "fill": true,
           "line": true,
           "op": "gt",
-          "value": 0.85
+          "value": 0.85,
+          "visible": true
         }
       ],
       "timeFrom": null,
@@ -449,25 +402,7 @@
       "decimals": 0,
       "fieldConfig": {
         "defaults": {
-          "custom": {
-            "align": null,
-            "filterable": false
-          },
-          "links": [],
-          "mappings": [],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": null
-              },
-              {
-                "color": "red",
-                "value": 80
-              }
-            ]
-          }
+          "links": []
         },
         "overrides": []
       },
@@ -501,7 +436,7 @@
         "alertThreshold": true
       },
       "percentage": true,
-      "pluginVersion": "7.3.3",
+      "pluginVersion": "8.0.1",
       "pointradius": 2,
       "points": false,
       "renderer": "flot",
@@ -578,23 +513,7 @@
       "dashes": false,
       "datasource": "Prometheus",
       "fieldConfig": {
-        "defaults": {
-          "custom": {},
-          "mappings": [],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": null
-              },
-              {
-                "color": "red",
-                "value": 80
-              }
-            ]
-          }
-        },
+        "defaults": {},
         "overrides": [
           {
             "matcher": {
@@ -639,7 +558,7 @@
         "alertThreshold": true
       },
       "percentage": false,
-      "pluginVersion": "7.3.3",
+      "pluginVersion": "8.0.1",
       "pointradius": 2,
       "points": false,
       "renderer": "flot",
@@ -708,7 +627,6 @@
       "description": "",
       "fieldConfig": {
         "defaults": {
-          "custom": {},
           "links": []
         },
         "overrides": []
@@ -747,7 +665,7 @@
         "alertThreshold": true
       },
       "percentage": true,
-      "pluginVersion": "7.3.3",
+      "pluginVersion": "8.0.1",
       "pointradius": 2,
       "points": false,
       "renderer": "flot",
@@ -828,41 +746,6 @@
       "datasource": "Prometheus",
       "fieldConfig": {
         "defaults": {
-          "color": {
-            "mode": "thresholds"
-          },
-          "custom": {},
-          "decimals": 1,
-          "mappings": [
-            {
-              "from": "",
-              "id": 1,
-              "operator": "",
-              "text": "",
-              "to": "",
-              "type": 1,
-              "value": ""
-            }
-          ],
-          "max": 1,
-          "min": 0,
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": null
-              },
-              {
-                "color": "yellow",
-                "value": 0.75
-              },
-              {
-                "color": "red",
-                "value": 0.9
-              }
-            ]
-          },
           "unit": "percentunit"
         },
         "overrides": [
@@ -907,7 +790,7 @@
         "alertThreshold": true
       },
       "percentage": false,
-      "pluginVersion": "7.3.3",
+      "pluginVersion": "8.0.1",
       "pointradius": 2,
       "points": false,
       "renderer": "flot",
@@ -977,7 +860,6 @@
       "description": "",
       "fieldConfig": {
         "defaults": {
-          "custom": {},
           "links": []
         },
         "overrides": []
@@ -1014,7 +896,7 @@
         "alertThreshold": true
       },
       "percentage": true,
-      "pluginVersion": "7.3.3",
+      "pluginVersion": "8.0.1",
       "pointradius": 2,
       "points": false,
       "renderer": "flot",
@@ -1077,12 +959,6 @@
     {
       "columns": [],
       "datasource": "Prometheus",
-      "fieldConfig": {
-        "defaults": {
-          "custom": {}
-        },
-        "overrides": []
-      },
       "fontSize": "100%",
       "gridPos": {
         "h": 9,
@@ -1384,41 +1260,6 @@
       "datasource": "Prometheus",
       "fieldConfig": {
         "defaults": {
-          "color": {
-            "mode": "thresholds"
-          },
-          "custom": {},
-          "decimals": 1,
-          "mappings": [
-            {
-              "from": "",
-              "id": 1,
-              "operator": "",
-              "text": "",
-              "to": "",
-              "type": 1,
-              "value": ""
-            }
-          ],
-          "max": 1,
-          "min": 0,
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": null
-              },
-              {
-                "color": "yellow",
-                "value": 0.75
-              },
-              {
-                "color": "red",
-                "value": 0.9
-              }
-            ]
-          },
           "unit": "percentunit"
         },
         "overrides": [
@@ -1463,7 +1304,7 @@
         "alertThreshold": true
       },
       "percentage": false,
-      "pluginVersion": "7.3.3",
+      "pluginVersion": "8.0.1",
       "pointradius": 2,
       "points": false,
       "renderer": "flot",
@@ -1532,7 +1373,6 @@
       "decimals": 0,
       "fieldConfig": {
         "defaults": {
-          "custom": {},
           "links": []
         },
         "overrides": []
@@ -1570,7 +1410,7 @@
         "alertThreshold": true
       },
       "percentage": true,
-      "pluginVersion": "7.3.3",
+      "pluginVersion": "8.0.1",
       "pointradius": 2,
       "points": false,
       "renderer": "flot",
@@ -1661,22 +1501,7 @@
       "description": "",
       "fieldConfig": {
         "defaults": {
-          "custom": {},
-          "links": [],
-          "mappings": [],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": null
-              },
-              {
-                "color": "red",
-                "value": 80
-              }
-            ]
-          }
+          "links": []
         },
         "overrides": []
       },
@@ -1707,7 +1532,7 @@
         "alertThreshold": true
       },
       "percentage": false,
-      "pluginVersion": "7.3.3",
+      "pluginVersion": "8.0.1",
       "pointradius": 2,
       "points": false,
       "renderer": "flot",
@@ -1772,7 +1597,7 @@
     }
   ],
   "refresh": false,
-  "schemaVersion": 26,
+  "schemaVersion": 30,
   "style": "dark",
   "tags": [
     "Proxmox",
@@ -1789,6 +1614,7 @@
         },
         "datasource": "Prometheus",
         "definition": "label_values(pve_node_info, instance)",
+        "description": null,
         "error": null,
         "hide": 0,
         "includeAll": false,
@@ -1796,13 +1622,15 @@
         "multi": false,
         "name": "instance",
         "options": [],
-        "query": "label_values(pve_node_info, instance)",
+        "query": {
+          "query": "label_values(pve_node_info, instance)",
+          "refId": "Prometheus-instance-Variable-Query"
+        },
         "refresh": 2,
         "regex": "",
         "skipUrlSync": false,
         "sort": 1,
         "tagValuesQuery": "",
-        "tags": [],
         "tagsQuery": "",
         "type": "query",
         "useTags": false
@@ -1841,5 +1669,5 @@
   "timezone": "",
   "title": "Proxmox Cluster",
   "uid": "proxmox-cluster",
-  "version": 40
+  "version": 2
 }

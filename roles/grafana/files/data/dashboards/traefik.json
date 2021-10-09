@@ -24,6 +24,7 @@
         "defaults": {
           "custom": {
             "align": null,
+            "displayMode": "auto",
             "filterable": false
           },
           "mappings": [],
@@ -120,7 +121,7 @@
           }
         ]
       },
-      "pluginVersion": "7.3.3",
+      "pluginVersion": "8.0.1",
       "targets": [
         {
           "expr": "{container_name=\"traefik_server_1\"} | json",
@@ -239,7 +240,7 @@
       "type": "table"
     }
   ],
-  "schemaVersion": 26,
+  "schemaVersion": 30,
   "style": "dark",
   "tags": [],
   "templating": {
@@ -253,5 +254,5 @@
   "timezone": "",
   "title": "Traefik",
   "uid": "traefik",
-  "version": 32
+  "version": 2
 }

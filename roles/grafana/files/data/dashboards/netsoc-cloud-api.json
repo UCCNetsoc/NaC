@@ -15,7 +15,6 @@
   "editable": true,
   "gnetId": null,
   "graphTooltip": 0,
-  "hideControls": false,
   "id": null,
   "links": [],
   "panels": [
@@ -126,5 +125,5 @@
   "timezone": "",
   "title": "Netsoc Cloud API",
   "uid": "bv4qTYgnz",
-  "version": 22
+  "version": 2
 }
