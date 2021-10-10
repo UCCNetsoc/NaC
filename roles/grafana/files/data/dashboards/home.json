@@ -30,34 +30,40 @@
       "type": "welcome"
     },
     {
-      "datasource": null,
+      "datasource": "-- Grafana --",
       "gridPos": {
-        "h": 10,
+        "h": 5,
         "w": 12,
         "x": 0,
         "y": 3
       },
-      "id": 3,
-      "links": [],
+      "id": 8,
       "options": {
-        "folderId": 0,
-        "maxItems": 30,
+        "folderId": null,
+        "maxItems": 10,
         "query": "",
         "showHeadings": true,
-        "showRecentlyViewed": true,
-        "showSearch": false,
-        "showStarred": true,
-        "tags": []
+        "showRecentlyViewed": false,
+        "showSearch": true,
+        "showStarred": false,
+        "tags": [
+          "public"
+        ]
       },
       "pluginVersion": "8.0.1",
-      "tags": [],
-      "title": "Dashboards",
+      "targets": [
+        {
+          "queryType": "randomWalk",
+          "refId": "A"
+        }
+      ],
+      "title": "Public Panels",
       "type": "dashlist"
     },
     {
       "datasource": null,
       "gridPos": {
-        "h": 15,
+        "h": 19,
         "w": 12,
         "x": 12,
         "y": 3
@@ -86,33 +92,28 @@
       "type": "alertlist"
     },
     {
-      "datasource": "-- Grafana --",
+      "datasource": null,
       "gridPos": {
-        "h": 8,
+        "h": 14,
         "w": 12,
         "x": 0,
-        "y": 13
+        "y": 8
       },
-      "id": 8,
+      "id": 3,
+      "links": [],
       "options": {
-        "maxItems": 10,
+        "folderId": 0,
+        "maxItems": 30,
         "query": "",
         "showHeadings": true,
-        "showRecentlyViewed": false,
-        "showSearch": true,
-        "showStarred": false,
-        "tags": [
-          "public"
-        ]
+        "showRecentlyViewed": true,
+        "showSearch": false,
+        "showStarred": true,
+        "tags": []
       },
       "pluginVersion": "8.0.1",
-      "targets": [
-        {
-          "queryType": "randomWalk",
-          "refId": "A"
-        }
-      ],
-      "title": "Public Panels",
+      "tags": [],
+      "title": "Dashboards",
       "type": "dashlist"
     }
   ],
@@ -156,5 +157,5 @@
   "timezone": "browser",
   "title": "Home",
   "uid": "mzD8GEknz",
-  "version": 3
+  "version": 5
 }
