@@ -12,7 +12,7 @@
         path: "/netsoc"
         owner: root
         group: root
-        mode: '1770'
+        mode: "1770"
   tags:
     - initial
 
@@ -61,7 +61,7 @@
         path: "/netsoc/{{ item }}"
         owner: root
         group: root
-        mode: '0755'
+        mode: "0755"
         state: directory
       with_items:
         - traefik
@@ -325,25 +325,25 @@
               discord-redirect:
                 redirectRegex:
                   regex: ^(.*)
-                  replacement: 'https://discord.gg/zHkxHYjdqH'
+                  replacement: "https://discord.gg/zHkxHYjdqH"
               constitution-redirect:
                 redirectRegex:
                   regex: ^(.*)
-                  replacement: 'https://wiki.netsoc.co/en/about/constitution'
+                  replacement: "https://wiki.netsoc.co/en/about/constitution"
                   permanent: true
               minecraft-redirect:
                 redirectRegex:
                   regex: ^(.*)
-                  replacement: 'https://wiki.netsoc.co/en/services/minecraft'
+                  replacement: "https://wiki.netsoc.co/en/services/minecraft"
                   permanent: true
               esports-redirect:
                 redirectRegex:
                   regex: ^(.*)
-                  replacement: 'https://discordapp.com/invite/pDUv6Uj'
+                  replacement: "https://discordapp.com/invite/pDUv6Uj"
               mentorships-redirect:
                 redirectRegex:
                   regex: ^(.*)
-                  replacement: 'https://wiki.netsoc.co/en/technology/mentorships'
+                  replacement: "https://wiki.netsoc.co/en/technology/mentorships"
               ipa-rewrite:
                 headers:
                   customRequestHeaders:
@@ -352,7 +352,7 @@
               hlm-redirect:
                 redirectRegex:
                   regex: ^(.*)
-                  replacement: 'https://hlm.netsoc.cloud'
+                  replacement: "https://hlm.netsoc.cloud"
               prometheus-auth:
                 basicAuth:
                   users:
@@ -360,7 +360,7 @@
               tutorial-redirect:
                 redirectRegex:
                   regex: ^(.*)
-                  replacement: 'https://wiki.netsoc.co/en/services/tutorial'
+                  replacement: "https://wiki.netsoc.co/en/services/tutorial"
                   permanent: true
             services:
               ipa:
@@ -378,23 +378,23 @@
               unused:
                 loadBalancer:
                   servers:
-                    - url: 'https://google.com'
+                    - url: "https://google.com"
               leela-https:
                 loadBalancer:
                   servers:
-                    - url: 'https://10.0.30.135'
+                    - url: "https://10.0.30.135"
               studentmedia-https:
                 loadBalancer:
                   servers:
-                    - url: 'https://netsoc2.ucc.ie'
+                    - url: "https://netsoc2.ucc.ie"
               control-https:
                 loadBalancer:
                   servers:
-                    - url: 'https://10.0.30.20:8006'
+                    - url: "https://10.0.30.20:8006"
               leela-http:
                 loadBalancer:
                   servers:
-                    - url: 'http://10.0.30.135'
+                    - url: "http://10.0.30.135"
 
     - name: TRAEFIK - Write static config
       copy:
@@ -647,7 +647,7 @@
               environment:
                 DISCORD_TOKEN: "{{ netsocbot.discord_token }}"
                 DISCORD_ROLES: "631196785913888768,855884858794442783"
-                DISCORD_PUBLIC_SERVER : "248421213628530688"
+                DISCORD_PUBLIC_SERVER: "248421213628530688"
                 DISCORD_PUBLIC_CHANNEL: "494539080885993472"
                 DISCORD_PUBLIC_GENERAL: "248421213628530688"
                 DISCORD_PUBLIC_CORONA: "691756092379627621"
@@ -675,6 +675,8 @@
                 SHORTEN_PUBLIC_HOST: "https://netsoc.co/go"
                 SHORTEN_USERNAME: "{{ shortener.username }}"
                 SHORTEN_PASSWORD: "{{ shortener.password }}"
+                GOOGLE_CALENDAR_ICS: "https://calendar.google.com/calendar/ical/c_1rid5k8ahaiosmdhn8pkahf2og%40group.calendar.google.com/public/basic.ics"
+                GOOGLE_CALENDAR_IMAGE_DEFAULT: "https://avatars.githubusercontent.com/u/6690158?s=400&u=fb42911a2e865d716c137619afdf1f7a266989cf&v=4"
               labels:
                 traefik.enable: "true"
                 traefik.http.routers.netsocbot.rule: "Host(`bot.netsoc.co`)"
@@ -722,7 +724,7 @@
                 DISCORD_APP_ID: "{{ whodis.discord_app_id }}"
                 DISCORD_BOT_INVITE: "{{ whodis.discord_bot_invite }}"
                 DISCORD_ADDITIONAL_ROLE: "Signups 2021/2022"
-                DISCORD_GUILD_MEMBERS_WELCOME: "{\"248421213628530688\": \"Some channels are hidden by default so head over to <#769360801332461569> to get access to them.\"}"
+                DISCORD_GUILD_MEMBERS_WELCOME: '{"248421213628530688": "Some channels are hidden by default so head over to <#769360801332461569> to get access to them."}'
                 API_URL: "https://whodis.netsoc.co"
                 API_PORT: "8080"
                 API_SECRET: "{{ whodis.api_secret }}"
@@ -807,7 +809,7 @@
         path: "/netsoc/{{ item }}"
         owner: root
         group: root
-        mode: '0755'
+        mode: "0755"
         state: directory
       with_items:
         - cloud
@@ -823,7 +825,7 @@
     - name: NETSOC CLOUD - Remember Compose definition
       set_fact:
         netsoc_cloud_definition:
-          version: '3.8'
+          version: "3.8"
           networks:
             traefik:
               external: true
@@ -890,7 +892,7 @@
         path: "/netsoc/{{ item }}"
         owner: root
         group: root
-        mode: '0755'
+        mode: "0755"
         state: directory
       with_items:
         - webssh2
@@ -1033,7 +1035,7 @@
         path: "/netsoc/{{ item }}"
         owner: root
         group: root
-        mode: '0755'
+        mode: "0755"
         state: directory
       with_items:
         - monstaftp
@@ -1103,7 +1105,7 @@
         owner: root
         group: root
 
-        mode: '0777'
+        mode: "0777"
         state: directory
       with_items:
         - loki
@@ -1188,7 +1190,7 @@
     - name: LOKI - Remember Compose definition
       set_fact:
         loki_definition:
-          version: '3.8'
+          version: "3.8"
           networks:
             loki:
             traefik:
@@ -1375,7 +1377,6 @@
   tags:
     - provision
     - shortener
-
 
 - name: "LOKI TARGETS" # Keep this at the bottom of the file at all times.
   hosts: web.infra.netsoc.co
