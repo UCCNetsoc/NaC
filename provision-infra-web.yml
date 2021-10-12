@@ -485,6 +485,9 @@
           services:
             netsoc.co:
               image: ghcr.io/uccnetsoc/netsoc.co:latest
+              environment:
+                ENABLE_EVENTS_BANNER: "true"
+                API_URL: "http://localhost:8888"
               networks:
                 traefik:
               labels:
