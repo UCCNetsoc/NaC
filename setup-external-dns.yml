@@ -68,6 +68,8 @@
             - { type: CNAME,    name: "*",                   value: "web.netsoc.co"  }
             - { type: CNAME,    name: www.*,                 value: "web.netsoc.co"  }
 
+            - { type: CNAME,    name: build,                 value: "web.netsoc.co"  }
+
             # MX
             - { type: MX, name: "netsoc.co", value: "mx.zoho.com" }
             - { type: MX, name: "netsoc.co", value: "mx2.zoho.com" }
@@ -85,6 +87,7 @@
 
             # SRV
             - { type: SRV, name: "minecraft", proto: "tcp", service: "minecraft", port: "1194", priority: 0, weight: 5, value: "minecraft.netsoc.co"}
+            - { type: SRV, name: "build", proto: "tcp", service: "minecraft", port: "16938", priority: 0, weight: 5, value: "build.netsoc.co"}
           "netsoc.cloud":
             - { type: CNAME,  name: "netsoc.cloud",   value: "web.netsoc.co"  }
             - { type: CNAME,  name: api,              value: "web.netsoc.co"  }
