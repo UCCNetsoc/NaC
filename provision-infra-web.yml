@@ -675,7 +675,8 @@
                 SHORTEN_PUBLIC_HOST: "https://netsoc.co/go"
                 SHORTEN_USERNAME: "{{ shortener.username }}"
                 SHORTEN_PASSWORD: "{{ shortener.password }}"
-                GOOGLE_CALENDAR_ICS: "https://calendar.google.com/calendar/ical/c_1rid5k8ahaiosmdhn8pkahf2og%40group.calendar.google.com/public/basic.ics"
+                GOOGLE_CALENDAR_PUBLIC_ICS: "https://calendar.google.com/calendar/ical/c_1rid5k8ahaiosmdhn8pkahf2og%40group.calendar.google.com/public/basic.ics"
+                GOOGLE_CALENDAR_COMMITTEE_ICS: "{{ google.calendar.committee.ics }}"
                 GOOGLE_CALENDAR_IMAGE_DEFAULT: "https://avatars.githubusercontent.com/u/6690158?s=400&u=fb42911a2e865d716c137619afdf1f7a266989cf&v=4"
               labels:
                 traefik.enable: "true"
