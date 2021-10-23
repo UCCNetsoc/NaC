@@ -15,8 +15,8 @@
   "editable": true,
   "gnetId": null,
   "graphTooltip": 0,
-  "id": null,
-  "iteration": 1633807413683,
+  "id": 54,
+  "iteration": 1634949765684,
   "links": [],
   "panels": [
     {
@@ -39,21 +39,21 @@
       "pluginVersion": "8.0.1",
       "targets": [
         {
-          "expr": "{container_name=\"$containerName\"} |= \"$query\" |~ \"(?i)level=$level\" | container_name!=\"discord_bot_instance_1\" and container_name!=\"traefik_server_1\" and level!=\"\"",
+          "expr": "{container_name=\"$containerName\"} |= \"$query\" |~ \"(?i)level=$level\" | container_name!=\"discord_bot_instance_1\" and container_name!=\"traefik_server_1\" and container_name!=\"whodis_instance_1\" and level!=\"\"",
           "refId": "A"
         },
         {
-          "expr": "{container_name=\"$containerName\"} |= \"$query\" | container_name!=\"discord_bot_instance_1\" and container_name!=\"traefik_server_1\" and level=\"\"",
+          "expr": "{container_name=\"$containerName\"} |= \"$query\" | container_name!=\"discord_bot_instance_1\" and container_name!=\"traefik_server_1\" and container_name!=\"whodis_instance_1\"and level=\"\"",
           "hide": false,
           "refId": "D"
         },
         {
-          "expr": "{container_name=\"$containerName\"} |= \"$query\" |~ \"(?i)\\\"level\\\":\\\"$level\" | json | line_format \"{{.level}}\\t location=\\\"{{._file}}:{{._line}}\\\"\\t command=\\\"{{.command}}\\\" user=\\\"{{.user}}\\\"\\t message=\\\"{{.message}}\\\"\" | command!=\"\" and container_name=\"discord_bot_instance_1\"",
+          "expr": "{container_name=\"$containerName\"} |= \"$query\" |~ \"(?i)\\\"level\\\":\\\"$level\" | json | line_format \"{{.level}}\\t location=\\\"{{._file}}:{{._line}}\\\"\\t command=\\\"{{.command}}\\\" user=\\\"{{.user}}\\\"\\t message=\\\"{{.message}}\\\"\" | command!=\"\" and (container_name=\"discord_bot_instance_1\" or container_name=\"whodis_instance_1\")",
           "hide": false,
           "refId": "B"
         },
         {
-          "expr": "{container_name=\"$containerName\"} |= \"$query\" |~ \"(?i)\\\"level\\\":\\\"$level\" | json | line_format \"{{.level}}\\t location=\\\"{{._file}}:{{._line}}\\\"\\t message=\\\"{{.message}}\\\"\" | command=\"\" and container_name=\"discord_bot_instance_1\"",
+          "expr": "{container_name=\"$containerName\"} |= \"$query\" |~ \"(?i)\\\"level\\\":\\\"$level\" | json | line_format \"{{.level}}\\t location=\\\"{{._file}}:{{._line}}\\\"\\t message=\\\"{{.message}}\\\"\" | command=\"\" and (container_name=\"discord_bot_instance_1\" or container_name=\"whodis_instance_1\")",
           "hide": false,
           "refId": "C"
         },
@@ -63,7 +63,7 @@
           "refId": "E"
         },
         {
-          "expr": "{container_name=\"$containerName\"} |= \"$query\" | json | level=\"\" and container_name=\"discord_bot_instance_1\"",
+          "expr": "{container_name=\"$containerName\"} |= \"$query\" | json | level=\"\" and (container_name=\"discord_bot_instance_1\" or container_name=\"whodis_instance_1\")",
           "hide": false,
           "refId": "F"
         }
@@ -73,6 +73,7 @@
       "type": "logs"
     }
   ],
+  "refresh": "1m",
   "schemaVersion": 30,
   "style": "dark",
   "tags": [],
@@ -197,5 +198,5 @@
   "timezone": "",
   "title": "Container Logs",
   "uid": "B89jFmz7k",
-  "version": 2
+  "version": 15
 }
