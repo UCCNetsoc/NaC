@@ -676,7 +676,7 @@
                 SHORTEN_USERNAME: "{{ shortener.username }}"
                 SHORTEN_PASSWORD: "{{ shortener.password }}"
                 GOOGLE_CALENDAR_PUBLIC_ICS: "https://calendar.google.com/calendar/ical/c_1rid5k8ahaiosmdhn8pkahf2og%40group.calendar.google.com/public/basic.ics"
-                GOOGLE_CALENDAR_COMMITTEE_ICS: "{{ google.calendar.committee.ics }}"
+                GOOGLE_CALENDAR_COMMITTEE_ICS: "{{ netsocbot.google_calendar_committee_ics }}"
                 GOOGLE_CALENDAR_IMAGE_DEFAULT: "https://raw.githubusercontent.com/UCCNetsoc/wiki/master/assets/logo-hires.png"
               labels:
                 traefik.enable: "true"
