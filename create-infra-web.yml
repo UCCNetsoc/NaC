@@ -1,13 +1,13 @@
 ---
 
 - name: "INFRA - Ensure web server"
-  hosts: lovelace
+  hosts: scalper
   roles:
     - role: proxmox-cloudinit-vm
       vars:
         vm:
           name: "web.infra.netsoc.co"
-          storage: local-lvm
+          storage: local
           template:
             storage: local
             image_url: "https://cloud-images.ubuntu.com/releases/focal/release-20200921.1/ubuntu-20.04-server-cloudimg-amd64.img"
@@ -27,7 +27,7 @@
             net0: "virtio={{ interfaces.infra.web.net0.match.macaddress }},tag={{ vlan.infra }},bridge={{ vmbr }}"
           disks:
             boot:
-              size: 30
+              size: 45
             extra:
               - size: 45
           cloudinit:
