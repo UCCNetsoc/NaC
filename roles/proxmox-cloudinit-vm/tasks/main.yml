@@ -56,7 +56,6 @@
 
 - name: Ensure Proxmox VM created
   proxmox_kvm:
-    proxmox_default_behavior: no_defaults
     api_host:       "localhost"
     api_user:       "{{ proxmox.username }}"
     api_password:   "{{ proxmox.password }}"
@@ -97,7 +96,6 @@
 # Set some vm stats
 - name: Ensure specs set
   proxmox_kvm:
-    proxmox_default_behavior: compatibility
     api_host:       "localhost"
     api_user:       "{{ proxmox.username }}"
     api_password:   "{{ proxmox.password }}"
