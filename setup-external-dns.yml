@@ -25,6 +25,9 @@
             - { type: A,      name: "elon",           value: "143.239.87.40" }
             - { type: A,      name: "tesla",          value: "143.239.87.41" }
 
+            # handbook
+            - { type: CNAME,    name: handbook,       value: "uccnetsoc.github.io" }
+
             # For old ldap
             - { type: CNAME,    name: ldap, value: elon.netsoc.co }
 
