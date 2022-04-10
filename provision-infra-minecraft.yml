@@ -15,7 +15,7 @@
   tasks:
     - name: Rember Manifest Map
       set_fact:
-        manifest: '{{ lookup('file', '{{ playbook_dir }}/roles/minecraft/files/manifest.json') | from_json }}'
+        manifest: "{{ lookup('file', '{{ playbook_dir }}/roles/minecraft/files/manifest.json') | from_json }}"
       tags:
         - server
 
@@ -34,10 +34,8 @@
 
     - name: Ensure server config
       copy:
-        src: '{{ item }}'
-        dest: /data/world/serverconfig/
-      with_fileglob:
-        - '{{ playbook_dir }}/roles/minecraft/files/serverconfig/*'
+        src: '{{ playbook_dir }}/roles/minecraft/files/serverconfig/prometheus_exporter-server.toml'
+        dest: /data/world/serverconfig/prometheus_exporter-server.toml
 
     - name: Ensure server icon
       copy:
@@ -65,6 +63,7 @@
               container_name: minecraft
               image: itzg/minecraft-server:java8-openj9
               ports:
+                - '1194:25565/tcp'
                 - '19565:19565'
               restart: always
               volumes:
@@ -72,7 +71,7 @@
               environment:
                 EULA: 'TRUE'
                 TYPE: FORGE
-                MEMORY: 12G # Cope :troll_face:
+                MEMORY: 10G
                 VERSION: '{{ manifest.minecraft.version }}'
       tags:
         - server
