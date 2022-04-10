@@ -61,7 +61,7 @@
           services:
             minecraft:
               container_name: minecraft
-              image: itzg/minecraft-server:java17-openj9
+              image: itzg/minecraft-server:java17
               ports:
                 - '1194:25565/tcp'
                 - '19565:19565'
