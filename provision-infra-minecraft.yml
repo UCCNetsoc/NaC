@@ -29,13 +29,6 @@
       with_items:
         - data
         - 'data/mods'
-        - world
-        - 'world/serverconfig'
-
-    - name: Ensure server config
-      copy:
-        src: '{{ playbook_dir }}/roles/minecraft/files/serverconfig/prometheus_exporter-server.toml'
-        dest: /data/world/serverconfig/prometheus_exporter-server.toml
 
     - name: Ensure server icon
       copy:
