@@ -29,6 +29,15 @@
       with_items:
         - data
         - 'data/mods'
+        - world
+        - 'world/serverconfig'
+
+    - name: Ensure server icon
+      copy:
+        src: '{{ item }}'
+        dest: /data/world/serverconfig/
+      with_fileglob:
+        - '{{ playbook_dir }}/roles/minecraft/files/serverconfig/*'
 
     - name: Ensure server icon
       copy:

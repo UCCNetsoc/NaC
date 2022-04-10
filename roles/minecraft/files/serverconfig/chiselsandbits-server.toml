@@ -1,0 +1,23 @@
+
+[balancing]
+	#Disallow blocks which tick randomly from being chiseled.
+	blacklist-random-ticking-blocks = false
+	#Enables the compatibility mode of the chiselability checked.
+	enable-compatibility-mode = false
+	#balancing.bit-bag-stack-size.comment
+	#Range: 64 ~ 1024
+	bit-bag-stack-size = 512
+	#balancing.change-tracker-size.comment
+	#Range: 10 ~ 40
+	change-tracker-size = 20
+	#When enabled this deletes excess bits which are created during chisel operations but which don't fit into the players inventory and bit bags.
+	delete-excess-bits = true
+	#balancing.light-factor-multiplier.comment
+	#Range: 0.0 ~ 4096.0
+	light-factor-multiplier = 1.0
+
+[style]
+	#style.bit-size.comment
+	#Allowed Values: ONE_SIXTEENTH, ONE_EIGHT, ONE_QUARTER, ONE_HALF, ONE
+	bit-size = "ONE_SIXTEENTH"
+
