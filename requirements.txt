@@ -24,7 +24,7 @@ pycparser==2.20
 PyNaCl==1.4.0
 pyparsing==2.4.7
 python-consul==1.1.0
-git+git://github.com/lxc/python3-lxc@master#egg=python3-lxc
+git+https://github.com/lxc/python3-lxc@master#egg=python3-lxc
 PyYAML==5.3.1
 requests==2.24.0
 scandir==1.10.0
