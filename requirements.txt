@@ -16,7 +16,7 @@ jq==1.0.2
 MarkupSafe==1.1.1
 netaddr==0.8.0
 packaging==20.8
-paramiko==2.7.1
+paramiko==2.10.1
 passlib==1.7.2
 pathlib2==2.3.5
 proxmoxer==1.2.0
