@@ -505,17 +505,17 @@
                 traefik.docker.network: 'traefik'
               restart: always
             blog:
-              image: uccnetsoc/blog:latest
+              image: ghost:alpine
               networks:
                 traefik:
               environment:
-                BASE_URL: 'https://blog.netsoc.co/'
+                url: 'https://blog.netsoc.co/'
               labels:
                 traefik.enable: 'true'
                 traefik.http.routers.blog.rule: 'Host(`blog.netsoc.co`)'
                 traefik.http.routers.blog.entrypoints: 'web-secure'
                 traefik.http.routers.blog.tls.certResolver: 'letsencrypt-dns'
-                traefik.http.services.blog-service.loadbalancer.server.port: '80'
+                traefik.http.services.blog-service.loadbalancer.server.port: '2368'
                 traefik.http.routers.blog.service: 'blog-service'
                 traefik.docker.network: 'traefik'
               restart: always
