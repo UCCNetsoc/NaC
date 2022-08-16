@@ -28,6 +28,9 @@
             # handbook
             - { type: CNAME,    name: handbook,       value: "uccnetsoc.github.io" }
 
+            # status
+            - { type: CNAME,    name: status,          value: "uccnetsoc.github.io" }
+
             # For old ldap
             - { type: CNAME,    name: ldap, value: elon.netsoc.co }
 
@@ -77,16 +80,24 @@
             - { type: MX, name: "netsoc.co", value: "mx.zoho.com" }
             - { type: MX, name: "netsoc.co", value: "mx2.zoho.com" }
 
+            - { type: MX, name: "blog.netsoc.co", value: "mxa.eu.mailgun.org" }
+            - { type: MX, name: "blog.netsoc.co", value: "mxb.eu.mailgun.org" }
+
             # TXT
             - { type: TXT, name: "_dmarc", value: "v=DMARC1; p=none"}
             - { type: TXT, name: "_github-challenge-uccnetsoc", value: "58926b4c4e"}
             - { type: TXT, name: "netsoc.co", value: "v=spf1 mx include:zoho.com include:u18778499.wl250.sendgrid.net -all"}
             - { type: TXT, name: "zoho._domainkey", value: "k=rsa; t=y; p=MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQCB3sWPAMJHYvSCWEueINNaIsPy4OeAQgFsm3y+IcOSUcXJUhHr+LrYGuD9SZzIEh0ekm0Usm73gRz4LgGYfeZ9SXbR3H1LupOETGym0FRRQnAjnXI9L/wfaOzYwbpKm04lhpbobhAwrtsUcgMyo+wmEByM3AR25+YDmlUuijmNTwIDAQAB" }
 
+            - { type: TXT, name: "blog.netsoc.co",                  value: "v=spf1 include:mailgun.org ~all"}
+            - { type: TXT, name: "email._domainkey.blog.netsoc.co", value: "k=rsa; p=MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQDc8qQcyiS0SM47o6W3yzGAT9dT3f5uyEGnYvljOU05nq7tcpBcxatOrJS0ADhqCBr/o20K4s1BKYecR9ChXOWQkDSpw67piVWlg9ikoOMv9B3jtu1w/z5FrGYX1m5lVYPkY6p7M9FRYF+CM26oqjl0Al11nhfu/h9EWDQCGzXaQQIDAQAB" }
+
             # Email
             - { type: CNAME, name: "em9504", value: "u18778499.wl250.sendgrid.net"}
             - { type: CNAME, name: "s1._domainkey", value: "s1.domainkey.u18778499.wl250.sendgrid.net" }
             - { type: CNAME, name: "s2._domainkey", value: "s2.domainkey.u18778499.wl250.sendgrid.net" }
+
+            - { type: CNAME, name: "email.blog.netsoc.co", value: "eu.mailgun.org" }
 
             # SRV
             - { type: SRV, name: "minecraft", proto: "tcp", service: "minecraft", port: "1194", priority: 0, weight: 5, value: "minecraft.netsoc.co"}
