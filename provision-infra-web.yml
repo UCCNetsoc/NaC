@@ -505,11 +505,19 @@
                 traefik.docker.network: 'traefik'
               restart: always
             blog:
-              image: ghost:alpine
+              image: ghost:5.8.3-alpine
               networks:
                 traefik:
               environment:
                 url: 'https://blog.netsoc.co/'
+                mail__transport: SMTP
+                mail__from: 'noreply@blog.netosc.co'
+                mail__options__service: Mailgun
+                mail__options__host: "{{ blog.smtp.hostname }}"
+                mail__options__port: "{{ blog.smtp.port }}"      
+                mail__options__secureConnection: 'false'
+                mail__options__auth__user: "{{ blog.smtp.username }}"
+                mail__options__auth__pass: "{{ blog.smtp.password }}"
               labels:
                 traefik.enable: 'true'
                 traefik.http.routers.blog.rule: 'Host(`blog.netsoc.co`)'
@@ -518,6 +526,8 @@
                 traefik.http.services.blog-service.loadbalancer.server.port: '2368'
                 traefik.http.routers.blog.service: 'blog-service'
                 traefik.docker.network: 'traefik'
+              volumes:
+                - /netsoc/blog:/var/lib/ghost/content
               restart: always
             robots-disallow:
               image: wikiwi/robots-disallow
