@@ -358,13 +358,13 @@ func configure(done chan bool) func(http.ResponseWriter, *http.Request) {
 		dlURL = r.FormValue("dl_url")
         password = r.FormValue("password")
 
-        secretsfile, _ := os.Create("secrets.json")
+        secretsfile, _ := os.Create("/root/foundry/secrets.json")
         defer secretsfile.Close()
 
         tmplsecrets, _ := template.New("secrets").Parse(secrets_json_template)
         tmplsecrets.Execute(secretsfile , map[string]interface{}{"Password": password})
 
-        envfile, _ := os.Create(".env")
+        envfile, _ := os.Create("/root/foundry/.env")
         defer envfile.Close()
 
         envsecrets, _ := template.New("secrets").Parse(secrets_json_template)
