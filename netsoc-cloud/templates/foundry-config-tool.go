@@ -123,14 +123,15 @@ const form = `<!doctype html>
     </div>
     <div id=content-body>
         <form id=form action=/config>
-            <label for=license>FoundryVTT License:</label> 
-            <p>To view a purchased license</p>
+            <label for=dl_url>FoundryVTT Temporary Download URL:</label> 
+            <p>To view your download URL</p>
             <ul>
                 <li>Go to <a href="https://foundryvtt.com/" target="_blank">foundryvtt.com</a></li>
                 <li>Login and go to your profile</li>
                 <li>Select <strong>Purchased Licenses</strong> from the left column</li>
+                <li>Select the Download version you would like, with the operating system set to Linux/NodeJS</li>
             </ul>
-            <input id=license name=license>
+            <input id=dl_url name=dl_url>
             <label for=password>Admin Password:</label> 
             <input id=password name=password type="password">
         </form>
@@ -294,7 +295,7 @@ const response = `<!doctype html>
     </div>
 </body>`
 
-var license string
+var dlURL string
 var password string
 
 func main() {
@@ -345,20 +346,20 @@ func showForm(w http.ResponseWriter, r *http.Request) {
 
 const secrets_json_template = `{
     "foundry_admin_key": "{{.Password}}",
-    "foundry_license_key":  "{{.License}}"
+    "foundry_release_url":  "{{.DL_URL}}"
 }`
 
 func configure(done chan bool) func(http.ResponseWriter, *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		r.ParseForm()
-		license = r.FormValue("license")
+		dlURL = r.FormValue("dl_url")
         password = r.FormValue("password")
 
         file, _ := os.Create("/root/foundry/secrets.json")
         defer file.Close()
 
         tmpl, _ := template.New("secrets").Parse(secrets_json_template)
-        tmpl.Execute(file , map[string]interface{}{"License": license, "Password": password})
+        tmpl.Execute(file , map[string]interface{}{"DL_URL": dlURL, "Password": password})
 
         w.Write([]byte(response))
 		done <- true
