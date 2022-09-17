@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"sync"
 	"text/template"
 	"time"
@@ -354,10 +355,10 @@ func configure(done chan bool) func(http.ResponseWriter, *http.Request) {
 		license = r.FormValue("license")
         password = r.FormValue("password")
 
-        file, _ := os.Create("secrets.json")
+        file, _ := os.Create(filepath.Join("root", "foundry", "secrets.json"))
         defer file.Close()
 
-        tmpl, _ := template.New("secrests").Parse(secrets_json_template)
+        tmpl, _ := template.New("secrets").Parse(secrets_json_template)
         tmpl.Execute(file , map[string]interface{}{"License": license, "Password": password})
 
         w.Write([]byte(response))
