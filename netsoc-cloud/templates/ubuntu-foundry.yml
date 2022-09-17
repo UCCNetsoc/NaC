@@ -86,13 +86,10 @@
           hostname: my_foundry_host
           init: true
           volumes:
-            - type: bind
-              source: /root/data
-              target: /data
-          environment:
+            - /root/foundry/data:/data
           ports:
             - target: 30000
-              published: 443
+              published: 80
               protocol: tcp
           secrets:
             - source: config_json

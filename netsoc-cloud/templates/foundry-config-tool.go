@@ -132,7 +132,7 @@ const form = `<!doctype html>
             </ul>
             <input id=license name=license>
             <label for=password>Admin Password:</label> 
-            <input id=password name=password>
+            <input id=password name=password type="password">
         </form>
     </div>
     <input type=submit value='Launch Foundry VTT Instance' id=submit form=form></div>
