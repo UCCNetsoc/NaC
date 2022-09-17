@@ -87,6 +87,8 @@
           init: true
           volumes:
             - /root/foundry/data:/data
+          environment:
+            - FOUNDRY_RELEASE_URL=${FOUNDRY_RELEASE_URL}
           ports:
             - target: 30000
               published: 80
