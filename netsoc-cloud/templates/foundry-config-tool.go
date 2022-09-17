@@ -346,7 +346,10 @@ func showForm(w http.ResponseWriter, r *http.Request) {
 
 const secrets_json_template = `{
     "foundry_admin_key": "{{.Password}}",
-    "foundry_release_url":  "{{.DL_URL}}"
+}`
+
+const env_template = `{
+FOUNDRY_RELEASE_URL={{.ReleaseUrl}}
 }`
 
 func configure(done chan bool) func(http.ResponseWriter, *http.Request) {
@@ -355,11 +358,17 @@ func configure(done chan bool) func(http.ResponseWriter, *http.Request) {
 		dlURL = r.FormValue("dl_url")
         password = r.FormValue("password")
 
-        file, _ := os.Create("/root/foundry/secrets.json")
-        defer file.Close()
+        secretsfile, _ := os.Create("secrets.json")
+        defer secretsfile.Close()
 
-        tmpl, _ := template.New("secrets").Parse(secrets_json_template)
-        tmpl.Execute(file , map[string]interface{}{"DL_URL": dlURL, "Password": password})
+        tmplsecrets, _ := template.New("secrets").Parse(secrets_json_template)
+        tmplsecrets.Execute(secretsfile , map[string]interface{}{"Password": password})
+
+        envfile, _ := os.Create(".env")
+        defer envfile.Close()
+
+        envsecrets, _ := template.New("secrets").Parse(secrets_json_template)
+        envsecrets.Execute(envfile , map[string]interface{}{"ReleaseUrl": dlURL})
 
         w.Write([]byte(response))
 		done <- true
