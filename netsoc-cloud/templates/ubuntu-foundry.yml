@@ -1,7 +1,7 @@
 - import_tasks: "./netsoc-cloud/templates/ubuntu-base.yml"
 - import_tasks: "./netsoc-cloud/templates/ubuntu-docker-bare.yml"
 
-- name: Pull GhostCMS Image
+- name: Pull FoundryVTT Image
   community.general.docker_image:
     name: felddy/foundryvtt:release
     source: pull
