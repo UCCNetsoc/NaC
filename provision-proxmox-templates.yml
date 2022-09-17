@@ -153,7 +153,7 @@
                 net0: "name=eth0,ip=dhcp,tag={{ vlan.dhcp }},bridge={{ vmbr }},firewall=1"
               features: "fuse=1,nesting=1,keyctl=1"
             tasks: "./netsoc-cloud/templates/ubuntu-ghostcms.yml"
-           - lxc:
+          - lxc:
               name: "ubuntu-foundry.container.template.netsoc.cloud"
               storage: netsoc-cloud
               template:
