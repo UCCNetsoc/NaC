@@ -348,9 +348,7 @@ const secrets_json_template = `{
     "foundry_admin_key": "{{.Password}}",
 }`
 
-const env_template = `{
-FOUNDRY_RELEASE_URL={{.ReleaseUrl}}
-}`
+const env_template = `FOUNDRY_RELEASE_URL={{.ReleaseUrl}}`
 
 func configure(done chan bool) func(http.ResponseWriter, *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
