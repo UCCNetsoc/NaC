@@ -367,7 +367,7 @@ func configure(done chan bool) func(http.ResponseWriter, *http.Request) {
         envfile, _ := os.Create("/root/foundry/.env")
         defer envfile.Close()
 
-        envsecrets, _ := template.New("secrets").Parse(secrets_json_template)
+        envsecrets, _ := template.New("secrets").Parse(env_template)
         envsecrets.Execute(envfile , map[string]interface{}{"ReleaseUrl": dlURL})
 
         w.Write([]byte(response))
