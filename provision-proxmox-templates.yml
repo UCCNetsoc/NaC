@@ -153,6 +153,30 @@
                 net0: "name=eth0,ip=dhcp,tag={{ vlan.dhcp }},bridge={{ vmbr }},firewall=1"
               features: "fuse=1,nesting=1,keyctl=1"
             tasks: "./netsoc-cloud/templates/ubuntu-ghostcms.yml"
+           - lxc:
+              name: "ubuntu-foundry.container.template.netsoc.cloud"
+              storage: netsoc-cloud
+              template:
+                storage: netsoc-cloud
+                image: "ubuntu-20.04-standard_20.04-1_amd64.tar.gz"
+              description:
+                title: "FoundryVTT"
+                subtitle: "The world's most popular modern professional publishing platform"
+                description: |
+                  Used by Apple, SkyNews, Buffer, OpenAI, and thousands more.
+                logo_url: https://raw.githubusercontent.com/UCCNetsoc/cloud/master/ui/public/img/templates/ghost.png
+                wake_on_request: no
+              unprivileged: yes
+              cores: 2
+              memory: 512
+              swap: 512
+              disks:
+                rootfs:
+                  size: 10
+              net:
+                net0: "name=eth0,ip=dhcp,tag={{ vlan.dhcp }},bridge={{ vmbr }},firewall=1"
+              features: "fuse=1,nesting=1,keyctl=1"
+            tasks: "./netsoc-cloud/templates/ubuntu-foundry.yml"
           - vm:
               name: "ubuntu.vps.template.netsoc.cloud"
               storage: netsoc-cloud
