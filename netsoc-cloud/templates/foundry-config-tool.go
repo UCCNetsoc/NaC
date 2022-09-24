@@ -129,7 +129,8 @@ const form = `<!doctype html>
                 <li>Go to <a href="https://foundryvtt.com/" target="_blank">foundryvtt.com</a></li>
                 <li>Login and go to your profile</li>
                 <li>Select <strong>Purchased Licenses</strong> from the left column</li>
-                <li>Select the Download version you would like, with the operating system set to Linux/NodeJS</li>
+                <li>Select the download version you would like, with the operating system set to Linux/NodeJS</li>
+		<li>Click on the <strong>Timed URL</strong> button, to copy the temporary download url to your clipboard</li>
             </ul>
             <input id=dl_url name=dl_url>
             <label for=password>Admin Password:</label> 
