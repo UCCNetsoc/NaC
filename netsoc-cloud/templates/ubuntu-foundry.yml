@@ -1,0 +1,100 @@
+- import_tasks: "./netsoc-cloud/templates/ubuntu-base.yml"
+- import_tasks: "./netsoc-cloud/templates/ubuntu-docker-bare.yml"
+
+- name: Pull FoundryVTT Image
+  community.general.docker_image:
+    name: felddy/foundryvtt:release
+    source: pull
+
+- name: Check Go on Host
+  shell: which go
+  register: result_go
+  delegate_to: localhost
+
+- name: Add Golang PPA
+  shell: |
+    echo -e '\n' | add-apt-repository ppa:longsleep/golang-backports
+  when: result_go.rc != 0
+  delegate_to: localhost
+
+- name: Install golang
+  apt:
+    name: golang-go
+    update_cache: yes
+  when: result_go.rc != 0
+  delegate_to: localhost
+
+- name: Build Config Tool
+  shell:
+    chdir: netsoc-cloud/templates/
+    cmd: >
+      CGO_ENABLED=0 GOOS=linux GOARCH=amd64
+      go build -a -tags netgo -ldflags='-extldflags=-static"'
+      -o /tmp/foundry-conf
+      foundry-config-tool.go
+  delegate_to: localhost
+
+- name: Copy config tool
+  copy:
+    src: "/tmp/foundry-conf"
+    dest: /srv/foundry-conf
+    mode: 0775
+
+- name: Config Tool Service
+  copy:
+    dest: /etc/systemd/system/config_tool.service
+    content: |
+      [Unit]
+      Description=Netsoc FoundryVTT Config
+
+      [Service]
+      Type=simple
+      ExecStart=/srv/foundry-conf
+
+      [Install]
+      WantedBy=multi-user.target
+
+- name: Enable Config Tool
+  service:
+    name: config_tool
+    enabled: true
+
+- name: Make Foundry Folder
+  file:
+    path: /root/foundry
+    state: directory
+
+- name: Make Foundry Data Folder
+  file:
+    path: /root/foundry/data
+    state: directory
+
+- name: Copy over Foundry Docker Compose File
+  copy:
+    dest: /root/foundry/docker-compose.yml
+    content: |
+      ---
+      version: "3.8"
+
+      secrets:
+        config_json:
+          file: secrets.json
+
+      services:
+        foundry:
+          image: felddy/foundryvtt:release
+          hostname: my_foundry_host
+          init: true
+          volumes:
+            - /root/foundry/data:/data
+          environment:
+            - FOUNDRY_RELEASE_URL=${FOUNDRY_RELEASE_URL}
+          ports:
+            - target: 30000
+              published: 80
+              protocol: tcp
+          secrets:
+            - source: config_json
+              target: config.json"
+
+- import_tasks: "./netsoc-cloud/templates/ubuntu-final.yml"
