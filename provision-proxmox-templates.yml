@@ -164,7 +164,7 @@
                 subtitle: "Popular online Virtual Table Top"
                 description: |
                   Play DND and other Tabletop RPGs using the hugely customisable FoundryVTT
-                logo_url: https://raw.githubusercontent.com/UCCNetsoc/cloud/master/ui/public/img/templates/ghost.png
+                logo_url: https://foundryvtt.com/static/assets/icons/fvtt.png
                 wake_on_request: no
               unprivileged: yes
               cores: 2
