@@ -1,0 +1,87 @@
+---
+
+- name: "INFRA - Ensure Motley server"
+  hosts: scalper
+  roles:
+    - role: proxmox-cloudinit-vm
+      vars:
+        vm:
+          name: "motley.infra.netsoc.co"
+          storage: local
+          template:
+            storage: local
+            image_url: "https://cloud-images.ubuntu.com/releases/focal/release-20200921.1/ubuntu-20.04-server-cloudimg-amd64.img"
+            image_hash: sha256:d18a9d2b890d3c1401e70a281cae44b61816aa669c4936f7a99c168e572ec8cb
+          cores: 4
+          memory: 12288
+          description:
+            groups:
+              - vm
+              - web
+              - promtail
+              - prometheus_base
+              - prometheus_docker
+            host_vars:
+              ansible_ssh_private_key_file: "./keys/infra/web/id_rsa"
+          net:
+            net0: "virtio={{ interfaces.infra.web.net0.match.macaddress }},tag={{ vlan.infra }},bridge={{ vmbr }}"
+          disks:
+            boot:
+              size: 45
+            extra:
+              - size: 45
+          cloudinit:
+            storage: local
+            force: yes
+            userdata: |
+              # cloud-config
+              preserve_hostname: false
+              manage_etc_hosts: true
+              fqdn: web.infra.netsoc.co
+              packages:
+                - qemu-guest-agent
+              runcmd:
+                - [ systemctl, enable, qemu-guest-agent ]
+                - [ systemctl, start, qemu-guest-agent, --no-block ]  
+              users:
+                - name: netsoc
+                  gecos: Netsoc Management User
+                  primary_group: netsoc
+                  groups: netsoc
+                  shell: /bin/bash
+                  sudo: ALL=(ALL) NOPASSWD:ALL
+                  ssh_authorized_keys:
+                    - "{{ lookup('file', './keys/infra/web/id_rsa.pub') }}"
+              apt: 
+                preserve_sources_list: true
+                primary:
+                  - arches: [default]
+                    uri: http://ie.archive.ubuntu.com/ubuntu/
+                security:
+                  - uri: http://security.ubuntu.com/ubuntu
+              disk_setup:
+                /dev/vdb:
+                  table_type: 'gpt'
+                  layout:
+                    - [100,83] # 100% Linux fs
+                  overwrite: false
+              fs_setup:
+                - label: data-disk
+                  filesystem: ext4
+                  device: '/dev/vdb1'
+                  overwrite: false
+              mounts:
+                - [ vdb, /netsoc, auto ]
+            networkconfig: 
+              version: 2
+              ethernets: "{{ interfaces.infra.web }}"
+  vars_files:
+    - vars/network.yml
+    - vars/secrets_mapping.yml
+    - vars/secrets.yml
+
+- name: "Reload inventory to pull new VMs"
+  hosts: 127.0.0.1
+  connection: local
+  tasks:
+    - meta: refresh_inventory
