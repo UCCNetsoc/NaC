@@ -219,13 +219,13 @@
                     - main: 'netsoc.co'
                       sans:
                         - '*.netsoc.co'
-              student-media:
-                entrypoints:
-                  - web-secure
-                rule: Host(`motley.ie`,`www.motley.ie`,`www.uccexpress.ie`,`uccexpress.ie`)
-                service: studentmedia-https
-                tls:
-                  certResolver: letsencrypt-tls
+              # student-media:
+              #   entrypoints:
+              #     - web-secure
+              #   rule: Host(`motley.ie`,`www.motley.ie`,`www.uccexpress.ie`,`uccexpress.ie`)
+              #   service: studentmedia-https
+              #   tls:
+              #     certResolver: letsencrypt-tls
               control:
                 entrypoints:
                   - web-secure
@@ -1489,6 +1489,61 @@
   tags:
     - provision
     - shortener
+
+- name: 'Student Media'
+  hosts: web.infra.netsoc.co
+  become: yes
+  tasks:
+    - name: 'Student Media - Remember Motley definition'
+      set_fact:
+        motley_definition:
+          version: '3.5'
+          networks:
+            traefik:
+              external: true
+            motley:
+          services:
+            motleydb:
+              image: mariadb:10.4.8
+              volumes:
+                - /netsoc/student-media/motley/database:/var/lib/mysql
+              restart: always
+              networks:
+                motley:
+            motleywp:
+              networks:
+                motley:
+                traefik:
+              depends_on:
+                - motleydb
+              image: wordpress:php7.4
+              restart: always
+              volumes:
+                - /netsoc/student-media/motley/wordpress:/var/www/html
+              labels:
+                traefik.enable: "true"
+                traefik.http.routers.motley.rule: "Host(`www.motley.ie`, `motley.ie`)"
+                traefik.http.routers.motley.entrypoints: "web-secure"
+                traefik.http.routers.motley.tls.certResolver: "letsencrypt-tls"
+                traefik.http.services.motley-service.loadbalancer.server.port: "80"
+                traefik.http.routers.motley.service: "motley-service"
+                traefik.docker.network: "traefik"
+    - name: 'Motley - Setup compose'
+      docker_compose:
+        project_name: motley
+        recreate: smart
+        restarted: yes
+        remove_orphans: yes
+        state: present
+        definition: '{{ motley_definition }}'
+  vars_files:
+    - 'vars/network.yml'
+    - 'vars/secrets_mapping.yml'
+    - 'vars/secrets.yml'
+  tags:
+    - provision
+    - motley
+
 
 - name: 'LOKI TARGETS' # Keep this at the bottom of the file at all times.
   hosts: web.infra.netsoc.co
