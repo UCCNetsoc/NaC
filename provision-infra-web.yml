@@ -1490,7 +1490,7 @@
     - provision
     - shortener
 
-- name: 'Student Media'
+- name: 'Student Media - Motley'
   hosts: web.infra.netsoc.co
   become: yes
   tasks:
@@ -1542,7 +1542,62 @@
     - 'vars/secrets.yml'
   tags:
     - provision
+    - student_media
     - motley
+
+- name: 'Student Media - UCCExpress'
+  hosts: web.infra.netsoc.co
+  become: yes
+  tasks:
+    - name:  'Student Media - Remember UCCExpress definition'
+      set_fact:
+      uccexpress_definition:
+        version: '3.5':
+        services:
+          uccexpressdb:
+            image: mariadb:10.4.8
+            volumes:
+              - /netsoc/student-media/uccexpress/database:/var/lib/mysql
+            restart: always
+            networks:
+              uccexpress:
+          uccexpresswp:
+            depends_on:
+              - uccexpressdb
+            networks:
+              traefik:
+            image: wordpress:php7.4
+            restart: always
+            volumes:
+              - /netsoc/student-media/uccexpress/wordpress:/var/www/html
+            labels:
+              traefik.enable: "true"
+              traefik.http.routers.uccexpress.rule: "Host(`www.uccexpress.ie`, `uccexpress.ie`)"
+              traefik.http.routers.uccexpress.entrypoints: "web-secure"
+              traefik.http.routers.uccexpress.tls.certResolver: "letsencrypt-tls"
+              traefik.http.services.uccexpress-service.loadbalancer.server.port: "80"
+              traefik.http.routers.uccexpress.service: "uccexpress-service"
+              traefik.docker.network: "traefik"
+    - name: 'UCCExpress - Setup compose'
+      docker_compose:
+        project_name: uccexpress
+        pull: yes
+        recreate: smart
+        restarted: yes
+        remove_orphans: yes
+        state: present
+        definition: '{{ uccexpress_definition }}'
+  vars_files:
+    - 'vars/network.yml'
+    - 'vars/secrets_mapping.yml'
+    - 'vars/secrets.yml'
+  tags:
+    - provision
+    - student_media
+    - uccexpress
+
+
+
 
 
 - name: 'LOKI TARGETS' # Keep this at the bottom of the file at all times.
