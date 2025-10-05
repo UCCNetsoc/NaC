@@ -319,6 +319,13 @@ func main() {
 
 	// Commands to execute after web server shutdown
 	exec.Command("systemctl", "disable", "config_tool.service").Run()
+
+    // must update feldy docker image
+    update_docker_image = exec.Command("docker-compose", "pull")
+    update_docker_image.Dir = "/root/foundry"
+    update_docker_image.Run()
+
+    // launch container
 	docker_cmd := exec.Command("docker-compose", "up", "--detach")
     docker_cmd.Dir = "/root/foundry"
     docker_cmd.Run()
